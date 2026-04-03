@@ -1,0 +1,75 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Facebook } from 'lucide-react';
+const Footer = () => {
+  const {
+    t
+  } = useTranslation();
+  return <footer className="bg-card border-t border-border mt-auto flex flex-col">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-3 mb-6">
+              <img src="https://horizons-cdn.hostinger.com/0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f/cd58ecd48488edbab08e98cb95f1984b.gif" alt="Equalibrinium Community Logo" className="h-10 w-10" />
+              <span className="text-xl md:text-2xl font-bold text-primary leading-tight">Equalibrinium</span>
+            </div>
+            <p className="text-muted-foreground text-sm max-w-sm">
+              {t('home.subtitle')}
+            </p>
+          </div>
+
+          <div>
+            <span className="font-semibold text-foreground mb-4 block">{t('footer.quick_links')}</span>
+            <nav className="flex flex-col gap-2">
+              <Link to="/" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                {t('header.home')}
+              </Link>
+              <Link to="/contractors" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                {t('header.explore')}
+              </Link>
+              <Link to="/register" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                {t('header.register')}
+              </Link>
+            </nav>
+          </div>
+
+          <div>
+            <span className="font-semibold text-foreground mb-4 block">{t('footer.legal')}</span>
+            <nav className="flex flex-col gap-2">
+              <Link to="/terms-of-service" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                {t('footer.terms')}
+              </Link>
+              <Link to="/privacy-policy" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                {t('footer.privacy')}
+              </Link>
+              <Link to="/cookie-policy" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                Cookie Policy
+              </Link>
+              <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                {t('footer.contact')}
+              </Link>
+            </nav>
+          </div>
+        </div>
+
+        <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-muted-foreground text-sm">
+            &copy; {new Date().getFullYear()} Equalibrinium Community. {t('footer.rights')}
+          </p>
+          
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-foreground">{t('footer.follow_us')}</span>
+            <a href="https://www.facebook.com/profile.php?id=61579670221542" target="_blank" rel="noopener noreferrer" className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-primary-foreground transition-all duration-200" aria-label="Facebook">
+              <Facebook className="h-5 w-5" />
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <a href="https://www.globalgiving.org/projects/ukraine-crisis-relief-fund/" target="_blank" rel="noopener noreferrer" className="w-full bg-[#0057B8] text-[#FFD700] text-center py-2.5 text-sm font-medium hover:bg-[#004a9e] hover:underline transition-all duration-200">
+        🇺🇦 Slava Ukraini
+      </a>
+    </footer>;
+};
+export default Footer;

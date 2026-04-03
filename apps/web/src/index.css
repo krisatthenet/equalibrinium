@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 45 98% 51%; /* Equalibrinium Yellow */
+    --primary-foreground: 0 0% 0%;
+    
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
+    
+    --accent: 45 98% 51%;
+    --accent-foreground: 0 0% 0%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 45 98% 51%;
+    
+    --radius: 0.75rem;
+    
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 45 98% 51%;
+    --sidebar-primary-foreground: 0 0% 0%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 45 98% 51%;
+    
+    /* Custom Banner & Badge Colors */
+    --banner-bg: 45 98% 51%;
+    --banner-text: 0 0% 0%;
+    --beta-bg: 45 98% 51%;
+    --beta-text: 0 0% 0%;
+
+    /* Admin Panel Specific Tokens */
+    --admin-bg: 220 10% 4%;
+    --admin-card: 220 10% 8%;
+    --admin-border: 220 10% 15%;
+    --admin-sidebar: 220 10% 6%;
+    --admin-primary: 210 100% 60%;
+    --admin-primary-foreground: 0 0% 100%;
+    --admin-success: 142 71% 45%;
+    --admin-warning: 38 92% 50%;
+    --admin-danger: 348 83% 47%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply text-balance tracking-tight;
+  }
+
+  code, pre, kbd, samp {
+    font-family: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  /* Admin specific utilities */
+  .admin-panel {
+    @apply bg-[hsl(var(--admin-bg))] text-foreground min-h-screen;
+  }
+  .admin-card {
+    @apply bg-[hsl(var(--admin-card))] border border-[hsl(var(--admin-border))] rounded-xl shadow-sm;
+  }
+  .admin-input {
+    @apply bg-[hsl(var(--admin-bg))] border-[hsl(var(--admin-border))] text-foreground focus-visible:ring-[hsl(var(--admin-primary))];
+  }
+
+  /* Custom Animations */
+  .animate-custom-pulse {
+    animation: custom-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes custom-pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.7);
+    }
+    50% {
+      opacity: .9;
+      transform: scale(1.02);
+      box-shadow: 0 0 20px 10px rgba(250, 204, 21, 0);
+    }
+  }
+
+  @keyframes roll-d20 {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(100deg) scale(1.2); }
+    50% { transform: rotate(200deg) scale(0.8); }
+    75% { transform: rotate(280deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+  }
+
+  .animate-roll-d20 {
+    animation: roll-d20 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+}
