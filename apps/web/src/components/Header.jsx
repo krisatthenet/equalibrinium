@@ -29,7 +29,7 @@ const Header = () => {
   };
 
   const getDashboardLink = () => {
-    if (userType === 'master' || userType === 'contractor') return '/dashboard/contractor';
+    if (userType === 'contractor') return '/dashboard/contractor';
     if (userType === 'influencer') return '/dashboard/influencer';
     if (userType === 'client') return '/dashboard/client';
     return '/';
@@ -99,7 +99,7 @@ const Header = () => {
                         {t('header.dashboard')}
                       </Link>
                     </DropdownMenuItem>
-                    {(userType === 'client') && (
+                    {userType === 'client' && (
                       <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
                         <Link to="/favourites" className="flex items-center gap-2 py-2">
                           <Heart className="h-4 w-4 text-rose-500" />

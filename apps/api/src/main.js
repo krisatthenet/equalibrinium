@@ -40,10 +40,8 @@ const corsOptions = {
 	origin: (origin, callback) => {
 		// Allow requests from specified origins
 		const allowedOrigins = [
-			'https://0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f.app-preview.com',
-			'https://equalibrinium.com',
-			'http://equalibrinium.com',
-			'equalibrinium.com',
+			'https://workbee.space',
+			'http://workbee.space',
 		];
 
 		// Allow localhost with any port for development

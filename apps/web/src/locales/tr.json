@@ -15,7 +15,7 @@
       "join": "Bize katılın"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.2",
+      "soft_launch": "Beta v. 0.1.5",
       "full_release": "Tam sürüm: 2. Çeyrek sonu",
       "days_left": "{{days}} gün kaldı"
     },
@@ -24,6 +24,8 @@
       "staliaus paslaugos": "Marangozluk hizmetleri",
       "Patalptu valymas": "Bina temizliği",
       "select": "Meslek seçin",
+      "custom": "Diğer (manuel girin)",
+      "custom_placeholder": "Mesleğinizi girin...",
       "Apdailos darbai": "Bitirme işleri",
       "Tapetavimas": "Duvar kağıdı",
       "Baldų surinkimas": "Mobilya montajı",
@@ -112,7 +114,15 @@
       "back": "Geri",
       "register_btn": "Kayıt Ol",
       "registering": "Hesap Oluşturuluyor...",
-      "has_account": "Zaten hesabınız var mı?"
+      "has_account": "Zaten hesabınız var mı?",
+      "verify_title": "Gelen kutunuzu kontrol edin",
+      "verify_subtitle": "{{email}} adresine doğrulama bağlantısı gönderdik. Hesabınızı etkinleştirmek için tıklayın.",
+      "verify_resend": "Almadınız mı? Yeniden gönder",
+      "verify_resend_loading": "Gönderiliyor...",
+      "verify_resent": "Doğrulama e-postası yeniden gönderildi!",
+      "verify_back_login": "Girişe dön →",
+      "verify_required": "Giriş yapmadan önce e-postanızı doğrulayın.",
+      "verify_resend_link": "E-postayı yeniden gönder"
     },
     "dashboard": {
       "client_title": "Müşteri Paneli",
@@ -159,6 +169,7 @@
     },
     "settings": {
       "title": "Hesap Ayarları",
+      "back_dashboard": "← Panele Dön",
       "subtitle": "Profilinizi, ödeme yöntemlerinizi ve hesap tercihlerinizi yönetin.",
       "tab_profile": "Profil",
       "tab_payment": "Ödeme Yöntemleri",

@@ -18,7 +18,7 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/admin/dashboard';
+  const from = location.state?.from?.pathname || '/admin';
   const isTimeout = new URLSearchParams(location.search).get('timeout') === 'true';
 
   const handleSubmit = async (e) => {

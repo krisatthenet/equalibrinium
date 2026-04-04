@@ -11,17 +11,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Briefcase, Loader2, Megaphone } from 'lucide-react';
+import { User, Briefcase, Loader2, Megaphone, MailCheck } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import ProfessionSelector from '@/components/ProfessionSelector.jsx';
+import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
 
 const RegistrationPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signup, login } = useAuth();
+  const { signup, resendVerification } = useAuth();
   const { toast } = useToast();
   
   const [userType, setUserType] = useState(searchParams.get('type') || '');
@@ -44,6 +45,9 @@ const RegistrationPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -80,7 +84,7 @@ const RegistrationPage = () => {
           email: formData.email,
           password: formData.password,
           name: formData.name,
-          userType: userType === 'contractor' ? 'master' : userType
+          userType
         })
       });
 
@@ -108,50 +112,35 @@ const RegistrationPage = () => {
         extraData.influencerBio = formData.influencerBio;
       }
 
-      const dbUserType = userType === 'contractor' ? 'master' : userType;
+      // Create Account (also sends verification email via signup())
+      await signup(formData.email, formData.password, userType, extraData);
 
-      // 1. Create Account
-      const newUser = await signup(formData.email, formData.password, dbUserType, extraData);
-      await login(formData.email, formData.password);
-
-      // 2. Create contractors record for master/contractor users
-      if ((userType === 'contractor') && newUser?.id) {
-        try {
-          await pb.collection('contractors').create({
-            userId: newUser.id,
-            name: formData.name,
-            profession: formData.profession || '',
-            location: formData.location || '',
-            latitude: 0,
-            longitude: 0,
-            rating: 0,
-            reviewCount: 0,
-            hourlyRate: 0,
-            isPromoted: false,
-          });
-        } catch (contractorErr) {
-          console.warn('Could not create contractor record:', contractorErr);
-        }
-      }
-
-      toast({ title: "Success", description: "Account created successfully!" });
-      const redirectPath = userType === 'contractor' ? '/dashboard/contractor' :
-                           userType === 'influencer' ? '/dashboard/influencer' :
-                           '/dashboard/client';
-      navigate(redirectPath);
+      // Don't auto-login — require email verification first
+      setRegisteredEmail(formData.email);
 
     } catch (err) {
       console.error('Registration error:', err);
       setLoading(false);
       
       if (err.response?.data?.email?.code === 'validation_not_unique') {
-        setError('Email is already registered');
+        // Account already exists — show verify screen (may have been created but verification email failed)
+        setRegisteredEmail(formData.email);
       } else if (err.response?.data?.password) {
         setError('Invalid password format. Please ensure it meets the requirements.');
       } else {
         setError(err.message || 'Registration failed. Please check your connection and try again.');
       }
     }
+  };
+
+  const handleResendVerification = async () => {
+    if (!registeredEmail) return;
+    setResendLoading(true);
+    try {
+      await resendVerification(registeredEmail);
+      setResendSent(true);
+    } catch (_) {}
+    finally { setResendLoading(false); }
   };
 
   const handleChange = (e) => {
@@ -187,7 +176,34 @@ const RegistrationPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!userType ? (
+              {registeredEmail ? (
+                <div className="flex flex-col items-center text-center py-6 space-y-5">
+                  <div className="p-4 bg-primary/10 rounded-full">
+                    <MailCheck className="h-12 w-12 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold mb-2">{t('auth.verify_title')}</h3>
+                    <p className="text-muted-foreground text-sm">
+                      {t('auth.verify_subtitle', { email: registeredEmail })}
+                    </p>
+                  </div>
+                  {resendSent ? (
+                    <p className="text-sm text-primary font-medium">{t('auth.verify_resent')}</p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                      className="text-sm text-primary hover:underline font-medium disabled:opacity-50"
+                    >
+                      {resendLoading ? t('auth.verify_resend_loading') : t('auth.verify_resend')}
+                    </button>
+                  )}
+                  <Link to="/login" className="text-sm text-muted-foreground hover:text-foreground">
+                    {t('auth.verify_back_login')}
+                  </Link>
+                </div>
+              ) : !userType ? (
                 <div className="space-y-4">
                   <p className="text-center text-muted-foreground mb-6 font-medium">
                     {t('auth.choose_type')}
@@ -296,9 +312,11 @@ const RegistrationPage = () => {
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="location">{t('auth.location')}</Label>
-                          <Input
-                            id="location" name="location" type="text"
-                            value={formData.location} onChange={handleChange}
+                          <PlacesAutocompleteInput
+                            value={formData.location}
+                            onChange={(val) => setFormData(prev => ({ ...prev, location: val }))}
+                            onSelectPlace={(place) => setFormData(prev => ({ ...prev, location: place.address }))}
+                            placeholder="Search for your city or address..."
                             className="bg-input border-border text-foreground rounded-lg"
                           />
                         </div>

@@ -35,10 +35,11 @@ const HomePage = () => {
       try {
         const [categoriesData, contractorsData] = await Promise.all([
           pb.collection('categories').getFullList({ $autoCancel: false }),
-          pb.collection('contractors').getList(1, 4, { 
+          pb.collection('users').getList(1, 4, {
+            filter: 'userType = "contractor"',
             sort: '-rating',
             expand: 'categories',
-            $autoCancel: false 
+            $autoCancel: false
           })
         ]);
         setCategories(categoriesData);

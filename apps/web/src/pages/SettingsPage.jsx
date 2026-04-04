@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
@@ -34,15 +34,15 @@ const SettingsPage = () => {
   const [profileLoading, setProfileLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
-  const [contractorRecordId, setContractorRecordId] = useState(null);
   const [clientLocationId, setClientLocationId] = useState(null);
   const [clientLocation, setClientLocation] = useState(null);
   const [profileData, setProfileData] = useState({
     name: currentUser?.name || '',
     phone: currentUser?.phone || '',
     location: currentUser?.location || '',
-    bio: '',
-    profession: '',
+    bio: currentUser?.bio || '',
+    profession: currentUser?.profession || '',
+    hourlyRate: currentUser?.hourlyRate || '',
     instagramHandle: currentUser?.instagramHandle || '',
     youtubeChannel: currentUser?.youtubeChannel || '',
     tiktokHandle: currentUser?.tiktokHandle || '',
@@ -56,7 +56,7 @@ const SettingsPage = () => {
     onboarded: currentUser?.stripeOnboarded || false,
   });
   const [stripeConnectLoading, setStripeConnectLoading] = useState(false);
-  const [contractorBalance, setContractorBalance] = useState(0);
+  const [contractorBalance, setContractorBalance] = useState(Number(currentUser?.balance) || 0);
   const [payoutLoading, setPayoutLoading] = useState(false);
 
   // Account State
@@ -74,35 +74,6 @@ const SettingsPage = () => {
 
   useEffect(() => {
     loadAvatar();
-
-    const fetchContractorData = async () => {
-      if (currentUser?.userType === 'master' || currentUser?.userType === 'contractor') {
-        try {
-          const records = await pb.collection('contractors').getList(1, 1, {
-            filter: `userId = "${currentUser.id}"`,
-            $autoCancel: false
-          });
-          if (records.items.length > 0) {
-            const contractor = records.items[0];
-            setContractorRecordId(contractor.id);
-            setProfileData(prev => ({
-              ...prev,
-              bio: contractor.bio || '',
-              profession: contractor.profession || '',
-              location: contractor.location || prev.location
-            }));
-          }
-          const user = await pb.collection('users').getOne(currentUser.id, { $autoCancel: false });
-          setStripeConnectStatus({
-            accountId: user.stripeAccountId || null,
-            onboarded: user.stripeOnboarded || false,
-          });
-          setContractorBalance(Number(user.balance) || 0);
-        } catch (err) {
-          console.error('Error fetching contractor record:', err);
-        }
-      }
-    };
 
     const fetchClientLocation = async () => {
       if (currentUser?.userType === 'client') {
@@ -122,7 +93,6 @@ const SettingsPage = () => {
       }
     };
 
-    fetchContractorData();
     fetchClientLocation();
   }, [currentUser]);
 
@@ -177,32 +147,28 @@ const SettingsPage = () => {
         formData.append('avatar', avatarFile);
       }
 
-      await pb.collection('users').update(currentUser.id, formData, { $autoCancel: false });
-
-      if ((currentUser.userType === 'master' || currentUser.userType === 'contractor') && contractorRecordId) {
-        const contractorUpdateData = {
-          bio: profileData.bio,
-          name: profileData.name,
-          profession: profileData.profession,
-          location: profileData.location
-        };
-        // Geocode location text to coordinates if Google Maps is available
+      if (currentUser.userType === 'contractor') {
+        formData.append('bio', profileData.bio);
+        formData.append('profession', profileData.profession);
+        if (profileData.hourlyRate) formData.append('hourlyRate', profileData.hourlyRate);
+        // Geocode location to coordinates
         if (profileData.location && window.google?.maps?.Geocoder) {
           try {
             const geocoder = new window.google.maps.Geocoder();
             await new Promise((resolve) => {
               geocoder.geocode({ address: profileData.location }, (results, status) => {
                 if (status === 'OK' && results[0]) {
-                  contractorUpdateData.latitude = results[0].geometry.location.lat();
-                  contractorUpdateData.longitude = results[0].geometry.location.lng();
+                  formData.append('latitude', results[0].geometry.location.lat());
+                  formData.append('longitude', results[0].geometry.location.lng());
                 }
                 resolve();
               });
             });
-          } catch (_) { /* geocoding optional */ }
+          } catch (_) {}
         }
-        await pb.collection('contractors').update(contractorRecordId, contractorUpdateData, { $autoCancel: false });
       }
+
+      await pb.collection('users').update(currentUser.id, formData, { $autoCancel: false });
 
       toast({ title: "Profile Updated", description: "Your profile has been saved successfully." });
     } catch (error) {
@@ -304,7 +270,6 @@ const SettingsPage = () => {
         if (data.onboarded) {
           toast({ title: 'Stripe Connected!', description: 'Your Stripe account is ready to receive payments.' });
         }
-        // Clean URL
         window.history.replaceState({}, '', '/settings');
       }).catch(console.error);
     }
@@ -339,6 +304,17 @@ const SettingsPage = () => {
         <main className="flex-1 py-12">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
+              <Button variant="ghost" asChild className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
+                <Link to={
+                  currentUser?.userType === 'contractor'
+                    ? '/dashboard/contractor'
+                    : currentUser?.userType === 'influencer'
+                    ? '/dashboard/influencer'
+                    : '/dashboard/client'
+                }>
+                  {t('settings.back_dashboard')}
+                </Link>
+              </Button>
               <h1 className="text-3xl font-bold text-foreground">{t('settings.title')}</h1>
               <p className="text-muted-foreground mt-2">{t('settings.subtitle')}</p>
             </div>
@@ -425,21 +401,30 @@ const SettingsPage = () => {
                           />
                         </div>
                         
-                        {(currentUser?.userType === 'master' || currentUser?.userType === 'contractor') && (
+                        {currentUser?.userType === 'contractor' && (
                           <>
                             <div className="space-y-2 md:col-span-2">
                               <Label htmlFor="profession">{t('settings.profession')}</Label>
-                              <ProfessionSelector 
-                                value={profileData.profession} 
-                                onChange={handleProfessionChange} 
+                              <ProfessionSelector
+                                value={profileData.profession}
+                                onChange={handleProfessionChange}
                                 required={true}
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="hourlyRate">Hourly Rate (€)</Label>
+                              <Input
+                                id="hourlyRate" name="hourlyRate" type="number" min="0"
+                                value={profileData.hourlyRate} onChange={handleProfileChange}
+                                className="bg-input border-border text-foreground rounded-lg"
+                                placeholder="e.g. 25"
                               />
                             </div>
                             <div className="space-y-2 md:col-span-2">
                               <Label htmlFor="bio">{t('settings.bio')}</Label>
-                              <Textarea 
+                              <Textarea
                                 id="bio" name="bio" value={profileData.bio} onChange={handleProfileChange}
-                                className="bg-input border-border text-foreground min-h-[120px] rounded-lg" 
+                                className="bg-input border-border text-foreground min-h-[120px] rounded-lg"
                                 placeholder={t('settings.bio_placeholder')}
                               />
                             </div>
@@ -509,9 +494,9 @@ const SettingsPage = () => {
               </TabsContent>
 
               {/* PAYMENT TAB */}
+              {/* PAYMENT TAB */}
               <TabsContent value="payment" className="space-y-6">
-                {(currentUser?.userType === 'master' || currentUser?.userType === 'contractor') ? (
-                  /* Contractors: payout details only */
+                {(currentUser?.userType === 'contractor') ? (
                   <Card className="bg-card border-border rounded-2xl">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -529,7 +514,6 @@ const SettingsPage = () => {
                           A <span className="font-semibold text-foreground">5% service fee</span> is deducted from each payout to cover platform operations and payment processing.
                         </p>
                       </div>
-
                       <div className="rounded-xl border border-border p-4 space-y-4">
                         {stripeConnectStatus.onboarded ? (
                           <>
@@ -540,8 +524,6 @@ const SettingsPage = () => {
                             <p className="text-xs text-muted-foreground">
                               Payments will be transferred directly to your Stripe account (minus 5% platform fee).
                             </p>
-
-                            {/* Balance & payout */}
                             <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
                               <div>
                                 <p className="text-xs text-muted-foreground">Available balance</p>
@@ -556,7 +538,6 @@ const SettingsPage = () => {
                                 Withdraw to Stripe
                               </Button>
                             </div>
-
                             <Button
                               variant="outline"
                               size="sm"
@@ -587,7 +568,6 @@ const SettingsPage = () => {
                     </CardContent>
                   </Card>
                 ) : (
-                  /* Clients: payments handled via Stripe at checkout */
                   <Card className="bg-card border-border rounded-2xl">
                     <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-3">
                       <CreditCard className="w-10 h-10 text-primary" />
@@ -614,7 +594,7 @@ const SettingsPage = () => {
                       </div>
                       <div className="space-y-2">
                         <Label>{t('settings.account_type')}</Label>
-                        <Input value={currentUser?.userType === 'master' || currentUser?.userType === 'contractor' ? 'Contractor / Professional' : currentUser?.userType === 'influencer' ? 'Influencer' : 'Client'} disabled className="bg-muted text-muted-foreground border-border capitalize rounded-lg" />
+                        <Input value={currentUser?.userType === 'contractor' ? 'Contractor / Professional' : currentUser?.userType === 'influencer' ? 'Influencer' : 'Client'} disabled className="bg-muted text-muted-foreground border-border capitalize rounded-lg" />
                       </div>
                     </div>
 

@@ -15,7 +15,7 @@
       "join": "Join us"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.2",
+      "soft_launch": "Beta v. 0.1.5",
       "full_release": "Full release: End of Q2",
       "days_left": "{{days}} days left"
     },
@@ -24,6 +24,8 @@
       "staliaus paslaugos": "Carpentry services",
       "Patalptu valymas": "Premises cleaning",
       "select": "Select profession",
+      "custom": "Other (enter manually)",
+      "custom_placeholder": "Enter your profession...",
       "Apdailos darbai": "Finishing works",
       "Tapetavimas": "Wallpapering",
       "Baldų surinkimas": "Furniture assembly",
@@ -112,7 +114,15 @@
       "back": "Back",
       "register_btn": "Register",
       "registering": "Creating Account...",
-      "has_account": "Already have an account?"
+      "has_account": "Already have an account?",
+      "verify_title": "Check your inbox",
+      "verify_subtitle": "We sent a verification link to {{email}}. Click the link to activate your account before logging in.",
+      "verify_resend": "Didn't receive it? Resend",
+      "verify_resend_loading": "Sending...",
+      "verify_resent": "Verification email resent!",
+      "verify_back_login": "Back to Login →",
+      "verify_required": "Please verify your email before logging in.",
+      "verify_resend_link": "Resend email"
     },
     "dashboard": {
       "client_title": "Client Dashboard",
@@ -159,6 +169,7 @@
     },
     "settings": {
       "title": "Account Settings",
+      "back_dashboard": "← Back to Dashboard",
       "subtitle": "Manage your profile, payment methods, and account preferences.",
       "tab_profile": "Profile",
       "tab_payment": "Payment Methods",

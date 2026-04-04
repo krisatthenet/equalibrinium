@@ -15,7 +15,7 @@
       "join": "Prisijunkite"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.2",
+      "soft_launch": "Beta v. 0.1.5",
       "full_release": "Pilnas startas: Q2 pabaiga",
       "days_left": "Liko {{days}} d."
     },
@@ -24,6 +24,8 @@
       "staliaus paslaugos": "Staliaus paslaugos",
       "Patalptu valymas": "Patalpų valymas",
       "select": "Pasirinkite profesiją",
+      "custom": "Kita (įvesti rankiniu būdu)",
+      "custom_placeholder": "Įveskite savo profesiją...",
       "Apdailos darbai": "Apdailos darbai",
       "Tapetavimas": "Tapetavimas",
       "Baldų surinkimas": "Baldų surinkimas",
@@ -112,7 +114,15 @@
       "back": "Atgal",
       "register_btn": "Registruotis",
       "registering": "Kuriama paskyra...",
-      "has_account": "Jau turite paskyrą?"
+      "has_account": "Jau turite paskyrą?",
+      "verify_title": "Patikrinkite el. paštą",
+      "verify_subtitle": "Išsiuntėme patvirtinimo nuorodą adresu {{email}}. Spustelėkite nuorodą, kad aktyvuotumėte paskyrą.",
+      "verify_resend": "Negavote? Siųsti dar kartą",
+      "verify_resend_loading": "Siunčiama...",
+      "verify_resent": "Patvirtinimo el. laiškas išsiųstas iš naujo!",
+      "verify_back_login": "Grįžti į prisijungimą →",
+      "verify_required": "Prieš prisijungdami patvirtinkite savo el. paštą.",
+      "verify_resend_link": "Siųsti el. laišką iš naujo"
     },
     "dashboard": {
       "client_title": "Kliento skydelis",
@@ -159,6 +169,7 @@
     },
     "settings": {
       "title": "Paskyros nustatymai",
+      "back_dashboard": "← Grįžti į valdymo skydelį",
       "subtitle": "Tvarkykite savo profilį, mokėjimo būdus ir paskyros nuostatas.",
       "tab_profile": "Profilis",
       "tab_payment": "Mokėjimo būdai",

@@ -22,11 +22,11 @@ async function adminPb() {
 
 // ---------------------------------------------------------------------------
 // POST /stripe/create-checkout
-// Body: { ticketId, contractorRecordId, amount, userId }
+// Body: { ticketId, contractorUserId, amount, userId }
 // ---------------------------------------------------------------------------
 router.post('/create-checkout', async (req, res) => {
   try {
-    const { ticketId, contractorRecordId, amount, userId } = req.body;
+    const { ticketId, contractorUserId, amount, userId } = req.body;
     if (!ticketId || !amount || !userId) {
       return res.status(400).json({ error: 'ticketId, amount and userId are required' });
     }
@@ -37,11 +37,10 @@ router.post('/create-checkout', async (req, res) => {
     // Look up contractor's Stripe account if they have one
     let applicationFeeAmount;
     let transferData;
-    if (contractorRecordId) {
+    if (contractorUserId) {
       try {
         const pb = await adminPb();
-        const contractorRecord = await pb.collection('contractors').getOne(contractorRecordId);
-        const contractorUser = await pb.collection('users').getOne(contractorRecord.userId);
+        const contractorUser = await pb.collection('users').getOne(contractorUserId);
         if (contractorUser.stripeAccountId && contractorUser.stripeOnboarded) {
           applicationFeeAmount = Math.round(amount * PLATFORM_FEE_PCT * 100);
           transferData = { destination: contractorUser.stripeAccountId };
@@ -65,7 +64,7 @@ router.post('/create-checkout', async (req, res) => {
       mode: 'payment',
       success_url: `${FRONTEND_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&ticketId=${ticketId}`,
       cancel_url: `${FRONTEND_URL}/payment-error`,
-      metadata: { ticketId, userId, contractorRecordId: contractorRecordId || '' },
+      metadata: { ticketId, userId, contractorUserId: contractorUserId || '' },
     };
 
     if (transferData) {
@@ -191,6 +190,21 @@ router.get('/contractor-dashboard', async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// GET /stripe/user-email?userId=...  — return email using admin credentials
+// ---------------------------------------------------------------------------
+router.get('/user-email', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    const pb = await adminPb();
+    const user = await pb.collection('users').getOne(userId);
+    res.json({ email: user.email, phone: user.phone || null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // POST /stripe/request-payout
 // Body: { userId, amount }  — transfer platform balance to contractor's Stripe account
 // ---------------------------------------------------------------------------
@@ -256,7 +270,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
     try {
       const pb = await adminPb();
-      const { ticketId, userId, contractorRecordId } = session.metadata || {};
+      const { ticketId, userId, contractorUserId } = session.metadata || {};
       if (!ticketId || !userId) {
         logger.warn('Webhook missing ticketId or userId in metadata');
         return res.json({ received: true });
@@ -287,44 +301,34 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       // Mark ticket as Completed
       await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' });
 
-      // Credit contractor balance only when no direct Connect transfer was made
-      // (if transfer_data was used, Stripe already sent the funds to their account)
-      const wasDirectTransfer = !!(session.payment_intent && transferData);
       const contractorPayout = amountPaid * (1 - PLATFORM_FEE_PCT);
-      let contractorUserId = null;
+      let resolvedContractorUserId = contractorUserId || null;
       let contractorStripeOnboarded = false;
 
-      if (contractorRecordId) {
-        try {
-          const contractorRecord = await pb.collection('contractors').getOne(contractorRecordId);
-          contractorUserId = contractorRecord.userId;
-        } catch (_) {}
-      }
-
-      // Fallback: find via accepted bid
-      if (!contractorUserId) {
+      // Fallback: find contractor via accepted bid
+      if (!resolvedContractorUserId) {
         try {
           const ticket = await pb.collection('auction_tickets').getOne(ticketId);
           if (ticket.acceptedBidId) {
             const bid = await pb.collection('bids').getOne(ticket.acceptedBidId);
-            contractorUserId = bid.masterId;
+            resolvedContractorUserId = bid.masterId;
           }
         } catch (_) {}
       }
 
-      if (contractorUserId) {
-        const contractorUser = await pb.collection('users').getOne(contractorUserId);
+      if (resolvedContractorUserId) {
+        const contractorUser = await pb.collection('users').getOne(resolvedContractorUserId);
         contractorStripeOnboarded = !!(contractorUser.stripeAccountId && contractorUser.stripeOnboarded);
 
         // Only credit balance if the payment did NOT go via Stripe Connect transfer
         if (!contractorStripeOnboarded) {
           const currentBalance = Number(contractorUser.balance) || 0;
-          await pb.collection('users').update(contractorUserId, {
+          await pb.collection('users').update(resolvedContractorUserId, {
             balance: parseFloat((currentBalance + contractorPayout).toFixed(2)),
           });
-          logger.info(`Credited €${contractorPayout.toFixed(2)} to contractor ${contractorUserId}`);
+          logger.info(`Credited €${contractorPayout.toFixed(2)} to contractor ${resolvedContractorUserId}`);
         } else {
-          logger.info(`Contractor ${contractorUserId} has Stripe Connect — funds transferred directly, skipping balance credit`);
+          logger.info(`Contractor ${resolvedContractorUserId} has Stripe Connect — funds transferred directly, skipping balance credit`);
         }
       }
 

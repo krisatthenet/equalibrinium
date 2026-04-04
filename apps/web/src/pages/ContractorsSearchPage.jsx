@@ -44,8 +44,10 @@ const ContractorsSearchPage = () => {
       setLoading(true);
       try {
         const [contractorsData, ticketsData] = await Promise.all([
-          pb.collection('contractors').getFullList({
+          pb.collection('users').getFullList({
+            filter: 'userType = "contractor"',
             sort: '-rating',
+            expand: 'categories',
             $autoCancel: false
           }),
           pb.collection('auction_tickets').getList(1, 100, {

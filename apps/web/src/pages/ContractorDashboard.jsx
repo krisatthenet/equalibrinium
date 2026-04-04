@@ -39,11 +39,7 @@ const ContractorDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [profileData, ticketsData, bidsData, reviewsData] = await Promise.all([
-        pb.collection('contractors').getList(1, 1, {
-          filter: `userId = "${currentUser.id}"`,
-          $autoCancel: false
-        }),
+      const [ticketsData, bidsData, reviewsData] = await Promise.all([
         pb.collection('auction_tickets').getList(1, 50, {
           filter: `status = "Open" && (isDirect = false || isDirect = null || assignedContractorId = "")`,
           sort: '-created',
@@ -62,7 +58,7 @@ const ContractorDashboard = () => {
         }).catch(() => [])
       ]);
 
-      setContractorProfile(profileData.items[0] || null);
+      setContractorProfile(currentUser);
       setOpenTickets(ticketsData.items);
       setMyBids(bidsData.items);
       setReviews(reviewsData);
@@ -81,17 +77,14 @@ const ContractorDashboard = () => {
         setTicketsMap(map);
       }
 
-      // Fetch direct requests assigned to this contractor
-      const contractorRecord = profileData.items[0];
-      if (contractorRecord) {
-        const directData = await pb.collection('auction_tickets').getList(1, 50, {
-          filter: `assignedContractorId = "${contractorRecord.id}" && status = "Open"`,
-          sort: '-created',
-          expand: 'categoryId',
-          $autoCancel: false
-        }).catch(() => ({ items: [] }));
-        setDirectRequests(directData.items);
-      }
+      // Fetch direct requests assigned to this contractor (assignedContractorId now stores user ID)
+      const directData = await pb.collection('auction_tickets').getList(1, 50, {
+        filter: `assignedContractorId = "${currentUser.id}" && status = "Open"`,
+        sort: '-created',
+        expand: 'categoryId',
+        $autoCancel: false
+      }).catch(() => ({ items: [] }));
+      setDirectRequests(directData.items);
 
       // Fetch fresh balance from user record
       const userRecord = await pb.collection('users').getOne(currentUser.id, { $autoCancel: false });

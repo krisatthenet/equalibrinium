@@ -15,7 +15,7 @@
       "join": "Присоединяйтесь"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.2",
+      "soft_launch": "Beta v. 0.1.5",
       "full_release": "Полный релиз: Конец Q2",
       "days_left": "Осталось {{days}} дн."
     },
@@ -24,6 +24,8 @@
       "staliaus paslaugos": "Столярные услуги",
       "Patalptu valymas": "Уборка помещений",
       "select": "Выберите профессию",
+      "custom": "Другое (ввести вручную)",
+      "custom_placeholder": "Введите вашу профессию...",
       "Apdailos darbai": "Отделочные работы",
       "Tapetavimas": "Поклейка обоев",
       "Baldų surinkimas": "Сборка мебели",
@@ -112,7 +114,15 @@
       "back": "Назад",
       "register_btn": "Зарегистрироваться",
       "registering": "Создание аккаунта...",
-      "has_account": "Уже есть аккаунт?"
+      "has_account": "Уже есть аккаунт?",
+      "verify_title": "Проверьте входящие",
+      "verify_subtitle": "Мы отправили ссылку подтверждения на {{email}}. Нажмите на неё, чтобы активировать аккаунт.",
+      "verify_resend": "Не получили? Отправить снова",
+      "verify_resend_loading": "Отправка...",
+      "verify_resent": "Письмо подтверждения отправлено!",
+      "verify_back_login": "Вернуться к входу →",
+      "verify_required": "Пожалуйста, подтвердите email перед входом.",
+      "verify_resend_link": "Отправить письмо снова"
     },
     "dashboard": {
       "client_title": "Панель клиента",
@@ -159,6 +169,7 @@
     },
     "settings": {
       "title": "Настройки аккаунта",
+      "back_dashboard": "← Вернуться в панель управления",
       "subtitle": "Управляйте своим профилем, способами оплаты и настройками аккаунта.",
       "tab_profile": "Профиль",
       "tab_payment": "Способы оплаты",

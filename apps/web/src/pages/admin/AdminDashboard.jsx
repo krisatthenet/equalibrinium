@@ -58,7 +58,7 @@ const AdminDashboard = () => {
       try {
         // Fetch users
         const users = await pb.collection('users').getList(1, 1, { filter: 'verified=true', $autoCancel: false });
-        const contractors = await pb.collection('users').getList(1, 1, { filter: "userType='master' || userType='contractor'", $autoCancel: false });
+        const contractors = await pb.collection('users').getList(1, 1, { filter: "userType='contractor'", $autoCancel: false });
         const clients = await pb.collection('users').getList(1, 1, { filter: "userType='client'", $autoCancel: false });
         
         // Fetch tickets

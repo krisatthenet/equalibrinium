@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_FILES = 10;
@@ -247,11 +248,12 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
 
       <div className="space-y-2">
         <Label htmlFor="location">{t('auth.location')}</Label>
-        <Input 
-          id="location" name="location" type="text"
-          value={formData.location} onChange={handleChange}
-          className="bg-input border-border text-foreground rounded-lg"
+        <PlacesAutocompleteInput
+          value={formData.location}
+          onChange={(val) => setFormData(prev => ({ ...prev, location: val }))}
+          onSelectPlace={(place) => setFormData(prev => ({ ...prev, location: place.address }))}
           placeholder="City or address"
+          className="bg-input border-border text-foreground rounded-lg"
         />
       </div>
 

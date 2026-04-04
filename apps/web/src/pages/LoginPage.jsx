@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { Button } from '@/components/ui/button';
@@ -8,14 +9,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MailCheck } from 'lucide-react';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 
 const LoginPage = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, requestPasswordReset } = useAuth();
-  
+  const { login, logout, requestPasswordReset, resendVerification } = useAuth();
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -23,6 +25,9 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [resetSent, setResetSent] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,8 +52,18 @@ const LoginPage = () => {
 
       // 2. Authenticate with PocketBase
       const authData = await login(formData.email, formData.password);
+
+      // Block unverified accounts
+      if (!authData.record.verified) {
+        logout();
+        setUnverifiedEmail(formData.email);
+        return;
+      }
+
       const type = authData.record.userType;
-      const redirectPath = (type === 'master' || type === 'contractor') ? '/dashboard/contractor' : '/dashboard/client';
+      const redirectPath = type === 'contractor' ? '/dashboard/contractor'
+        : type === 'influencer' ? '/dashboard/influencer'
+        : '/dashboard/client';
       navigate(redirectPath);
     } catch (err) {
       console.error('[Login Error]', err);
@@ -68,6 +83,16 @@ const LoginPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return;
+    setResendLoading(true);
+    try {
+      await resendVerification(unverifiedEmail);
+      setResendSent(true);
+    } catch (_) {}
+    finally { setResendLoading(false); }
   };
 
   const handlePasswordReset = async () => {
@@ -115,6 +140,27 @@ const LoginPage = () => {
                 {error && (
                   <Alert variant="destructive" className="rounded-xl">
                     <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                {unverifiedEmail && (
+                  <Alert className="rounded-xl border-yellow-500/30 bg-yellow-500/10">
+                    <MailCheck className="h-4 w-4 text-yellow-600" />
+                    <AlertDescription className="text-yellow-700 dark:text-yellow-400">
+                      {t('auth.verify_required')}{' '}
+                      {resendSent ? (
+                        <span className="font-medium">{t('auth.verify_resent')}</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleResendVerification}
+                          disabled={resendLoading}
+                          className="font-medium underline hover:no-underline disabled:opacity-50"
+                        >
+                          {resendLoading ? t('auth.verify_resend_loading') : t('auth.verify_resend_link')}
+                        </button>
+                      )}
+                    </AlertDescription>
                   </Alert>
                 )}
 

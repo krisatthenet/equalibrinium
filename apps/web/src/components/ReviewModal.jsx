@@ -64,10 +64,7 @@ const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractor
           $autoCancel: false
         });
         const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
-        const contractorRecord = await pb.collection('contractors').getFirstListItem(
-          `userId = "${resolvedContractorId}"`, { $autoCancel: false }
-        );
-        await pb.collection('contractors').update(contractorRecord.id, {
+        await pb.collection('users').update(resolvedContractorId, {
           rating: parseFloat(avg.toFixed(2)),
           reviewCount: allReviews.length
         }, { $autoCancel: false });

@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
+import apiServerClient from '@/lib/apiServerClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil } from 'lucide-react';
@@ -27,6 +28,7 @@ const AuctionTicketDetailsPage = () => {
   const [bids, setBids] = useState([]);
   const [bidders, setBidders] = useState({}); // masterId -> user
   const [loading, setLoading] = useState(true);
+  const [contractorContact, setContractorContact] = useState(null);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -55,6 +57,18 @@ const AuctionTicketDetailsPage = () => {
         const map = {};
         users.forEach(u => { map[u.id] = u; });
         setBidders(map);
+
+        // Fetch contractor email via admin API (emailVisibility hides it for regular users)
+        const accepted = bidsData.find(b => b.status === 'accepted');
+        if (accepted?.masterId) {
+          try {
+            const resp = await apiServerClient.fetch(`/stripe/user-email?userId=${accepted.masterId}`);
+            if (resp.ok) {
+              const data = await resp.json();
+              setContractorContact(data);
+            }
+          } catch (_) {}
+        }
       }
     } catch (error) {
       console.error('Error fetching ticket details:', error);
@@ -118,7 +132,7 @@ const AuctionTicketDetailsPage = () => {
   if (!ticket) return null;
 
   const isClient = currentUser?.id === ticket.clientId;
-  const isContractor = currentUser?.userType === 'master' || currentUser?.userType === 'contractor';
+  const isContractor = currentUser?.userType === 'contractor';
   const myBid = isContractor ? bids.find(b => b.masterId === currentUser.id) : null;
   const acceptedBid = bids.find(b => b.status === 'accepted');
 
@@ -432,14 +446,16 @@ const AuctionTicketDetailsPage = () => {
                           <p className="text-xs text-primary font-medium">{t('auction.rate_agreed', { rate: acceptedBid.proposedRate })}</p>
                         </div>
                       </div>
-                      <a href={`mailto:${contractor.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
-                        <Mail className="h-4 w-4 text-primary shrink-0" />
-                        <span className="truncate text-foreground">{contractor.email}</span>
-                      </a>
-                      {contractor.phone && (
-                        <a href={`tel:${contractor.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                      {(contractorContact?.email || contractor.email) && (
+                        <a href={`mailto:${contractorContact?.email || contractor.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                          <Mail className="h-4 w-4 text-primary shrink-0" />
+                          <span className="truncate text-foreground">{contractorContact?.email || contractor.email}</span>
+                        </a>
+                      )}
+                      {(contractorContact?.phone || contractor.phone) && (
+                        <a href={`tel:${contractorContact?.phone || contractor.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
                           <Phone className="h-4 w-4 text-primary shrink-0" />
-                          <span className="text-foreground">{contractor.phone}</span>
+                          <span className="text-foreground">{contractorContact?.phone || contractor.phone}</span>
                         </a>
                       )}
                     </CardContent>

@@ -20,7 +20,6 @@ const AuctionTicketPaymentPage = () => {
 
   const [ticket, setTicket] = useState(null);
   const [acceptedBid, setAcceptedBid] = useState(null);
-  const [contractorRecordId, setContractorRecordId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState(null);
@@ -34,17 +33,7 @@ const AuctionTicketPaymentPage = () => {
         ]);
 
         setTicket(ticketData);
-        const bid = bidsData[0] || null;
-        setAcceptedBid(bid);
-
-        // Look up contractor record (for Stripe Connect)
-        if (bid?.masterId) {
-          const cRec = await pb.collection('contractors').getList(1, 1, {
-            filter: `userId = "${bid.masterId}"`,
-            $autoCancel: false
-          }).catch(() => ({ items: [] }));
-          if (cRec.items.length > 0) setContractorRecordId(cRec.items[0].id);
-        }
+        setAcceptedBid(bidsData[0] || null);
       } catch (err) {
         setError(err.message || 'Could not load payment details');
       } finally {
@@ -68,7 +57,7 @@ const AuctionTicketPaymentPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ticketId,
-          contractorRecordId: contractorRecordId || null,
+          contractorUserId: acceptedBid?.masterId || null,
           amount,
           userId: currentUser.id,
         }),

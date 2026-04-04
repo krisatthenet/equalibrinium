@@ -7,8 +7,6 @@ import ProtectedRoute from '@/components/ProtectedRoute.jsx';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute.jsx';
 import ScrollToTop from '@/components/ScrollToTop.jsx';
 import CookieConsent from '@/components/CookieConsent.jsx';
-import AdminLayout from '@/components/AdminLayout.jsx';
-
 // Lazy load pages for better performance
 const HomePage = React.lazy(() => import('@/pages/HomePage.jsx'));
 const LoginPage = React.lazy(() => import('@/pages/LoginPage.jsx'));
@@ -41,6 +39,7 @@ const AdminUsersPage = React.lazy(() => import('@/pages/admin/AdminUsersPage.jsx
 const AdminTicketsPage = React.lazy(() => import('@/pages/admin/AdminTicketsPage.jsx'));
 const AdminReviewsPage = React.lazy(() => import('@/pages/admin/AdminReviewsPage.jsx'));
 const AdminAnalyticsPage = React.lazy(() => import('@/pages/admin/AdminAnalyticsPage.jsx'));
+const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 
 // Loading fallback component
@@ -62,6 +61,8 @@ const App = () => {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegistrationPage />} />
+                <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+                <Route path="/auth/confirm-verification/:token" element={<VerifyEmailPage />} />
                 <Route path="/masters" element={<MastersSearchPage />} />
                 <Route path="/contractors" element={<ContractorsSearchPage />} />
                 <Route path="/master/:id" element={<MasterProfilePage />} />
@@ -80,13 +81,8 @@ const App = () => {
                     <ClientDashboard />
                   </ProtectedRoute>
                 } />
-                <Route path="/dashboard/master" element={
-                  <ProtectedRoute allowedRoles={['master']}>
-                    <MasterDashboard />
-                  </ProtectedRoute>
-                } />
                 <Route path="/dashboard/contractor" element={
-                  <ProtectedRoute allowedRoles={['master', 'contractor']}>
+                  <ProtectedRoute allowedRoles={['contractor']}>
                     <ContractorDashboard />
                   </ProtectedRoute>
                 } />
@@ -133,17 +129,12 @@ const App = () => {
 
                 {/* Admin Routes */}
                 <Route path="/admin/login" element={<AdminLoginPage />} />
-                <Route path="/admin" element={
-                  <ProtectedAdminRoute>
-                    <AdminLayout />
-                  </ProtectedAdminRoute>
-                }>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="users" element={<AdminUsersPage />} />
-                  <Route path="tickets" element={<AdminTicketsPage />} />
-                  <Route path="reviews" element={<AdminReviewsPage />} />
-                  <Route path="analytics" element={<AdminAnalyticsPage />} />
-                </Route>
+                <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+                <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
+                <Route path="/admin/users" element={<ProtectedAdminRoute><AdminUsersPage /></ProtectedAdminRoute>} />
+                <Route path="/admin/tickets" element={<ProtectedAdminRoute><AdminTicketsPage /></ProtectedAdminRoute>} />
+                <Route path="/admin/reviews" element={<ProtectedAdminRoute><AdminReviewsPage /></ProtectedAdminRoute>} />
+                <Route path="/admin/analytics" element={<ProtectedAdminRoute><AdminAnalyticsPage /></ProtectedAdminRoute>} />
 
                 {/* Catch-all 404 */}
                 <Route path="*" element={<NotFoundPage />} />

@@ -28,11 +28,11 @@ const FavouritesPage = () => {
       });
       setFavourites(result);
 
-      // Fetch contractor details for each favourite
-      const contractorIds = result.map(f => f.contractorId);
+      // contractorId now stores user IDs — fetch from users
+      const contractorIds = result.map(f => f.contractorId).filter(Boolean);
       if (contractorIds.length > 0) {
         const filter = contractorIds.map(cid => `id = "${cid}"`).join(' || ');
-        const contractorData = await pb.collection('contractors').getFullList({
+        const contractorData = await pb.collection('users').getFullList({
           filter,
           $autoCancel: false
         });

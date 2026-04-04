@@ -22,7 +22,7 @@ const AdminAnalyticsPage = () => {
         // Fetch users for distribution
         const users = await pb.collection('users').getFullList({ $autoCancel: false });
         const clients = users.filter(u => u.userType === 'client').length;
-        const contractors = users.filter(u => u.userType === 'master' || u.userType === 'contractor').length;
+        const contractors = users.filter(u => u.userType === 'contractor').length;
         const influencers = users.filter(u => u.userType === 'influencer').length;
         
         setUserDistData([

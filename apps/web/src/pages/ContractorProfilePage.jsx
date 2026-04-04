@@ -24,7 +24,6 @@ const ContractorProfilePage = () => {
   const { toast } = useToast();
 
   const [contractor, setContractor] = useState(null);
-  const [contractorUser, setContractorUser] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFavourite, setIsFavourite] = useState(false);
@@ -35,25 +34,20 @@ const ContractorProfilePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const contractorData = await pb.collection('contractors').getOne(id, {
-          expand: 'categories',
-          $autoCancel: false
-        });
-        setContractor(contractorData);
-
-        // Fetch the linked user for profile picture and reviews
-        if (contractorData.userId) {
-          const [userData, reviewsData] = await Promise.all([
-            pb.collection('users').getOne(contractorData.userId, { $autoCancel: false }),
-            pb.collection('reviews').getList(1, 50, {
-              filter: `contractorId = "${contractorData.userId}"`,
-              sort: '-created',
-              $autoCancel: false
-            })
-          ]);
-          setContractorUser(userData);
-          setReviews(reviewsData.items);
-        }
+        // id is now the user ID directly
+        const [userData, reviewsData] = await Promise.all([
+          pb.collection('users').getOne(id, {
+            expand: 'categories',
+            $autoCancel: false
+          }),
+          pb.collection('reviews').getList(1, 50, {
+            filter: `contractorId = "${id}"`,
+            sort: '-created',
+            $autoCancel: false
+          })
+        ]);
+        setContractor(userData);
+        setReviews(reviewsData.items);
       } catch (error) {
         console.error('Error fetching contractor profile:', error);
       } finally {
@@ -170,12 +164,10 @@ const ContractorProfilePage = () => {
                   <CardContent className="p-6">
                     <div className="aspect-square bg-muted rounded-xl overflow-hidden mb-6 border border-border">
                       {(() => {
-                        const src = contractorUser?.profilePicture
-                          ? pb.files.getUrl(contractorUser, contractorUser.profilePicture)
-                          : contractorUser?.avatar
-                          ? pb.files.getUrl(contractorUser, contractorUser.avatar)
-                          : contractor.profilePicture
+                        const src = contractor.profilePicture
                           ? pb.files.getUrl(contractor, contractor.profilePicture)
+                          : contractor.avatar
+                          ? pb.files.getUrl(contractor, contractor.avatar)
                           : null;
                         return src ? (
                           <img src={src} alt={contractor.name} className="w-full h-full object-cover" />

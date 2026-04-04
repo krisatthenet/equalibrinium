@@ -20,7 +20,8 @@ const LocatorPage = () => {
       try {
         const [cats, contractorData, ticketData] = await Promise.all([
           pb.collection('categories').getFullList({ sort: 'name', $autoCancel: false }),
-          pb.collection('contractors').getFullList({
+          pb.collection('users').getFullList({
+            filter: 'userType = "contractor"',
             $autoCancel: false
           }).catch(() => []),
           pb.collection('auction_tickets').getFullList({
@@ -103,16 +104,10 @@ const LocatorPage = () => {
             {/* Counts */}
             <div className="ml-auto flex items-center gap-4 text-sm text-muted-foreground">
               {showFilter !== 'contractors' && (
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500" />
-                  {filteredTickets.length} requests
-                </span>
+                <span>{filteredTickets.length} requests</span>
               )}
               {showFilter !== 'tickets' && (
-                <span className="flex items-center gap-1.5">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  {filteredContractors.length} contractors
-                </span>
+                <span>{filteredContractors.length} contractors</span>
               )}
             </div>
           </div>

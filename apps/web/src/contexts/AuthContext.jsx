@@ -38,7 +38,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const record = await pb.collection('users').create(data);
-    await pb.collection('users').requestVerification(email);
+    // Don't let verification email failure block account creation
+    pb.collection('users').requestVerification(email).catch(() => {});
     return record;
   };
 
@@ -57,12 +58,17 @@ export const AuthProvider = ({ children }) => {
     await pb.collection('users').requestPasswordReset(email);
   };
 
+  const resendVerification = async (email) => {
+    await pb.collection('users').requestVerification(email);
+  };
+
   const value = {
     currentUser,
     signup,
     login,
     logout,
     requestPasswordReset,
+    resendVerification,
     isAuthenticated: !!currentUser,
     userType: currentUser?.userType
   };

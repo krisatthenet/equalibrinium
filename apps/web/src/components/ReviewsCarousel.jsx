@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient';
@@ -6,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const ReviewsCarousel = () => {
   const [reviews, setReviews] = useState([]);
+  const [usersMap, setUsersMap] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -15,10 +17,27 @@ const ReviewsCarousel = () => {
       try {
         const records = await pb.collection('reviews').getList(1, 8, {
           sort: '-created',
-          expand: 'clientId,contractorId',
           $autoCancel: false
         });
         setReviews(records.items);
+
+        // Collect all unique user IDs (clientId + contractorId are plain text, not relations)
+        const ids = [
+          ...new Set([
+            ...records.items.map(r => r.clientId),
+            ...records.items.map(r => r.contractorId),
+          ].filter(Boolean))
+        ];
+
+        if (ids.length > 0) {
+          const users = await pb.collection('users').getFullList({
+            filter: ids.map(id => `id = "${id}"`).join(' || '),
+            $autoCancel: false
+          }).catch(() => []);
+          const map = {};
+          users.forEach(u => { map[u.id] = u; });
+          setUsersMap(map);
+        }
       } catch (error) {
         console.error('Error fetching reviews:', error);
       } finally {
@@ -60,16 +79,18 @@ const ReviewsCarousel = () => {
   }
 
   const currentReview = reviews[currentIndex];
+  const client = usersMap[currentReview.clientId];
+  const contractor = usersMap[currentReview.contractorId];
 
   return (
-    <div 
+    <div
       className="w-full max-w-5xl mx-auto py-16 px-4 sm:px-6 lg:px-8"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
       <div className="relative bg-card border border-border rounded-3xl p-8 md:p-12 shadow-lg overflow-hidden">
         <Quote className="absolute top-8 left-8 h-24 w-24 text-primary/10 -z-10 rotate-180" />
-        
+
         <div className="min-h-[200px] flex flex-col justify-center relative z-10">
           <AnimatePresence mode="wait">
             <motion.div
@@ -82,23 +103,33 @@ const ReviewsCarousel = () => {
             >
               <div className="flex gap-1 mb-6">
                 {[...Array(5)].map((_, i) => (
-                  <Star 
-                    key={i} 
-                    className={`h-6 w-6 ${i < currentReview.rating ? 'fill-primary text-primary' : 'fill-muted text-muted'}`} 
+                  <Star
+                    key={i}
+                    className={`h-6 w-6 ${i < currentReview.rating ? 'fill-primary text-primary' : 'fill-muted text-muted'}`}
                   />
                 ))}
               </div>
-              
+
               <blockquote className="text-xl md:text-2xl lg:text-3xl font-medium text-foreground leading-relaxed mb-8 max-w-3xl">
                 "{currentReview.comment || 'Great service, highly recommended!'}"
               </blockquote>
-              
+
               <div className="flex flex-col items-center">
                 <p className="font-semibold text-lg text-foreground">
-                  {currentReview.expand?.clientId?.name || currentReview.expand?.clientId?.email || 'Anonymous Client'}
+                  {client?.name || client?.email || 'Client'}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Reviewed <span className="font-medium text-primary">{currentReview.expand?.contractorId?.name || 'a contractor'}</span>
+                  Reviewed{' '}
+                  {contractor ? (
+                    <Link
+                      to={`/contractor/${currentReview.contractorId}`}
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {contractor.name || contractor.email}
+                    </Link>
+                  ) : (
+                    <span className="font-medium text-primary">a contractor</span>
+                  )}
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
                   {new Date(currentReview.created).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -110,15 +141,15 @@ const ReviewsCarousel = () => {
 
         {reviews.length > 1 && (
           <>
-            <button 
+            <button
               onClick={prevReview}
               className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 hidden md:flex"
               aria-label="Previous review"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
-            
-            <button 
+
+            <button
               onClick={nextReview}
               className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-background/80 backdrop-blur border border-border flex items-center justify-center text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-200 hidden md:flex"
               aria-label="Next review"
