@@ -97,7 +97,7 @@ const ContactPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{t('contact.title')} - Equalibrinium Community</title>
+        <title>{t('contact.title')} - WorkBee</title>
       </Helmet>
       
       <Header />

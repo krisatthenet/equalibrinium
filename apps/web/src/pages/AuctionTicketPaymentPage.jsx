@@ -1,220 +1,187 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import pb from '@/lib/pocketbaseClient.js';
-import { MapPin, Clock, FileText, AlertCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext.jsx';
+import { useToast } from '@/hooks/use-toast';
+import { MapPin, Clock, AlertCircle, CreditCard, Loader2, ShieldCheck, Zap } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
-import PaymentOptionsCard from '@/components/PaymentOptionsCard.jsx';
-import PaymentMethodSelector from '@/components/PaymentMethodSelector.jsx';
+import apiServerClient from '@/lib/apiServerClient.js';
 
 const AuctionTicketPaymentPage = () => {
   const { ticketId } = useParams();
   const navigate = useNavigate();
-  
+  const { currentUser } = useAuth();
+  const { toast } = useToast();
+
   const [ticket, setTicket] = useState(null);
+  const [acceptedBid, setAcceptedBid] = useState(null);
+  const [contractorRecordId, setContractorRecordId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [paying, setPaying] = useState(false);
   const [error, setError] = useState(null);
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [showMethods, setShowMethods] = useState(false);
 
   useEffect(() => {
-    const fetchTicket = async () => {
+    const fetchData = async () => {
       try {
-        const data = await pb.collection('auction_tickets').getOne(ticketId, {
-          expand: 'categoryId',
-          $autoCancel: false
-        });
-        
-        // Ensure ticket has a budget/price to pay against
-        if (!data.budget) {
-          throw new Error("This ticket does not have a set budget/price for payment.");
+        const [ticketData, bidsData] = await Promise.all([
+          pb.collection('auction_tickets').getOne(ticketId, { expand: 'categoryId', $autoCancel: false }),
+          pb.collection('bids').getFullList({ filter: `ticketId = "${ticketId}" && status = "accepted"`, $autoCancel: false }),
+        ]);
+
+        setTicket(ticketData);
+        const bid = bidsData[0] || null;
+        setAcceptedBid(bid);
+
+        // Look up contractor record (for Stripe Connect)
+        if (bid?.masterId) {
+          const cRec = await pb.collection('contractors').getList(1, 1, {
+            filter: `userId = "${bid.masterId}"`,
+            $autoCancel: false
+          }).catch(() => ({ items: [] }));
+          if (cRec.items.length > 0) setContractorRecordId(cRec.items[0].id);
         }
-        
-        setTicket(data);
       } catch (err) {
-        console.error('Error fetching ticket:', err);
-        setError(err.message || 'Ticket not found');
+        setError(err.message || 'Could not load payment details');
       } finally {
         setLoading(false);
       }
     };
+    if (currentUser) fetchData();
+  }, [ticketId, currentUser]);
 
-    fetchTicket();
-  }, [ticketId]);
+  const amount = Number(acceptedBid?.proposedRate || ticket?.budget || 0);
 
-  const handleContinue = () => {
-    if (selectedOption) {
-      setShowMethods(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handlePay = async () => {
+    if (amount <= 0) {
+      toast({ title: 'Invalid amount', description: 'Please contact support.', variant: 'destructive' });
+      return;
+    }
+    setPaying(true);
+    try {
+      const res = await apiServerClient.fetch('/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketId,
+          contractorRecordId: contractorRecordId || null,
+          amount,
+          userId: currentUser.id,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to start checkout');
+      }
+
+      const { url } = await res.json();
+      if (!url) throw new Error('No checkout URL returned');
+
+      // Redirect to Stripe Checkout
+      window.location.href = url;
+    } catch (err) {
+      toast({ title: 'Payment error', description: err.message, variant: 'destructive' });
+      setPaying(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <div className="flex-1 py-12 max-w-7xl mx-auto w-full px-4">
-          <Skeleton className="h-[40vh] w-full mb-8 rounded-3xl" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <Skeleton className="h-96 lg:col-span-1 rounded-2xl" />
-            <Skeleton className="h-96 lg:col-span-2 rounded-2xl" />
-          </div>
-        </div>
-        <Footer />
+  if (loading) return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
+      <div className="flex-1 py-12 max-w-xl mx-auto w-full px-4 space-y-6">
+        <Skeleton className="h-32 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
       </div>
-    );
-  }
+      <Footer />
+    </div>
+  );
 
-  if (error || !ticket) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Header />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="max-w-md w-full text-center space-y-6">
-            <div className="w-20 h-20 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
-              <AlertCircle className="h-10 w-10 text-destructive" />
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">Ticket Not Found</h1>
-            <p className="text-muted-foreground">{error || "The ticket you are trying to pay for does not exist or is unavailable."}</p>
-            <button 
-              onClick={() => navigate('/dashboard/client')}
-              className="bg-primary text-primary-foreground px-6 py-3 rounded-xl font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Return to Dashboard
-            </button>
-          </div>
+  if (error || !ticket) return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Header />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="max-w-md text-center space-y-4">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
+          <h1 className="text-2xl font-bold">Payment Unavailable</h1>
+          <p className="text-muted-foreground">{error || 'Ticket not found.'}</p>
+          <Button asChild className="rounded-xl"><Link to="/dashboard/client">Back to Dashboard</Link></Button>
         </div>
-        <Footer />
       </div>
-    );
-  }
+      <Footer />
+    </div>
+  );
 
   return (
     <>
-      <Helmet>
-        <title>Complete Payment - {ticket.expand?.categoryId?.name || 'Ticket'}</title>
-      </Helmet>
+      <Helmet><title>Complete Payment — WorkBee</title></Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
 
-        {/* Hero Section */}
-        <div className="relative h-[35vh] min-h-[300px] w-full overflow-hidden">
-          <div className="absolute inset-0">
-            <img 
-              src="https://images.unsplash.com/photo-1696246073379-a3a523beffd8" 
-              alt="Payment Hero" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/30" />
-          </div>
-          <div className="absolute inset-0 flex items-end pb-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-              <Badge className="mb-4 bg-primary text-primary-foreground border-none px-3 py-1 text-sm">
-                Secure Checkout
-              </Badge>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight mb-2">
-                Complete Your Payment
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl">
-                Choose your preferred payment option to secure your booking for {ticket.expand?.categoryId?.name || 'this service'}.
-              </p>
+        <div className="flex-1 py-16 flex items-start justify-center">
+          <div className="w-full max-w-lg px-4">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-foreground mb-2">Complete Payment</h1>
+              <p className="text-muted-foreground">You'll be redirected to Stripe's secure checkout</p>
             </div>
-          </div>
-        </div>
 
-        <div className="flex-1 py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-              
-              {/* Left Column: Ticket Details */}
-              <div className="lg:col-span-4 space-y-6">
-                <div className="bg-card border border-border rounded-2xl p-6 shadow-sm sticky top-28">
-                  <h2 className="text-xl font-bold text-foreground mb-4 border-b border-border pb-4">Order Summary</h2>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Service</p>
-                      <p className="font-medium text-foreground">{ticket.expand?.categoryId?.name || 'Custom Service Request'}</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Description</p>
-                      <p className="text-sm text-foreground line-clamp-3">{ticket.description}</p>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-sm text-foreground">
-                      <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{ticket.location || 'Location not specified'}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3 text-sm text-foreground">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <span>{ticket.durationEstimate || 'Duration not specified'}</span>
-                    </div>
-
-                    {ticket.files && ticket.files.length > 0 && (
-                      <div className="flex items-center gap-3 text-sm text-foreground">
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                        <span>{ticket.files.length} attachment(s) included</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="mt-6 pt-6 border-t border-border">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Total Value</span>
-                      <span className="text-2xl font-bold text-foreground">€{ticket.budget.toFixed(2)}</span>
-                    </div>
-                  </div>
+            {/* Order summary */}
+            <Card className="bg-card border-border rounded-2xl mb-6">
+              <CardHeader><CardTitle className="text-lg">Order Summary</CardTitle></CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Service</span>
+                  <span className="font-medium text-foreground">{ticket.expand?.categoryId?.name || 'Service Request'}</span>
                 </div>
-              </div>
-
-              {/* Right Column: Payment Flow */}
-              <div className="lg:col-span-8">
-                {!showMethods ? (
-                  <div className="space-y-8 animate-in fade-in duration-500">
-                    <div>
-                      <h2 className="text-2xl font-bold text-foreground mb-2">1. Select Payment Option</h2>
-                      <p className="text-muted-foreground">Choose how you would like to pay for this service.</p>
-                    </div>
-
-                    <PaymentOptionsCard 
-                      price={ticket.budget} 
-                      selectedOption={selectedOption} 
-                      onSelectOption={setSelectedOption} 
-                    />
-
-                    <div className="flex justify-end pt-4">
-                      <button
-                        onClick={handleContinue}
-                        disabled={!selectedOption}
-                        className={`px-8 py-4 rounded-xl font-bold text-lg transition-all duration-200 ${
-                          selectedOption 
-                            ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-lg active:scale-[0.98]' 
-                            : 'bg-muted text-muted-foreground cursor-not-allowed'
-                        }`}
-                      >
-                        Continue to Payment
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="max-w-2xl mx-auto">
-                    <PaymentMethodSelector 
-                      ticketId={ticket.id}
-                      price={ticket.budget}
-                      selectedOption={selectedOption}
-                      onBack={() => setShowMethods(false)}
-                    />
+                {ticket.location && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />Location</span>
+                    <span className="text-foreground">{ticket.location}</span>
                   </div>
                 )}
-              </div>
+                {ticket.durationEstimate && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Duration</span>
+                    <span className="text-foreground">{ticket.durationEstimate}</span>
+                  </div>
+                )}
+                <div className="pt-3 border-t border-border flex justify-between items-center">
+                  <span className="font-semibold text-foreground">Total</span>
+                  <span className="text-3xl font-bold text-foreground">€{amount.toFixed(2)}</span>
+                </div>
+                {acceptedBid && (
+                  <p className="text-xs text-muted-foreground">Agreed rate from accepted bid</p>
+                )}
+              </CardContent>
+            </Card>
 
+            {/* Pay button */}
+            <Button
+              onClick={handlePay}
+              disabled={paying || amount <= 0}
+              className="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
+            >
+              {paying ? (
+                <><Loader2 className="h-5 w-5 animate-spin mr-2" />Redirecting to Stripe...</>
+              ) : (
+                <><CreditCard className="h-5 w-5 mr-2" />Pay €{amount.toFixed(2)} with Card</>
+              )}
+            </Button>
+
+            <div className="flex items-center justify-center gap-6 mt-4 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-green-500" />
+                256-bit SSL encrypted
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5 text-primary" />
+                Powered by Stripe
+              </span>
             </div>
           </div>
         </div>

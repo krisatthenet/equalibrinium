@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Loader2, Receipt } from 'lucide-react';
+import { CheckCircle, ArrowRight, Loader2, Receipt, Star } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import apiServerClient from '@/lib/apiServerClient.js';
@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import ReviewModal from '@/components/ReviewModal.jsx';
 
 const PaymentSuccessPage = () => {
   const [searchParams] = useSearchParams();
@@ -18,114 +19,75 @@ const PaymentSuccessPage = () => {
   const [status, setStatus] = useState('verifying'); // verifying, success, error
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [reviewTarget, setReviewTarget] = useState(null);
+  const [reviewDone, setReviewDone] = useState(false);
 
   useEffect(() => {
-    const verifyAndRecordPayment = async () => {
+    const verify = async () => {
       try {
         const sessionId = searchParams.get('session_id');
-        let ticketId = searchParams.get('ticketId');
-        let option = searchParams.get('option');
-        let method = searchParams.get('method');
-        let amount = parseFloat(searchParams.get('amount'));
-        let transactionId = sessionId || searchParams.get('token') || `txn_${Date.now()}`;
-
-        // Fallback to localStorage if URL params are missing (e.g., some Stripe redirects)
-        if (!ticketId || !option) {
-          const pendingStr = localStorage.getItem('pendingPayment');
-          if (pendingStr) {
-            const pending = JSON.parse(pendingStr);
-            ticketId = ticketId || pending.ticketId;
-            option = option || pending.paymentOption;
-            method = method || pending.paymentMethod;
-            amount = amount || pending.amount;
-          }
-        }
+        const ticketId = searchParams.get('ticketId');
 
         if (!ticketId || !currentUser) {
-          throw new Error("Missing required payment information or user session.");
+          throw new Error('Missing payment information or user session.');
+        }
+        if (!sessionId) {
+          throw new Error('No Stripe session ID found.');
         }
 
-        // If Stripe, verify session with backend
-        if (sessionId) {
-          const res = await apiServerClient.fetch(`/stripe/session/${sessionId}`);
-          if (!res.ok) throw new Error("Failed to verify payment session.");
-          const sessionData = await res.json();
-          
-          if (sessionData.status !== 'complete' && sessionData.status !== 'paid') {
-            // Sometimes it's 'open' if not finished
-            console.warn("Session not fully paid yet:", sessionData.status);
-          }
-          
-          // Use actual amount from Stripe if available
-          if (sessionData.amountTotal) {
-            amount = sessionData.amountTotal / 100;
-          }
+        // Verify session with backend
+        const res = await apiServerClient.fetch(`/stripe/session/${sessionId}`);
+        if (!res.ok) throw new Error('Failed to verify payment session.');
+        const sessionData = await res.json();
+
+        if (sessionData.status !== 'paid') {
+          throw new Error(`Payment not confirmed (status: ${sessionData.status}). Please contact support.`);
         }
 
-        // Check if payment record already exists to prevent duplicates
-        const existingRecords = await pb.collection('payments').getFullList({
-          filter: `transactionId = "${transactionId}"`,
-          $autoCancel: false
-        });
+        const amount = (sessionData.amountTotal || 0) / 100;
 
-        let record;
-        if (existingRecords.length > 0) {
-          record = existingRecords[0];
-        } else {
-          // Create new payment record
-          record = await pb.collection('payments').create({
-            ticketId,
-            userId: currentUser.id,
-            amount,
-            paymentMethod: method || 'unknown',
-            paymentOption: option || 'unknown',
-            status: 'completed',
-            transactionId
-          }, { $autoCancel: false });
-          
-          // Update ticket status if needed
-          await pb.collection('auction_tickets').update(ticketId, {
-            status: 'In Progress' // Or whatever status makes sense post-payment
-          }, { $autoCancel: false });
-        }
+        // Wait briefly for webhook to process (it may beat us here)
+        await new Promise(r => setTimeout(r, 1500));
 
-        // Fetch ticket details for display
+        // Fetch ticket for display
         const ticket = await pb.collection('auction_tickets').getOne(ticketId, {
           expand: 'categoryId',
           $autoCancel: false
         });
 
-        setPaymentDetails({
-          record,
-          ticket,
-          amount,
-          method,
-          option
-        });
-        
-        // Clear pending payment
+        // Find contractor for review prompt
+        const bids = await pb.collection('bids').getFullList({
+          filter: `ticketId = "${ticketId}" && status = "accepted"`,
+          expand: 'masterId',
+          $autoCancel: false
+        }).catch(() => []);
+        if (bids.length > 0 && bids[0].expand?.masterId) {
+          const c = bids[0].expand.masterId;
+          setReviewTarget({ contractorId: c.id, contractorName: c.name, ticketId });
+        }
+
+        setPaymentDetails({ ticket, amount, sessionId });
         localStorage.removeItem('pendingPayment');
         setStatus('success');
-
       } catch (error) {
-        console.error("Payment verification error:", error);
-        setErrorMessage(error.message || "Could not verify payment status.");
+        console.error('Payment verification error:', error);
+        setErrorMessage(error.message || 'Could not verify payment status.');
         setStatus('error');
       }
     };
 
     if (currentUser) {
-      verifyAndRecordPayment();
+      verify();
     } else {
       setStatus('error');
-      setErrorMessage("You must be logged in to verify this payment.");
+      setErrorMessage('You must be logged in to verify this payment.');
     }
   }, [searchParams, currentUser]);
 
   return (
     <>
       <Helmet>
-        <title>Payment Successful - Equalibrinium</title>
+        <title>Payment Successful - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -169,15 +131,13 @@ const PaymentSuccessPage = () => {
                     
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Payment Method</span>
-                      <span className="font-medium text-foreground capitalize">
-                        {paymentDetails.method?.replace('_', ' ')}
-                      </span>
+                      <span className="font-medium text-foreground">Stripe / Card</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">Transaction ID</span>
+                      <span className="text-muted-foreground">Session ID</span>
                       <span className="font-mono text-xs text-foreground bg-background px-2 py-1 rounded border border-border">
-                        {paymentDetails.record?.transactionId?.substring(0, 16)}...
+                        {paymentDetails.sessionId?.substring(0, 20)}...
                       </span>
                     </div>
                   </div>
@@ -186,9 +146,25 @@ const PaymentSuccessPage = () => {
                     A confirmation email has been sent to your registered email address.
                   </p>
 
+                  {reviewTarget && !reviewDone && (
+                    <div className="bg-muted/40 rounded-xl p-4 border border-border text-center space-y-3">
+                      <p className="text-sm font-medium text-foreground">How was your experience?</p>
+                      <p className="text-xs text-muted-foreground">Leave a review for <strong>{reviewTarget.contractorName}</strong></p>
+                      <Button
+                        onClick={() => setReviewTarget(reviewTarget)}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl w-full"
+                      >
+                        <Star className="h-4 w-4 mr-2" /> Leave a Review
+                      </Button>
+                    </div>
+                  )}
+                  {reviewDone && (
+                    <p className="text-sm text-center text-green-500 font-medium">✓ Review submitted, thank you!</p>
+                  )}
+
                   <div className="flex flex-col sm:flex-row gap-4 pt-4">
                     <Button asChild variant="outline" className="flex-1 rounded-xl h-12">
-                      <Link to={`/ticket/${paymentDetails.ticket?.id}`}>
+                      <Link to={`/auction-ticket/${paymentDetails.ticket?.id}`}>
                         <Receipt className="mr-2 h-4 w-4" />
                         View Ticket
                       </Link>
@@ -225,6 +201,17 @@ const PaymentSuccessPage = () => {
 
         <Footer />
       </div>
+
+      {reviewTarget && (
+        <ReviewModal
+          open={!!reviewTarget}
+          onClose={() => setReviewTarget(null)}
+          contractorId={reviewTarget.contractorId}
+          contractorName={reviewTarget.contractorName}
+          ticketId={reviewTarget.ticketId}
+          onSubmitted={() => { setReviewDone(true); setReviewTarget(null); }}
+        />
+      )}
     </>
   );
 };

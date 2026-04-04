@@ -147,7 +147,7 @@ const MastersSearchPage = () => {
   return (
     <>
       <Helmet>
-        <title>{t('search.title')} - Equalibrinium Community</title>
+        <title>{t('search.title')} - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">

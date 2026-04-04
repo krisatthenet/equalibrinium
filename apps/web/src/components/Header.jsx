@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
-import { Menu, X, User, LogOut, LayoutDashboard, Settings } from 'lucide-react';
+import { Menu, X, User, LogOut, LayoutDashboard, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -44,7 +44,7 @@ const Header = () => {
   return (
     <>
       <PartnersBanner />
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
+      <header className="sticky top-0 z-[9999] bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
         <div className="w-full px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20 md:h-24">
             <div className="flex items-center gap-4 md:gap-6">
@@ -58,7 +58,7 @@ const Header = () => {
               <Link to="/" className="text-foreground hover:text-primary font-medium transition-colors duration-200">
                 {t('header.home')}
               </Link>
-              <Link to="/contractors" className="text-foreground hover:text-primary font-medium transition-colors duration-200">
+              <Link to="/explore" className="text-foreground hover:text-primary font-medium transition-colors duration-200">
                 {t('header.explore')}
               </Link>
               <Link to="/register" className="text-foreground hover:text-primary font-medium transition-colors duration-200">
@@ -74,10 +74,7 @@ const Header = () => {
                   <Button variant="ghost" asChild className="text-foreground hover:bg-muted hover:text-foreground font-medium">
                     <Link to="/login">{t('header.login')}</Link>
                   </Button>
-                  <Button asChild variant="outline" className="border-primary text-primary hover:bg-primary hover:text-primary-foreground font-semibold transition-all active:scale-[0.98]">
-                    <Link to="/register?type=influencer">Join Us</Link>
-                  </Button>
-                  <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold transition-all active:scale-[0.98]">
+<Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-md font-semibold transition-all active:scale-[0.98]">
                     <Link to="/register">{t('header.register')}</Link>
                   </Button>
                 </>
@@ -102,6 +99,14 @@ const Header = () => {
                         {t('header.dashboard')}
                       </Link>
                     </DropdownMenuItem>
+                    {(userType === 'client') && (
+                      <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
+                        <Link to="/favourites" className="flex items-center gap-2 py-2">
+                          <Heart className="h-4 w-4 text-rose-500" />
+                          Favourite Contractors
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
                       <Link to="/settings" className="flex items-center gap-2 py-2">
                         <Settings className="h-4 w-4" />
@@ -135,7 +140,7 @@ const Header = () => {
                 <Link to="/" className="text-foreground font-medium hover:text-primary transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>
                   {t('header.home')}
                 </Link>
-                <Link to="/contractors" className="text-foreground font-medium hover:text-primary transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/explore" className="text-foreground font-medium hover:text-primary transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>
                   {t('header.explore')}
                 </Link>
                 <Link to="/register" className="text-foreground font-medium hover:text-primary transition-colors duration-200" onClick={() => setMobileMenuOpen(false)}>
@@ -146,10 +151,7 @@ const Header = () => {
                     <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-muted font-medium">{t('header.login')}</Button>
                     </Link>
-                    <Link to="/register?type=influencer" onClick={() => setMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full border-primary text-primary hover:bg-primary hover:text-primary-foreground font-semibold">Join Us</Button>
-                    </Link>
-                    <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+<Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                       <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold">{t('header.register')}</Button>
                     </Link>
                   </div>
@@ -174,6 +176,14 @@ const Header = () => {
                         {t('header.dashboard')}
                       </Button>
                     </Link>
+                    {userType === 'client' && (
+                      <Link to="/favourites" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-muted font-medium">
+                          <Heart className="h-4 w-4 mr-2 text-rose-500" />
+                          Favourite Contractors
+                        </Button>
+                      </Link>
+                    )}
                     <Link to="/settings" onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-muted font-medium">
                         <Settings className="h-4 w-4 mr-2" />

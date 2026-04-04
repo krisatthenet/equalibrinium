@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-const RECAPTCHA_SITE_KEY = '6LdRYIssAAAAAOGnhU8bU_jJdqPNpZeNJmyaIhcr';
+const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcmgqUsAAAAAHnyOtf3yX4-0nF641yU57mTa8_G';
 
 export const useRecaptchaV3 = (action) => {
   const [token, setToken] = useState(null);

@@ -10,8 +10,8 @@ const CookiePolicy = () => {
   return (
     <>
       <Helmet>
-        <title>Slapukų politika - Equalibrinium Community</title>
-        <meta name="description" content="Sužinokite, kaip Equalibrinium Community naudoja slapukus jūsų naršymo patirčiai gerinti." />
+        <title>Slapukų politika - WorkBee</title>
+        <meta name="description" content="Sužinokite, kaip WorkBee naudoja slapukus jūsų naršymo patirčiai gerinti." />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-black">
@@ -30,7 +30,7 @@ const CookiePolicy = () => {
               <section>
                 <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">Slapukų politika</h1>
                 <p className="text-lg text-muted-foreground leading-relaxed">
-                  Ši slapukų politika paaiškina, kas yra slapukai ir kaip mes juos naudojame „Equalibrinium Community“ platformoje. 
+                  Ši slapukų politika paaiškina, kas yra slapukai ir kaip mes juos naudojame „WorkBee“ platformoje. 
                   Prašome perskaityti šią politiką, kad suprastumėte, kokią informaciją renkame naudodami slapukus ir kaip ta informacija yra naudojama.
                 </p>
               </section>

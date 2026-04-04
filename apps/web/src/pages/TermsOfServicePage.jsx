@@ -10,7 +10,7 @@ const TermsOfServicePage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{t('legal.terms_title')} - Equalibrinium Community</title>
+        <title>{t('legal.terms_title')} - WorkBee</title>
       </Helmet>
       
       <Header />
@@ -24,13 +24,13 @@ const TermsOfServicePage = () => {
           
           <div className="prose prose-neutral dark:prose-invert max-w-none">
             <p className="text-lg text-muted-foreground mb-8">
-              Welcome to Equalibrinium Community. By accessing or using our platform, you agree to be bound by these Terms of Service. Please read them carefully.
+              Welcome to WorkBee. By accessing or using our platform, you agree to be bound by these Terms of Service. Please read them carefully.
             </p>
 
             <section className="mb-10">
               <h2 className="text-2xl font-semibold text-foreground mb-4">1. User Responsibilities</h2>
               <p className="text-muted-foreground mb-4">
-                As a user of the Equalibrinium Community platform, whether as a client or contractor, you agree to:
+                As a user of the WorkBee platform, whether as a client or contractor, you agree to:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>Provide accurate, current, and complete information during registration.</li>
@@ -44,7 +44,7 @@ const TermsOfServicePage = () => {
             <section className="mb-10">
               <h2 className="text-2xl font-semibold text-foreground mb-4">2. Service Limitations</h2>
               <p className="text-muted-foreground mb-4">
-                Equalibrinium Community acts solely as a marketplace connecting clients with contractors. We do not directly provide the services listed on our platform. Therefore:
+                WorkBee acts solely as a marketplace connecting clients with contractors. We do not directly provide the services listed on our platform. Therefore:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>We do not guarantee the quality, safety, or legality of the services advertised.</li>
@@ -60,22 +60,22 @@ const TermsOfServicePage = () => {
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>Users are encouraged to resolve the issue amicably between themselves first.</li>
-                <li>Equalibrinium Community may, at its discretion, offer mediation services, but is under no obligation to do so.</li>
-                <li>Equalibrinium Community is not liable for any financial losses or damages resulting from user disputes.</li>
+                <li>WorkBee may, at its discretion, offer mediation services, but is under no obligation to do so.</li>
+                <li>WorkBee is not liable for any financial losses or damages resulting from user disputes.</li>
               </ul>
             </section>
 
             <section className="mb-10">
               <h2 className="text-2xl font-semibold text-foreground mb-4">4. Intellectual Property</h2>
               <p className="text-muted-foreground mb-4">
-                All content on the Equalibrinium Community platform, including logos, text, graphics, and software, is the property of Equalibrinium Community or its licensors and is protected by intellectual property laws. Users retain ownership of the content they upload (e.g., portfolio images) but grant Equalibrinium Community a license to display it on the platform.
+                All content on the WorkBee platform, including logos, text, graphics, and software, is the property of WorkBee or its licensors and is protected by intellectual property laws. Users retain ownership of the content they upload (e.g., portfolio images) but grant WorkBee a license to display it on the platform.
               </p>
             </section>
 
             <section className="mb-10">
               <h2 className="text-2xl font-semibold text-foreground mb-4">5. Liability Limitations</h2>
               <p className="text-muted-foreground mb-4">
-                To the maximum extent permitted by law, Equalibrinium Community shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the platform.
+                To the maximum extent permitted by law, WorkBee shall not be liable for any indirect, incidental, special, consequential, or punitive damages, or any loss of profits or revenues, whether incurred directly or indirectly, or any loss of data, use, goodwill, or other intangible losses resulting from your use of the platform.
               </p>
             </section>
 

@@ -1,33 +1,25 @@
 import express from 'express';
-import { authenticateUser, registerUser } from '../utils/pocketbase.js';
+import { authenticateUser } from '../utils/pocketbase.js';
 import logger from '../utils/logger.js';
 
 const router = express.Router();
 
 /**
  * POST /auth/register
- * Register a new user
+ * Validate registration data (user creation is handled directly by the frontend via PocketBase)
  */
 router.post('/register', async (req, res) => {
-  const { email, password, name } = req.body;
+  const { email, password } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
-      error: 'Email and password are required',
+      message: 'Email and password are required',
     });
   }
 
-  logger.info(`User registration attempt for email: ${email}`);
+  logger.info(`Registration validation passed for email: ${email}`);
 
-  // Register user - throw Error so errorMiddleware catches it
-  const result = await registerUser(email, password, name || '');
-
-  logger.info(`User registered successfully: ${email}`);
-
-  res.status(201).json({
-    token: result.token,
-    user: result.user,
-  });
+  res.status(200).json({ ok: true });
 });
 
 /**

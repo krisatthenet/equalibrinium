@@ -3,9 +3,8 @@ import { Helmet } from 'react-helmet';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
-import { Star, MapPin, Search, Map as MapIcon, List } from 'lucide-react';
+import { Star, MapPin, Map as MapIcon, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,7 +12,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import GoogleMapsIntegration from '@/components/GoogleMapsIntegration.jsx';
-import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
 
 const ContractorsSearchPage = () => {
   const { t } = useTranslation();
@@ -147,7 +145,7 @@ const ContractorsSearchPage = () => {
   return (
     <>
       <Helmet>
-        <title>{t('search.title')} - Equalibrinium Community</title>
+        <title>{t('search.title')} - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -157,32 +155,12 @@ const ContractorsSearchPage = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h1 className="text-4xl font-bold mb-8 text-foreground">{t('search.title')}</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
-              <div className="relative md:col-span-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t('search.search_placeholder')}
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  className="pl-10 bg-input border-border text-foreground rounded-lg"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <PlacesAutocompleteInput 
-                  value={filters.location}
-                  onChange={(val) => handleFilterChange('location', val)}
-                  onSelectPlace={handleLocationSelect}
-                  placeholder={t('search.location_placeholder')}
-                  className="bg-input border-border text-foreground rounded-lg"
-                />
-              </div>
-
-              <Select 
-                value={filters.category || undefined} 
+            <div className="flex flex-wrap gap-4 mb-8">
+              <Select
+                value={filters.category || undefined}
                 onValueChange={(value) => handleFilterChange('category', value)}
               >
-                <SelectTrigger className="bg-input border-border text-foreground rounded-lg">
+                <SelectTrigger className="w-48 bg-input border-border text-foreground rounded-lg">
                   <SelectValue placeholder={t('search.category_placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -195,7 +173,7 @@ const ContractorsSearchPage = () => {
               </Select>
 
               <Select value={filters.radius} onValueChange={(value) => handleFilterChange('radius', value)}>
-                <SelectTrigger className="bg-input border-border text-foreground rounded-lg">
+                <SelectTrigger className="w-40 bg-input border-border text-foreground rounded-lg">
                   <SelectValue placeholder={t('search.radius_placeholder')} />
                 </SelectTrigger>
                 <SelectContent>

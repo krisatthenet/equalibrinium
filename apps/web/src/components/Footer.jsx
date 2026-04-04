@@ -11,8 +11,8 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="md:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <img src="https://horizons-cdn.hostinger.com/0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f/cd58ecd48488edbab08e98cb95f1984b.gif" alt="Equalibrinium Community Logo" className="h-10 w-10" />
-              <span className="text-xl md:text-2xl font-bold text-primary leading-tight">Equalibrinium</span>
+              <img src="/logo.svg" alt="WorkBee Logo" className="h-10 w-10" />
+              <span className="text-xl md:text-2xl font-bold text-primary leading-tight">WorkBee</span>
             </div>
             <p className="text-muted-foreground text-sm max-w-sm">
               {t('home.subtitle')}
@@ -55,7 +55,7 @@ const Footer = () => {
 
         <div className="border-t border-border mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-muted-foreground text-sm">
-            &copy; {new Date().getFullYear()} Equalibrinium Community. {t('footer.rights')}
+            &copy; {new Date().getFullYear()} WorkBee. {t('footer.rights')}
           </p>
           
           <div className="flex items-center gap-4">

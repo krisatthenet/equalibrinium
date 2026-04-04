@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download } from 'lucide-react';
+import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import BidForm from '@/components/BidForm.jsx';
+import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
 
 const AuctionTicketDetailsPage = () => {
   const { id } = useParams();
@@ -26,6 +27,7 @@ const AuctionTicketDetailsPage = () => {
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -78,6 +80,16 @@ const AuctionTicketDetailsPage = () => {
     }
   };
 
+  const handleMarkCompleted = async () => {
+    try {
+      await pb.collection('auction_tickets').update(id, { status: 'Completed' }, { $autoCancel: false });
+      toast({ title: "Success", description: t('auction.ticket_completed') });
+      fetchData();
+    } catch (error) {
+      toast({ title: "Error", description: "Could not mark as completed.", variant: "destructive" });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
@@ -96,6 +108,7 @@ const AuctionTicketDetailsPage = () => {
   const isClient = currentUser?.id === ticket.clientId;
   const isContractor = currentUser?.userType === 'master' || currentUser?.userType === 'contractor';
   const myBid = isContractor ? bids.find(b => b.masterId === currentUser.id) : null;
+  const acceptedBid = bids.find(b => b.status === 'accepted');
 
   const images = ticket.files?.filter(f => f.match(/\.(jpg|jpeg|png|gif|webp)$/i)) || [];
   const pdfs = ticket.files?.filter(f => f.match(/\.pdf$/i)) || [];
@@ -127,9 +140,32 @@ const AuctionTicketDetailsPage = () => {
                   </Badge>
                 </div>
                 <p className="text-muted-foreground text-sm">
-                  Posted on {new Date(ticket.created).toLocaleDateString()}
+                  {t('auction.posted_on')} {new Date(ticket.created).toLocaleDateString()}
                 </p>
               </div>
+
+              {isClient && ticket.status === 'Open' && (
+                <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="rounded-xl border-border">
+                      <Pencil className="h-4 w-4 mr-2" /> Edit
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-card border-border max-w-2xl flex flex-col max-h-[90vh] rounded-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Edit Request</DialogTitle>
+                    </DialogHeader>
+                    <div className="overflow-y-auto flex-1 pr-1">
+                      <AuctionTicketForm
+                        ticketId={id}
+                        initialData={ticket}
+                        onSuccess={() => { setIsEditModalOpen(false); fetchData(); }}
+                        onCancel={() => setIsEditModalOpen(false)}
+                      />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
 
               {isContractor && ticket.status === 'Open' && !myBid && (
                 <Dialog open={isBidModalOpen} onOpenChange={setIsBidModalOpen}>
@@ -215,7 +251,7 @@ const AuctionTicketDetailsPage = () => {
                 {isClient && (
                   <Card className="bg-card border-border rounded-2xl">
                     <CardHeader>
-                      <CardTitle>Bids Received ({bids.length})</CardTitle>
+                      <CardTitle>{t('auction.bids_received', { count: bids.length })}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       {bids.length > 0 ? (
@@ -290,7 +326,7 @@ const AuctionTicketDetailsPage = () => {
               <div className="lg:col-span-1 space-y-6">
                 <Card className="bg-card border-border rounded-2xl">
                   <CardHeader>
-                    <CardTitle>Details</CardTitle>
+                    <CardTitle>{t('auction.details')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-5">
                     <div className="flex items-start gap-4">
@@ -298,8 +334,8 @@ const AuctionTicketDetailsPage = () => {
                         <MapPin className="h-5 w-5 text-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">Location</p>
-                        <p className="text-sm text-muted-foreground">{ticket.location || 'Not specified'}</p>
+                        <p className="text-sm font-medium text-foreground">{t('profile.location')}</p>
+                        <p className="text-sm text-muted-foreground">{ticket.location || t('auction.not_specified')}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
@@ -307,8 +343,8 @@ const AuctionTicketDetailsPage = () => {
                         <DollarSign className="h-5 w-5 text-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">Budget</p>
-                        <p className="text-sm text-muted-foreground">{ticket.budget ? `€${ticket.budget}` : 'Open to offers'}</p>
+                        <p className="text-sm font-medium text-foreground">{t('auction.budget')}</p>
+                        <p className="text-sm text-muted-foreground">{ticket.budget ? `€${ticket.budget}` : t('auction.open_to_offers')}</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
@@ -316,26 +352,104 @@ const AuctionTicketDetailsPage = () => {
                         <Clock className="h-5 w-5 text-foreground" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">Duration</p>
-                        <p className="text-sm text-muted-foreground">{ticket.durationEstimate || 'Not specified'}</p>
+                        <p className="text-sm font-medium text-foreground">{t('auction.duration_label')}</p>
+                        <p className="text-sm text-muted-foreground">{ticket.durationEstimate || t('auction.not_specified')}</p>
                       </div>
                     </div>
+                    {isClient && ticket.status === 'In Progress' && (
+                      <Button
+                        onClick={handleMarkCompleted}
+                        className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl mt-2"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        {t('auction.mark_completed')}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
 
-                {ticket.latitude && ticket.longitude && (
+                {!!ticket.latitude && !!ticket.longitude && (
                   <Card className="bg-card border-border overflow-hidden rounded-2xl">
-                    <div className="aspect-video bg-muted relative">
-                      <iframe
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        style={{ border: 0 }}
-                        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyAz3m8MF5oif2DmLltfypmhqKX4ey39spo&q=${ticket.latitude},${ticket.longitude}`}
-                        allowFullScreen
-                        title="Ticket Location"
-                      ></iframe>
-                    </div>
+                    <a
+                      href={`https://www.google.com/maps?q=${ticket.latitude},${ticket.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <img
+                        src={`https://maps.googleapis.com/maps/api/staticmap?center=${ticket.latitude},${ticket.longitude}&zoom=14&size=400x200&markers=color:red%7C${ticket.latitude},${ticket.longitude}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyA73M8t4gfdSqBz3-tiHHo2YQdqXxw3B7c'}`}
+                        alt="Location map"
+                        className="w-full object-cover"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
+                      />
+                      <div className="hidden items-center justify-center gap-2 p-4 text-sm text-primary hover:underline">
+                        <MapPin className="h-4 w-4" />
+                        {t('auction.view_on_maps')}
+                      </div>
+                    </a>
+                  </Card>
+                )}
+
+                {/* Contact card — shown after bid acceptance */}
+                {ticket.status === 'In Progress' && acceptedBid && isClient && acceptedBid.expand?.masterId && (
+                  <Card className="bg-card border-primary/40 border rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 text-primary" />
+                        {t('auction.contractor_contact')}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                          {acceptedBid.expand.masterId.avatar ? (
+                            <img src={pb.files.getUrl(acceptedBid.expand.masterId, acceptedBid.expand.masterId.avatar)} alt="Avatar" className="w-full h-full object-cover" />
+                          ) : (
+                            <User className="h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-sm text-foreground">{acceptedBid.expand.masterId.name}</p>
+                          <p className="text-xs text-primary font-medium">{t('auction.rate_agreed', { rate: acceptedBid.proposedRate })}</p>
+                        </div>
+                      </div>
+                      <a href={`mailto:${acceptedBid.expand.masterId.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                        <Mail className="h-4 w-4 text-primary shrink-0" />
+                        <span className="truncate text-foreground">{acceptedBid.expand.masterId.email}</span>
+                      </a>
+                      {acceptedBid.expand.masterId.phone && (
+                        <a href={`tel:${acceptedBid.expand.masterId.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                          <Phone className="h-4 w-4 text-primary shrink-0" />
+                          <span className="text-foreground">{acceptedBid.expand.masterId.phone}</span>
+                        </a>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Contact card for contractor — shown when their bid is accepted */}
+                {ticket.status === 'In Progress' && myBid?.status === 'accepted' && ticket.expand?.clientId && (
+                  <Card className="bg-card border-green-500/40 border rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <CheckCircle className="h-5 w-5 text-green-500" />
+                        {t('auction.client_contact')}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <p className="text-sm text-muted-foreground">{t('auction.bid_accepted_reach_out')}</p>
+                      <div className="font-semibold text-sm text-foreground">{ticket.expand.clientId.name}</div>
+                      <a href={`mailto:${ticket.expand.clientId.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                        <Mail className="h-4 w-4 text-green-500 shrink-0" />
+                        <span className="truncate text-foreground">{ticket.expand.clientId.email}</span>
+                      </a>
+                      {ticket.expand.clientId.phone && (
+                        <a href={`tel:${ticket.expand.clientId.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                          <Phone className="h-4 w-4 text-green-500 shrink-0" />
+                          <span className="text-foreground">{ticket.expand.clientId.phone}</span>
+                        </a>
+                      )}
+                    </CardContent>
                   </Card>
                 )}
               </div>

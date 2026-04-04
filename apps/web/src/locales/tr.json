@@ -15,7 +15,7 @@
       "join": "Bize katılın"
     },
     "beta": {
-      "soft_launch": "Yumuşak lansman: 16 Mart",
+      "soft_launch": "Beta v. 0.1.2",
       "full_release": "Tam sürüm: 2. Çeyrek sonu",
       "days_left": "{{days}} gün kaldı"
     },
@@ -23,7 +23,13 @@
       "plyteliu klojimas": "Fayans döşeme",
       "staliaus paslaugos": "Marangozluk hizmetleri",
       "Patalptu valymas": "Bina temizliği",
-      "select": "Meslek seçin"
+      "select": "Meslek seçin",
+      "Apdailos darbai": "Bitirme işleri",
+      "Tapetavimas": "Duvar kağıdı",
+      "Baldų surinkimas": "Mobilya montajı",
+      "Grindų klojimas": "Zemin döşeme",
+      "Elektrika": "Elektrik işleri",
+      "Santechnika": "Sıhhi tesisat"
     },
     "location": {
       "picker_title": "Çalışma Konumu Seçin",
@@ -47,7 +53,7 @@
       "reviews_title": "Müşterilerimiz Ne Diyor",
       "reviews_subtitle": "Bee'de mükemmel ustasını bulan kişilerden gerçek yorumlar",
       "q2_release_title": "2. Çeyrek Güncellemesi Geliyor!",
-      "q2_release_desc": "Equalibrinium Community platformu için devasa bir güncellemeye hazır olun. Gelişmiş eşleştirme algoritmaları, iyileştirilmiş usta portföyleri ve uygulama içi kesintisiz iletişim araçları sunuyoruz."
+      "q2_release_desc": "WorkBee platformu için devasa bir güncellemeye hazır olun. Gelişmiş eşleştirme algoritmaları, iyileştirilmiş usta portföyleri ve uygulama içi kesintisiz iletişim araçları sunuyoruz."
     },
     "search": {
       "title": "Usta Bul",

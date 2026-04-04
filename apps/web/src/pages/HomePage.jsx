@@ -2,12 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, Star, MapPin, Wrench, Paintbrush, Package, Hammer, Zap, Droplet, Rocket } from 'lucide-react';
+import { Star, MapPin, Wrench, Paintbrush, Package, Hammer, Zap, Droplet, Rocket } from 'lucide-react';
 import { motion } from 'framer-motion';
 import pb from '@/lib/pocketbaseClient';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -31,8 +30,6 @@ const HomePage = () => {
   const [categories, setCategories] = useState([]);
   const [featuredContractors, setFeaturedContractors] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,9 +55,6 @@ const HomePage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`/contractors?search=${encodeURIComponent(searchQuery)}`);
-    }
   };
 
   const handleCategoryClick = (categoryId) => {
@@ -80,7 +74,7 @@ const HomePage = () => {
   return (
     <>
       <Helmet>
-        <title>Equalibrinium Community - {t('home.title')}</title>
+        <title>WorkBee - {t('home.title')}</title>
         <meta name="description" content={t('home.subtitle')} />
       </Helmet>
       
@@ -97,8 +91,8 @@ const HomePage = () => {
               transition={{ duration: 0.6 }}
             >
               <img 
-                src="https://horizons-cdn.hostinger.com/0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f/cd58ecd48488edbab08e98cb95f1984b.gif" 
-                alt="Equalibrinium Community Logo" 
+                src="/logo.svg" 
+                alt="WorkBee Logo" 
                 className="h-56 w-56 mx-auto mb-8"
               />
               
@@ -128,18 +122,6 @@ const HomePage = () => {
                 </Button>
               </div>
 
-              <form onSubmit={handleSearch} className="max-w-2xl mx-auto">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder={t('home.search_placeholder')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 pr-4 py-6 text-lg bg-card border-border text-foreground placeholder:text-muted-foreground shadow-lg rounded-xl"
-                  />
-                </div>
-              </form>
             </motion.div>
           </div>
         </section>

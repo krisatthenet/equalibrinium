@@ -5,6 +5,7 @@ import contactsRouter from './contacts.js';
 import translateRouter from './translate.js';
 import stripeRouter from './stripe.js';
 import googleWalletRouter from './google-wallet.js';
+import dalleRouter from './dalle.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ export default () => {
   router.use('/translate', translateRouter);
   router.use('/stripe', stripeRouter);
   router.use('/google-wallet', googleWalletRouter);
+  router.use('/dalle', dalleRouter);
 
   return router;
 };

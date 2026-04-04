@@ -6,10 +6,6 @@ const D20Icon = ({ className }) => {
   const [isRolling, setIsRolling] = useState(false);
 
   const rollDice = (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
     if (isRolling) return;
     setIsRolling(true);
     

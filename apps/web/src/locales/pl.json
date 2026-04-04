@@ -15,7 +15,7 @@
       "join": "Dołącz do nas"
     },
     "beta": {
-      "soft_launch": "Miękki start: 16 marca",
+      "soft_launch": "Beta v. 0.1.2",
       "full_release": "Pełne wydanie: Koniec Q2",
       "days_left": "Pozostało {{days}} dni"
     },
@@ -23,7 +23,13 @@
       "plyteliu klojimas": "Układanie płytek",
       "staliaus paslaugos": "Usługi stolarskie",
       "Patalptu valymas": "Sprzątanie pomieszczeń",
-      "select": "Wybierz zawód"
+      "select": "Wybierz zawód",
+      "Apdailos darbai": "Prace wykończeniowe",
+      "Tapetavimas": "Tapetowanie",
+      "Baldų surinkimas": "Montaż mebli",
+      "Grindų klojimas": "Układanie podłóg",
+      "Elektrika": "Prace elektryczne",
+      "Santechnika": "Hydraulika"
     },
     "location": {
       "picker_title": "Wybierz miejsce pracy",
@@ -47,7 +53,7 @@
       "reviews_title": "Co mówią nasi klienci",
       "reviews_subtitle": "Prawdziwe opinie od osób, które znalazły idealnego wykonawcę na Bee",
       "q2_release_title": "Nadchodzi aktualizacja Q2!",
-      "q2_release_desc": "Przygotuj się na ogromną aktualizację platformy Equalibrinium Community. Wprowadzamy zaawansowane algorytmy dopasowywania, ulepszone portfolio wykonawców i płynne narzędzia do komunikacji w aplikacji."
+      "q2_release_desc": "Przygotuj się na ogromną aktualizację platformy WorkBee. Wprowadzamy zaawansowane algorytmy dopasowywania, ulepszone portfolio wykonawców i płynne narzędzia do komunikacji w aplikacji."
     },
     "search": {
       "title": "Znajdź wykonawców",
@@ -241,7 +247,19 @@
       "using_default_location": "Używanie domyślnej lokalizacji",
       "default_location": "Domyślna lokalizacja",
       "update_default_location": "Aktualizuj domyślną lokalizację",
-      "default_location_saved": "Domyślna lokalizacja została pomyślnie zapisana"
+      "default_location_saved": "Domyślna lokalizacja została pomyślnie zapisana",
+      "posted_on": "Opublikowano",
+      "bids_received": "Otrzymane oferty ({{count}})",
+      "details": "Szczegóły",
+      "not_specified": "Nie określono",
+      "open_to_offers": "Otwarte na oferty",
+      "duration_label": "Czas trwania",
+      "view_on_maps": "Zobacz w Google Maps",
+      "contractor_contact": "Kontakt do wykonawcy",
+      "rate_agreed": "€{{rate}} uzgodniono",
+      "client_contact": "Kontakt do klienta",
+      "bid_accepted_reach_out": "Twoja oferta została zaakceptowana! Skontaktuj się z klientem:",
+      "mark_completed": "Oznacz jako ukończone"
     },
     "upload": {
       "uploadImagesOrPdf": "Prześlij obrazy lub PDF",

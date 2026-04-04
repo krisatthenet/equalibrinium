@@ -10,7 +10,7 @@ const PrivacyPolicyPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>{t('legal.privacy_title')} - Equalibrinium Community</title>
+        <title>{t('legal.privacy_title')} - WorkBee</title>
       </Helmet>
       
       <Header />
@@ -24,7 +24,7 @@ const PrivacyPolicyPage = () => {
           
           <div className="prose prose-neutral dark:prose-invert max-w-none">
             <p className="text-lg text-muted-foreground mb-8">
-              At Equalibrinium Community, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform.
+              At WorkBee, we take your privacy seriously. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our platform.
             </p>
 
             <section className="mb-10">
@@ -96,7 +96,7 @@ const PrivacyPolicyPage = () => {
             <section className="mb-10">
               <h2 className="text-2xl font-semibold text-foreground mb-4">7. Contact for Privacy Concerns</h2>
               <p className="text-muted-foreground mb-4">
-                If you have questions or comments about this Privacy Policy, please contact us via our Contact page or email us directly at privacy@equalibrinium.com.
+                If you have questions or comments about this Privacy Policy, please contact us via our Contact page or email us directly at privacy@workbee.space.
               </p>
             </section>
           </div>

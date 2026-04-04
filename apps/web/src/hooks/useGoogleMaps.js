@@ -11,11 +11,10 @@ export const useGoogleMaps = () => {
       return;
     }
 
-    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyA73M8t4gfdSqBz3-tiHHo2YQdqXxw3B7c';
-    
-    if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY') {
-      console.warn('Google Maps API key is missing or using default placeholder.');
-    }
+    const envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    const apiKey = (!envKey || envKey === 'YOUR_GOOGLE_MAPS_API_KEY')
+      ? 'AIzaSyA73M8t4gfdSqBz3-tiHHo2YQdqXxw3B7c'
+      : envKey;
 
     const existingScript = document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]');
     if (existingScript) {

@@ -4,7 +4,7 @@ export const useRecaptchaEnterprise = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
   // Use the provided site key as default if env var is missing
-  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LdRYIssAAAAAOGnhU8bU_jJdqPNpZeNJmyaIhcr';
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcmgqUsAAAAAHnyOtf3yX4-0nF641yU57mTa8_G';
 
   useEffect(() => {
     const scriptId = 'recaptcha-enterprise-script';

@@ -30,8 +30,9 @@ const LanguageSelector = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-black/10 hover:text-primary-foreground font-semibold gap-2">
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline">{currentLang.flag} {currentLang.code.toUpperCase()}</span>
-          <span className="sm:hidden">{currentLang.flag}</span>
+          <span className="hidden sm:inline text-xl">{currentLang.flag}</span>
+          <span className="hidden sm:inline">{currentLang.code.toUpperCase()}</span>
+          <span className="sm:hidden text-xl">{currentLang.flag}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card border-border">
@@ -41,7 +42,7 @@ const LanguageSelector = () => {
             onClick={() => changeLanguage(lang.code)}
             className={`cursor-pointer ${currentLang.code === lang.code ? 'bg-muted' : ''}`}
           >
-            <span className="mr-2">{lang.flag}</span>
+            <span className="mr-2 text-xl">{lang.flag}</span>
             {lang.label}
           </DropdownMenuItem>
         ))}

@@ -299,8 +299,22 @@ export default defineConfig({
 		cors: true,
 		headers: {
 			'Cross-Origin-Embedder-Policy': 'credentialless',
+			'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval' data: blob:;",
 		},
 		allowedHosts: true,
+		proxy: {
+			'/hcgi/platform': {
+				target: 'http://127.0.0.1:8090',
+				rewrite: (path) => path.replace(/^\/hcgi\/platform/, ''),
+				changeOrigin: true,
+				ws: true,
+			},
+			'/hcgi/api': {
+				target: 'http://127.0.0.1:3001',
+				rewrite: (path) => path.replace(/^\/hcgi\/api/, ''),
+				changeOrigin: true,
+			},
+		},
 	},
 	resolve: {
 		extensions: ['.jsx', '.js', '.tsx', '.ts', '.json',],

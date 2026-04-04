@@ -2,7 +2,6 @@ import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { AdminAuthProvider } from '@/contexts/AdminAuthContext.jsx';
-import { ImageGenerationProvider } from '@/contexts/ImageGenerationContext.jsx';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
 import ProtectedAdminRoute from '@/components/ProtectedAdminRoute.jsx';
@@ -30,6 +29,7 @@ const PaymentErrorPage = React.lazy(() => import('@/pages/PaymentErrorPage.jsx')
 const SettingsPage = React.lazy(() => import('@/pages/SettingsPage.jsx'));
 const ContactPage = React.lazy(() => import('@/pages/ContactPage.jsx'));
 const LocatorPage = React.lazy(() => import('@/pages/LocatorPage.jsx'));
+const FavouritesPage = React.lazy(() => import('@/pages/FavouritesPage.jsx'));
 const PrivacyPolicyPage = React.lazy(() => import('@/pages/PrivacyPolicyPage.jsx'));
 const TermsOfServicePage = React.lazy(() => import('@/pages/TermsOfServicePage.jsx'));
 const CookiePolicy = React.lazy(() => import('@/pages/CookiePolicy.jsx'));
@@ -56,8 +56,7 @@ const App = () => {
       <ScrollToTop />
       <AuthProvider>
         <AdminAuthProvider>
-          <ImageGenerationProvider>
-            <Suspense fallback={<PageLoader />}>
+          <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
@@ -70,6 +69,7 @@ const App = () => {
                 <Route path="/influencer/:id" element={<InfluencerProfilePage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/locator" element={<LocatorPage />} />
+                <Route path="/explore" element={<LocatorPage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
@@ -100,6 +100,11 @@ const App = () => {
                     <AuctionTicketDetailsPage />
                   </ProtectedRoute>
                 } />
+                <Route path="/auction-ticket/:id" element={
+                  <ProtectedRoute>
+                    <AuctionTicketDetailsPage />
+                  </ProtectedRoute>
+                } />
                 <Route path="/auction-ticket/:ticketId/payment" element={
                   <ProtectedRoute>
                     <AuctionTicketPaymentPage />
@@ -118,6 +123,11 @@ const App = () => {
                 <Route path="/settings" element={
                   <ProtectedRoute>
                     <SettingsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/favourites" element={
+                  <ProtectedRoute>
+                    <FavouritesPage />
                   </ProtectedRoute>
                 } />
 
@@ -139,7 +149,6 @@ const App = () => {
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
-          </ImageGenerationProvider>
         </AdminAuthProvider>
       </AuthProvider>
       <Toaster />

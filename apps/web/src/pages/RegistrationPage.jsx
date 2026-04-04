@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
-import { useImageGeneration } from '@/contexts/ImageGenerationContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Briefcase, Loader2, Megaphone, Sparkles } from 'lucide-react';
+import { User, Briefcase, Loader2, Megaphone } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
@@ -23,7 +22,6 @@ const RegistrationPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signup, login } = useAuth();
-  const { generateProfileImage, downloadAndStore } = useImageGeneration();
   const { toast } = useToast();
   
   const [userType, setUserType] = useState(searchParams.get('type') || '');
@@ -46,7 +44,6 @@ const RegistrationPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [generationLoading, setGenerationLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,24 +79,14 @@ const RegistrationPage = () => {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          name: formData.name
+          name: formData.name,
+          userType: userType === 'contractor' ? 'master' : userType
         })
       });
 
       if (!verifyResponse.ok) {
         const errData = await verifyResponse.json();
-        throw new Error(errData.error || 'Registration failed. Please try again.');
-      }
-
-      const existingUsers = await pb.collection('users').getList(1, 1, {
-        filter: `email="${formData.email}"`,
-        $autoCancel: false
-      });
-
-      if (existingUsers.totalItems > 0) {
-        setError('Email is already registered');
-        setLoading(false);
-        return;
+        throw new Error(errData.message || errData.error || 'Registration failed. Please try again.');
       }
 
       const extraData = {
@@ -124,57 +111,34 @@ const RegistrationPage = () => {
       const dbUserType = userType === 'contractor' ? 'master' : userType;
 
       // 1. Create Account
-      await signup(formData.email, formData.password, dbUserType, extraData);
+      const newUser = await signup(formData.email, formData.password, dbUserType, extraData);
       await login(formData.email, formData.password);
 
-      // 2. Auto-generate Profile Image
-      setGenerationLoading(true);
-      try {
-        const role = userType === 'contractor' ? formData.profession : 
-                     userType === 'influencer' ? formData.contentNiche : 'Client';
-        const interests = userType === 'influencer' ? formData.influencerBio : '';
-        
-        const genRes = await generateProfileImage({
-          userType: dbUserType,
-          name: formData.name,
-          role: role,
-          interests: interests,
-          style: 'professional, modern, clean, high quality portrait'
-        });
-
-        if (genRes && genRes.imageUrl) {
-          const dlRes = await downloadAndStore({
-            imageUrl: genRes.imageUrl,
-            userId: pb.authStore.model.id,
-            imageType: 'profilePicture'
+      // 2. Create contractors record for master/contractor users
+      if ((userType === 'contractor') && newUser?.id) {
+        try {
+          await pb.collection('contractors').create({
+            userId: newUser.id,
+            name: formData.name,
+            profession: formData.profession || '',
+            location: formData.location || '',
+            latitude: 0,
+            longitude: 0,
+            rating: 0,
+            reviewCount: 0,
+            hourlyRate: 0,
+            isPromoted: false,
           });
-
-          const res = await fetch(`data:${dlRes.mimeType};base64,${dlRes.base64}`);
-          const blob = await res.blob();
-          const file = new File([blob], 'profile.png', { type: dlRes.mimeType });
-
-          const updateData = new FormData();
-          updateData.append('profilePicture', file);
-          updateData.append('avatar', file); // Use same image for avatar initially
-          updateData.append('generatedImagePrompt', genRes.revisedPrompt || '');
-
-          await pb.collection('users').update(pb.authStore.model.id, updateData, { $autoCancel: false });
-          toast({ title: "Success", description: "Account and AI profile image created successfully!" });
+        } catch (contractorErr) {
+          console.warn('Could not create contractor record:', contractorErr);
         }
-      } catch (imgErr) {
-        console.error("Image generation failed:", imgErr);
-        toast({ 
-          title: "Account Created", 
-          description: "Account created, but AI image generation failed. You can upload one in settings.", 
-          variant: "default" 
-        });
-      } finally {
-        setGenerationLoading(false);
-        const redirectPath = userType === 'contractor' ? '/dashboard/contractor' : 
-                             userType === 'influencer' ? '/dashboard/influencer' : 
-                             '/dashboard/client';
-        navigate(redirectPath);
       }
+
+      toast({ title: "Success", description: "Account created successfully!" });
+      const redirectPath = userType === 'contractor' ? '/dashboard/contractor' :
+                           userType === 'influencer' ? '/dashboard/influencer' :
+                           '/dashboard/client';
+      navigate(redirectPath);
 
     } catch (err) {
       console.error('Registration error:', err);
@@ -207,25 +171,9 @@ const RegistrationPage = () => {
   return (
     <>
       <Helmet>
-        <title>{t('auth.register_title')} - Equalibrinium Community</title>
+        <title>{t('auth.register_title')} - WorkBee</title>
         <meta name="description" content={t('auth.register_subtitle')} />
       </Helmet>
-
-      {generationLoading && (
-        <div className="fixed inset-0 z-[100] bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center">
-          <div className="bg-card border border-border p-8 rounded-2xl shadow-2xl flex flex-col items-center max-w-sm text-center animate-in fade-in zoom-in duration-300">
-            <div className="relative w-20 h-20 mb-6">
-              <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-              <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-primary animate-pulse" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">Creating Your Identity</h3>
-            <p className="text-muted-foreground text-sm">
-              We're using AI to generate a unique, personalized profile picture based on your details. This will just take a moment...
-            </p>
-          </div>
-        </div>
-      )}
 
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -247,7 +195,7 @@ const RegistrationPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <Button
                       variant="outline"
-                      className="h-32 flex flex-col items-center justify-center gap-3 border-border hover:border-primary hover:bg-primary/5 transition-all duration-300 rounded-xl"
+                      className="min-h-32 h-auto py-4 flex flex-col items-center justify-center gap-3 border-border hover:border-primary hover:bg-primary/5 hover:text-foreground transition-all duration-300 rounded-xl whitespace-normal"
                       onClick={() => setUserType('client')}
                     >
                       <User className="h-8 w-8 text-primary" />
@@ -258,7 +206,7 @@ const RegistrationPage = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      className="h-32 flex flex-col items-center justify-center gap-3 border-border hover:border-primary hover:bg-primary/5 transition-all duration-300 rounded-xl"
+                      className="min-h-32 h-auto py-4 flex flex-col items-center justify-center gap-3 border-border hover:border-primary hover:bg-primary/5 hover:text-foreground transition-all duration-300 rounded-xl whitespace-normal"
                       onClick={() => setUserType('contractor')}
                     >
                       <Briefcase className="h-8 w-8 text-primary" />
@@ -269,7 +217,7 @@ const RegistrationPage = () => {
                     </Button>
                     <Button
                       variant="outline"
-                      className="h-32 flex flex-col items-center justify-center gap-3 border-border hover:border-primary hover:bg-primary/5 transition-all duration-300 rounded-xl"
+                      className="min-h-32 h-auto py-4 flex flex-col items-center justify-center gap-3 border-border hover:border-primary hover:bg-primary/5 hover:text-foreground transition-all duration-300 rounded-xl whitespace-normal"
                       onClick={() => setUserType('influencer')}
                     >
                       <Megaphone className="h-8 w-8 text-primary" />
@@ -433,13 +381,13 @@ const RegistrationPage = () => {
                       variant="outline"
                       className="flex-1 rounded-xl"
                       onClick={() => setUserType('')}
-                      disabled={loading || generationLoading}
+                      disabled={loading}
                     >
                       {t('auth.back')}
                     </Button>
                     <Button
                       type="submit"
-                      disabled={loading || generationLoading}
+                      disabled={loading}
                       className="flex-[2] bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 active:scale-[0.98] rounded-xl font-semibold"
                     >
                       {loading ? (

@@ -15,7 +15,7 @@
       "join": "Prisijunkite"
     },
     "beta": {
-      "soft_launch": "Išankstinis startas: Kovo 16",
+      "soft_launch": "Beta v. 0.1.2",
       "full_release": "Pilnas startas: Q2 pabaiga",
       "days_left": "Liko {{days}} d."
     },
@@ -23,7 +23,13 @@
       "plyteliu klojimas": "Plytelių klojimas",
       "staliaus paslaugos": "Staliaus paslaugos",
       "Patalptu valymas": "Patalpų valymas",
-      "select": "Pasirinkite profesiją"
+      "select": "Pasirinkite profesiją",
+      "Apdailos darbai": "Apdailos darbai",
+      "Tapetavimas": "Tapetavimas",
+      "Baldų surinkimas": "Baldų surinkimas",
+      "Grindų klojimas": "Grindų klojimas",
+      "Elektrika": "Elektrika",
+      "Santechnika": "Santechnika"
     },
     "location": {
       "picker_title": "Pasirinkite darbo vietą",
@@ -47,7 +53,7 @@
       "reviews_title": "Ką sako mūsų klientai",
       "reviews_subtitle": "Tikri atsiliepimai iš žmonių, kurie rado tobulą rangovą Bee platformoje",
       "q2_release_title": "Artėja Q2 atnaujinimas!",
-      "q2_release_desc": "Pasiruoškite didžiuliam Equalibrinium Community platformos atnaujinimui. Pristatysime pažangius atitikimo algoritmus, patobulintus rangovų portfelius ir sklandžius bendravimo įrankius programėlėje."
+      "q2_release_desc": "Pasiruoškite didžiuliam WorkBee platformos atnaujinimui. Pristatysime pažangius atitikimo algoritmus, patobulintus rangovų portfelius ir sklandžius bendravimo įrankius programėlėje."
     },
     "search": {
       "title": "Rasti rangovus",
@@ -241,7 +247,19 @@
       "using_default_location": "Naudojama numatytoji vieta",
       "default_location": "Numatytoji vieta",
       "update_default_location": "Atnaujinti numatytąją vietą",
-      "default_location_saved": "Numatytoji vieta sėkmingai išsaugota"
+      "default_location_saved": "Numatytoji vieta sėkmingai išsaugota",
+      "posted_on": "Paskelbta",
+      "bids_received": "Gauti pasiūlymai ({{count}})",
+      "details": "Detalės",
+      "not_specified": "Nenurodyta",
+      "open_to_offers": "Atvira pasiūlymams",
+      "duration_label": "Trukmė",
+      "view_on_maps": "Peržiūrėti Google žemėlapiuose",
+      "contractor_contact": "Rangovo kontaktai",
+      "rate_agreed": "€{{rate}} sutarta",
+      "client_contact": "Kliento kontaktai",
+      "bid_accepted_reach_out": "Jūsų pasiūlymas priimtas! Susisiekite su klientu:",
+      "mark_completed": "Pažymėti kaip atliktą"
     },
     "upload": {
       "uploadImagesOrPdf": "Įkelti nuotraukas arba PDF",

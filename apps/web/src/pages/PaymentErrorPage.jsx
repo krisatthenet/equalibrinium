@@ -13,7 +13,7 @@ const PaymentErrorPage = () => {
   return (
     <>
       <Helmet>
-        <title>Payment Failed - Equalibrinium</title>
+        <title>Payment Failed - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">

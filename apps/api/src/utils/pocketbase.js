@@ -73,7 +73,7 @@ export async function authenticateUser(email, password) {
  * @returns {Promise<{token: string, user: {id: string, email: string, name: string, userType: string}}>}
  * @throws {Error} If registration fails
  */
-export async function registerUser(email, password, name = '') {
+export async function registerUser(email, password, name = '', userType = 'client') {
 	const pb = getPocketBase();
 
 	try {
@@ -82,7 +82,7 @@ export async function registerUser(email, password, name = '') {
 			password: password,
 			passwordConfirm: password,
 			name: name,
-			userType: 'user',
+			userType: userType,
 		};
 
 		const record = await pb.collection('users').create(userData);
@@ -104,6 +104,11 @@ export async function registerUser(email, password, name = '') {
 
 		// Handle specific PocketBase error codes
 		if (error.status === 400) {
+			if (error.data?.email?.code === 'validation_not_unique') {
+				const err = new Error('Email is already registered');
+				err.status = 400;
+				throw err;
+			}
 			const err = new Error(error.message || 'Invalid registration data');
 			err.status = 400;
 			throw err;

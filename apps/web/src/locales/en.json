@@ -15,7 +15,7 @@
       "join": "Join us"
     },
     "beta": {
-      "soft_launch": "Soft launch: 16 March",
+      "soft_launch": "Beta v. 0.1.2",
       "full_release": "Full release: End of Q2",
       "days_left": "{{days}} days left"
     },
@@ -23,7 +23,13 @@
       "plyteliu klojimas": "Tile laying",
       "staliaus paslaugos": "Carpentry services",
       "Patalptu valymas": "Premises cleaning",
-      "select": "Select profession"
+      "select": "Select profession",
+      "Apdailos darbai": "Finishing works",
+      "Tapetavimas": "Wallpapering",
+      "Baldų surinkimas": "Furniture assembly",
+      "Grindų klojimas": "Floor laying",
+      "Elektrika": "Electrical work",
+      "Santechnika": "Plumbing"
     },
     "location": {
       "picker_title": "Select Work Location",
@@ -47,7 +53,7 @@
       "reviews_title": "What Our Clients Say",
       "reviews_subtitle": "Real feedback from people who found their perfect contractor on Bee",
       "q2_release_title": "Q2 Release is Coming!",
-      "q2_release_desc": "Get ready for a massive update to the Equalibrinium Community platform. We're introducing advanced matching algorithms, enhanced contractor portfolios, and seamless in-app communication tools."
+      "q2_release_desc": "Get ready for a massive update to the WorkBee platform. We're introducing advanced matching algorithms, enhanced contractor portfolios, and seamless in-app communication tools."
     },
     "search": {
       "title": "Find Contractors",
@@ -241,7 +247,19 @@
       "using_default_location": "Using default location",
       "default_location": "Default Location",
       "update_default_location": "Update Default Location",
-      "default_location_saved": "Default location saved successfully"
+      "default_location_saved": "Default location saved successfully",
+      "posted_on": "Posted on",
+      "bids_received": "Bids Received ({{count}})",
+      "details": "Details",
+      "not_specified": "Not specified",
+      "open_to_offers": "Open to offers",
+      "duration_label": "Duration",
+      "view_on_maps": "View on Google Maps",
+      "contractor_contact": "Contractor Contact",
+      "rate_agreed": "€{{rate}} agreed",
+      "client_contact": "Client Contact",
+      "bid_accepted_reach_out": "Your bid was accepted! Reach out to the client:",
+      "mark_completed": "Mark as Finished"
     },
     "upload": {
       "uploadImagesOrPdf": "Upload images or PDF",

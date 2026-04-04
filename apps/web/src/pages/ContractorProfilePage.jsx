@@ -1,31 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
-import { Star, Mail, Heart, Briefcase, User } from 'lucide-react';
+import { Star, Heart, Briefcase, User, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
 
 const ContractorProfilePage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { currentUser, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+
   const [contractor, setContractor] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFavourite, setIsFavourite] = useState(false);
+  const [favouriteId, setFavouriteId] = useState(null);
+  const [favLoading, setFavLoading] = useState(false);
+  const [requestOpen, setRequestOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [contractorData, reviewsData] = await Promise.all([
-          pb.collection('contractors').getOne(id, { 
+          pb.collection('contractors').getOne(id, {
             expand: 'categories',
-            $autoCancel: false 
+            $autoCancel: false
           }),
           pb.collection('reviews').getList(1, 50, {
             filter: `contractorId = "${id}"`,
@@ -33,7 +45,6 @@ const ContractorProfilePage = () => {
             $autoCancel: false
           })
         ]);
-
         setContractor(contractorData);
         setReviews(reviewsData.items);
       } catch (error) {
@@ -42,9 +53,61 @@ const ContractorProfilePage = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser) return;
+    const checkFavourite = async () => {
+      try {
+        const result = await pb.collection('favourites').getList(1, 1, {
+          filter: `userId = "${currentUser.id}" && contractorId = "${id}"`,
+          $autoCancel: false
+        });
+        if (result.items.length > 0) {
+          setIsFavourite(true);
+          setFavouriteId(result.items[0].id);
+        }
+      } catch (_) {}
+    };
+    checkFavourite();
+  }, [isAuthenticated, currentUser, id]);
+
+  const handleToggleFavourite = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setFavLoading(true);
+    try {
+      if (isFavourite && favouriteId) {
+        await pb.collection('favourites').delete(favouriteId, { $autoCancel: false });
+        setIsFavourite(false);
+        setFavouriteId(null);
+        toast({ title: 'Removed from favourites' });
+      } else {
+        const rec = await pb.collection('favourites').create({
+          userId: currentUser.id,
+          contractorId: id,
+        }, { $autoCancel: false });
+        setIsFavourite(true);
+        setFavouriteId(rec.id);
+        toast({ title: 'Saved to favourites' });
+      }
+    } catch (err) {
+      toast({ title: 'Error', description: 'Could not update favourites.', variant: 'destructive' });
+    } finally {
+      setFavLoading(false);
+    }
+  };
+
+  const handleRequestService = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    setRequestOpen(true);
+  };
 
   if (loading) {
     return (
@@ -53,9 +116,7 @@ const ContractorProfilePage = () => {
         <div className="min-h-screen bg-background py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-1">
-                <Skeleton className="h-96 rounded-2xl" />
-              </div>
+              <div className="lg:col-span-1"><Skeleton className="h-96 rounded-2xl" /></div>
               <div className="lg:col-span-2 space-y-4">
                 <Skeleton className="h-12 w-3/4" />
                 <Skeleton className="h-24" />
@@ -76,9 +137,7 @@ const ContractorProfilePage = () => {
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-2xl font-bold mb-4">{t('profile.not_found')}</h2>
-            <Button asChild>
-              <a href="/contractors">{t('profile.back_search')}</a>
-            </Button>
+            <Button asChild><a href="/contractors">{t('profile.back_search')}</a></Button>
           </div>
         </div>
         <Footer />
@@ -89,8 +148,8 @@ const ContractorProfilePage = () => {
   return (
     <>
       <Helmet>
-        <title>{`${contractor.name} - Bee Marketplace`}</title>
-        <meta name="description" content={contractor.bio || `View ${contractor.name}'s profile and reviews on Bee marketplace.`} />
+        <title>{`${contractor.name} - WorkBee`}</title>
+        <meta name="description" content={contractor.bio || `View ${contractor.name}'s profile and reviews on WorkBee.`} />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -104,8 +163,8 @@ const ContractorProfilePage = () => {
                   <CardContent className="p-6">
                     <div className="aspect-square bg-muted rounded-xl overflow-hidden mb-6 border border-border">
                       {contractor.profilePicture ? (
-                        <img 
-                          src={pb.files.getUrl(contractor, contractor.profilePicture)} 
+                        <img
+                          src={pb.files.getUrl(contractor, contractor.profilePicture)}
                           alt={contractor.name}
                           className="w-full h-full object-cover"
                         />
@@ -117,7 +176,7 @@ const ContractorProfilePage = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold mb-2">{contractor.name}</h1>
-                    
+
                     {contractor.profession && (
                       <Badge className="mb-4 bg-primary/20 text-primary hover:bg-primary/30 border-none">
                         <Briefcase className="w-3 h-3 mr-1" />
@@ -130,12 +189,10 @@ const ContractorProfilePage = () => {
                         <Star className="h-5 w-5 fill-primary text-primary" />
                         <span className="font-semibold text-lg">{contractor.rating?.toFixed(1) || '0.0'}</span>
                       </div>
-                      <span className="text-muted-foreground">
-                        ({contractor.reviewCount || 0} reviews)
-                      </span>
+                      <span className="text-muted-foreground">({contractor.reviewCount || 0} reviews)</span>
                     </div>
 
-                    {contractor.hourlyRate && (
+                    {contractor.hourlyRate > 0 && (
                       <div className="mb-6">
                         <p className="text-sm text-muted-foreground mb-1">Hourly Rate</p>
                         <p className="text-2xl font-bold text-primary">€{contractor.hourlyRate}/hour</p>
@@ -145,13 +202,21 @@ const ContractorProfilePage = () => {
                     <Separator className="my-6" />
 
                     <div className="space-y-3">
-                      <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 active:scale-[0.98] rounded-xl">
-                        <Mail className="h-4 w-4 mr-2" />
+                      <Button
+                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 active:scale-[0.98] rounded-xl"
+                        onClick={handleRequestService}
+                      >
+                        <Send className="h-4 w-4 mr-2" />
                         {t('profile.request_service')}
                       </Button>
-                      <Button variant="outline" className="w-full border-border hover:bg-muted transition-all duration-200 rounded-xl">
-                        <Heart className="h-4 w-4 mr-2" />
-                        {t('profile.save_favorite')}
+                      <Button
+                        variant="outline"
+                        className={`w-full transition-all duration-200 rounded-xl ${isFavourite ? 'border-rose-500 text-rose-500 hover:bg-rose-500/10' : 'border-border hover:bg-muted'}`}
+                        onClick={handleToggleFavourite}
+                        disabled={favLoading}
+                      >
+                        <Heart className={`h-4 w-4 mr-2 ${isFavourite ? 'fill-rose-500 text-rose-500' : ''}`} />
+                        {isFavourite ? 'Saved to Favourites' : t('profile.save_favorite')}
                       </Button>
                     </div>
                   </CardContent>
@@ -160,9 +225,7 @@ const ContractorProfilePage = () => {
 
               <div className="lg:col-span-2 space-y-8">
                 <Card className="bg-card border-border rounded-2xl">
-                  <CardHeader>
-                    <CardTitle>{t('profile.about')}</CardTitle>
-                  </CardHeader>
+                  <CardHeader><CardTitle>{t('profile.about')}</CardTitle></CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground leading-relaxed">
                       {contractor.bio || 'No bio available.'}
@@ -172,9 +235,7 @@ const ContractorProfilePage = () => {
 
                 {contractor.expand?.categories && contractor.expand.categories.length > 0 && (
                   <Card className="bg-card border-border rounded-2xl">
-                    <CardHeader>
-                      <CardTitle>{t('profile.services')}</CardTitle>
-                    </CardHeader>
+                    <CardHeader><CardTitle>{t('profile.services')}</CardTitle></CardHeader>
                     <CardContent>
                       <div className="flex flex-wrap gap-2">
                         {contractor.expand.categories.map(category => (
@@ -201,11 +262,7 @@ const ContractorProfilePage = () => {
                                 {[...Array(5)].map((_, i) => (
                                   <Star
                                     key={i}
-                                    className={`h-4 w-4 ${
-                                      i < review.rating
-                                        ? 'fill-primary text-primary'
-                                        : 'text-muted-foreground'
-                                    }`}
+                                    className={`h-4 w-4 ${i < review.rating ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
                                   />
                                 ))}
                               </div>
@@ -231,6 +288,24 @@ const ContractorProfilePage = () => {
 
         <Footer />
       </div>
+
+      {/* Request Service Dialog */}
+      <Dialog open={requestOpen} onOpenChange={setRequestOpen}>
+        <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Request Service from {contractor.name}</DialogTitle>
+          </DialogHeader>
+          <AuctionTicketForm
+            assignedContractorId={id}
+            assignedContractorName={contractor.name}
+            onSuccess={() => {
+              setRequestOpen(false);
+              toast({ title: 'Request sent!', description: `${contractor.name} will be notified of your request.` });
+            }}
+            onCancel={() => setRequestOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

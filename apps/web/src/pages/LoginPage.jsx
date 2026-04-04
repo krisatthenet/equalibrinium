@@ -95,8 +95,8 @@ const LoginPage = () => {
   return (
     <>
       <Helmet>
-        <title>Login - Equalibrinium Community</title>
-        <meta name="description" content="Login to your Equalibrinium Community account to access your dashboard and manage your projects." />
+        <title>Login - WorkBee</title>
+        <meta name="description" content="Login to your WorkBee account to access your dashboard and manage your projects." />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -107,7 +107,7 @@ const LoginPage = () => {
             <CardHeader className="pb-6">
               <CardTitle className="text-2xl text-center font-bold">Welcome Back</CardTitle>
               <CardDescription className="text-center">
-                Login to your Equalibrinium Community account
+                Login to your WorkBee account
               </CardDescription>
             </CardHeader>
             <CardContent>

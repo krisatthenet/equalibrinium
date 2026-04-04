@@ -1,6 +1,6 @@
 import express from 'express';
 import pkg from '@google-cloud/translate';
-const { Translate } = pkg;
+const { Translate } = pkg.v2;
 import logger from '../utils/logger.js';
 
 const router = express.Router();
