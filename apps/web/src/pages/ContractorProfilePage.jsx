@@ -24,6 +24,7 @@ const ContractorProfilePage = () => {
   const { toast } = useToast();
 
   const [contractor, setContractor] = useState(null);
+  const [contractorUser, setContractorUser] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isFavourite, setIsFavourite] = useState(false);
@@ -34,19 +35,25 @@ const ContractorProfilePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [contractorData, reviewsData] = await Promise.all([
-          pb.collection('contractors').getOne(id, {
-            expand: 'categories',
-            $autoCancel: false
-          }),
-          pb.collection('reviews').getList(1, 50, {
-            filter: `contractorId = "${id}"`,
-            sort: '-created',
-            $autoCancel: false
-          })
-        ]);
+        const contractorData = await pb.collection('contractors').getOne(id, {
+          expand: 'categories',
+          $autoCancel: false
+        });
         setContractor(contractorData);
-        setReviews(reviewsData.items);
+
+        // Fetch the linked user for profile picture and reviews
+        if (contractorData.userId) {
+          const [userData, reviewsData] = await Promise.all([
+            pb.collection('users').getOne(contractorData.userId, { $autoCancel: false }),
+            pb.collection('reviews').getList(1, 50, {
+              filter: `contractorId = "${contractorData.userId}"`,
+              sort: '-created',
+              $autoCancel: false
+            })
+          ]);
+          setContractorUser(userData);
+          setReviews(reviewsData.items);
+        }
       } catch (error) {
         console.error('Error fetching contractor profile:', error);
       } finally {
@@ -162,17 +169,22 @@ const ContractorProfilePage = () => {
                 <Card className="bg-card border-border sticky top-24 rounded-2xl overflow-hidden">
                   <CardContent className="p-6">
                     <div className="aspect-square bg-muted rounded-xl overflow-hidden mb-6 border border-border">
-                      {contractor.profilePicture ? (
-                        <img
-                          src={pb.files.getUrl(contractor, contractor.profilePicture)}
-                          alt={contractor.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                          <User className="w-24 h-24 text-primary/50" />
-                        </div>
-                      )}
+                      {(() => {
+                        const src = contractorUser?.profilePicture
+                          ? pb.files.getUrl(contractorUser, contractorUser.profilePicture)
+                          : contractorUser?.avatar
+                          ? pb.files.getUrl(contractorUser, contractorUser.avatar)
+                          : contractor.profilePicture
+                          ? pb.files.getUrl(contractor, contractor.profilePicture)
+                          : null;
+                        return src ? (
+                          <img src={src} alt={contractor.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-primary/10">
+                            <User className="w-24 h-24 text-primary/50" />
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <h1 className="text-2xl font-bold mb-2">{contractor.name}</h1>
@@ -184,13 +196,18 @@ const ContractorProfilePage = () => {
                       </Badge>
                     )}
 
-                    <div className="flex items-center gap-2 mb-6">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-5 w-5 fill-primary text-primary" />
-                        <span className="font-semibold text-lg">{contractor.rating?.toFixed(1) || '0.0'}</span>
-                      </div>
-                      <span className="text-muted-foreground">({contractor.reviewCount || 0} reviews)</span>
-                    </div>
+                    {reviews.length > 0 && (() => {
+                      const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+                      return (
+                        <div className="flex items-center gap-2 mb-6">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-5 w-5 fill-primary text-primary" />
+                            <span className="font-semibold text-lg">{avg.toFixed(1)}</span>
+                          </div>
+                          <span className="text-muted-foreground">({reviews.length} reviews)</span>
+                        </div>
+                      );
+                    })()}
 
                     {contractor.hourlyRate > 0 && (
                       <div className="mb-6">

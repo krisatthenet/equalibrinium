@@ -191,6 +191,51 @@ router.get('/contractor-dashboard', async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// POST /stripe/request-payout
+// Body: { userId, amount }  — transfer platform balance to contractor's Stripe account
+// ---------------------------------------------------------------------------
+router.post('/request-payout', async (req, res) => {
+  try {
+    const { userId, amount } = req.body;
+    if (!userId || !amount) return res.status(400).json({ error: 'userId and amount are required' });
+    if (typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ error: 'amount must be a positive number' });
+    }
+
+    const pb = await adminPb();
+    const user = await pb.collection('users').getOne(userId);
+
+    if (!user.stripeAccountId || !user.stripeOnboarded) {
+      return res.status(400).json({ error: 'Stripe account not connected or not fully onboarded' });
+    }
+
+    const currentBalance = Number(user.balance) || 0;
+    if (amount > currentBalance) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+
+    // Transfer from platform to connected account
+    const transfer = await stripe.transfers.create({
+      amount: Math.round(amount * 100),
+      currency: 'eur',
+      destination: user.stripeAccountId,
+      description: `WorkBee payout for user ${userId}`,
+    });
+
+    // Deduct from PocketBase balance
+    await pb.collection('users').update(userId, {
+      balance: parseFloat((currentBalance - amount).toFixed(2)),
+    });
+
+    logger.info(`Payout of €${amount} to ${user.stripeAccountId} (transfer ${transfer.id})`);
+    res.json({ success: true, transferId: transfer.id, remaining: currentBalance - amount });
+  } catch (err) {
+    logger.error('request-payout error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // POST /stripe/webhook  — Stripe webhook (raw body, verified by signature)
 // ---------------------------------------------------------------------------
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -242,9 +287,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       // Mark ticket as Completed
       await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' });
 
-      // Credit contractor balance (for non-Connect payouts or tracking)
+      // Credit contractor balance only when no direct Connect transfer was made
+      // (if transfer_data was used, Stripe already sent the funds to their account)
+      const wasDirectTransfer = !!(session.payment_intent && transferData);
       const contractorPayout = amountPaid * (1 - PLATFORM_FEE_PCT);
       let contractorUserId = null;
+      let contractorStripeOnboarded = false;
 
       if (contractorRecordId) {
         try {
@@ -266,11 +314,18 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
       if (contractorUserId) {
         const contractorUser = await pb.collection('users').getOne(contractorUserId);
-        const currentBalance = Number(contractorUser.balance) || 0;
-        await pb.collection('users').update(contractorUserId, {
-          balance: parseFloat((currentBalance + contractorPayout).toFixed(2)),
-        });
-        logger.info(`Credited €${contractorPayout.toFixed(2)} to contractor ${contractorUserId}`);
+        contractorStripeOnboarded = !!(contractorUser.stripeAccountId && contractorUser.stripeOnboarded);
+
+        // Only credit balance if the payment did NOT go via Stripe Connect transfer
+        if (!contractorStripeOnboarded) {
+          const currentBalance = Number(contractorUser.balance) || 0;
+          await pb.collection('users').update(contractorUserId, {
+            balance: parseFloat((currentBalance + contractorPayout).toFixed(2)),
+          });
+          logger.info(`Credited €${contractorPayout.toFixed(2)} to contractor ${contractorUserId}`);
+        } else {
+          logger.info(`Contractor ${contractorUserId} has Stripe Connect — funds transferred directly, skipping balance credit`);
+        }
       }
 
       logger.info(`Webhook processed: ticket ${ticketId} completed, €${amountPaid} paid`);

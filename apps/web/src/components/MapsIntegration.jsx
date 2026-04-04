@@ -242,7 +242,15 @@ const MapsIntegration = ({ contractors = [], tickets = [], radius, onLocationCha
             onCloseClick={() => setSelectedContractor(null)}
           >
             <div className="p-2 max-w-[200px] text-black">
-              <h3 className="font-bold text-lg mb-1">{selectedContractor.name}</h3>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden shrink-0">
+                  {selectedContractor.profilePicture
+                    ? <img src={pb.files.getUrl(selectedContractor, selectedContractor.profilePicture)} alt={selectedContractor.name} className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-gray-400 text-lg font-bold">{selectedContractor.name?.[0]?.toUpperCase()}</div>
+                  }
+                </div>
+                <h3 className="font-bold text-base leading-tight">{selectedContractor.name}</h3>
+              </div>
               {selectedContractor.isPromoted && (
                 <span className="inline-block bg-primary/20 text-primary text-xs px-2 py-1 rounded-full mb-2 font-semibold">
                   {t('map.promoted')}
@@ -250,8 +258,8 @@ const MapsIntegration = ({ contractors = [], tickets = [], radius, onLocationCha
               )}
               <div className="flex items-center gap-1 mb-1">
                 <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">{selectedContractor.rating?.toFixed(1) || '0.0'}</span>
-                <span className="text-xs text-gray-500">({selectedContractor.reviewCount || 0})</span>
+                <span className="font-medium">{selectedContractor.rating > 0 ? selectedContractor.rating.toFixed(1) : '—'}</span>
+                <span className="text-xs text-gray-500">({selectedContractor.reviewCount || 0} reviews)</span>
               </div>
               {selectedContractor.hourlyRate && (
                 <p className="font-semibold text-primary mb-3">€{selectedContractor.hourlyRate}/h</p>

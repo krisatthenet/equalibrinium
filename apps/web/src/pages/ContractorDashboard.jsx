@@ -28,6 +28,7 @@ const ContractorDashboard = () => {
   const [openTickets, setOpenTickets] = useState([]);
   const [directRequests, setDirectRequests] = useState([]);
   const [myBids, setMyBids] = useState([]);
+  const [ticketsMap, setTicketsMap] = useState({});
   const [reviews, setReviews] = useState([]);
   const [contractorProfile, setContractorProfile] = useState(null);
   const [balance, setBalance] = useState(0);
@@ -52,7 +53,6 @@ const ContractorDashboard = () => {
         pb.collection('bids').getList(1, 50, {
           filter: `masterId = "${currentUser.id}"`,
           sort: '-created',
-          expand: 'ticketId,ticketId.categoryId',
           $autoCancel: false
         }),
         pb.collection('reviews').getFullList({
@@ -66,6 +66,20 @@ const ContractorDashboard = () => {
       setOpenTickets(ticketsData.items);
       setMyBids(bidsData.items);
       setReviews(reviewsData);
+
+      // Fetch ticket records for all bids (ticketId is a plain text field, expand doesn't work)
+      const bidTicketIds = [...new Set(bidsData.items.map(b => b.ticketId).filter(Boolean))];
+      if (bidTicketIds.length > 0) {
+        const filter = bidTicketIds.map(id => `id = "${id}"`).join(' || ');
+        const ticketRecords = await pb.collection('auction_tickets').getFullList({
+          filter,
+          expand: 'categoryId',
+          $autoCancel: false
+        }).catch(() => []);
+        const map = {};
+        ticketRecords.forEach(t => { map[t.id] = t; });
+        setTicketsMap(map);
+      }
 
       // Fetch direct requests assigned to this contractor
       const contractorRecord = profileData.items[0];
@@ -93,8 +107,8 @@ const ContractorDashboard = () => {
     if (currentUser) fetchData();
   }, [currentUser]);
 
-  const activeJobs = myBids.filter(b => b.status === 'accepted' && b.expand?.ticketId?.status !== 'Completed' && b.expand?.ticketId?.status !== 'Cancelled');
-  const completedJobs = myBids.filter(b => b.status === 'accepted' && b.expand?.ticketId?.status === 'Completed');
+  const activeJobs = myBids.filter(b => b.status === 'accepted' && ticketsMap[b.ticketId]?.status !== 'Completed' && ticketsMap[b.ticketId]?.status !== 'Cancelled');
+  const completedJobs = myBids.filter(b => b.status === 'accepted' && ticketsMap[b.ticketId]?.status === 'Completed');
   const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
 
   const handleMarkFinished = async (ticketId) => {
@@ -192,71 +206,77 @@ const ContractorDashboard = () => {
     },
   ];
 
-  const renderActiveJobRow = (bid) => (
-    <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-foreground">
-              {bid.expand?.ticketId?.expand?.categoryId?.name || 'Service Request'}
-            </h3>
-            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-              {bid.status}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{bid.expand?.ticketId?.description}</p>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <span className="font-medium text-primary">€{bid.proposedRate}</span>
-            {bid.expand?.ticketId?.location && (
+  const renderActiveJobRow = (bid) => {
+    const ticket = ticketsMap[bid.ticketId];
+    return (
+      <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-foreground">
+                {ticket?.expand?.categoryId?.name || 'Service Request'}
+              </h3>
+              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                {bid.status}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket?.description}</p>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <span className="font-medium text-primary">€{bid.proposedRate}</span>
+              {ticket?.location && (
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> {ticket.location}
+                </span>
+              )}
               <span className="text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> {bid.expand.ticketId.location}
+                <Clock className="h-3 w-3" /> {new Date(bid.created).toLocaleDateString()}
               </span>
-            )}
-            <span className="text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" /> {new Date(bid.created).toLocaleDateString()}
-            </span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 shrink-0">
+            <Button size="sm" variant="ghost" asChild className="rounded-lg">
+              <Link to={`/auction-ticket/${bid.ticketId}`}>{t('auction.view_details')}</Link>
+            </Button>
           </div>
         </div>
-        <div className="flex flex-col gap-2 shrink-0">
-          <Button size="sm" variant="ghost" asChild className="rounded-lg">
+      </div>
+    );
+  };
+
+  const renderBidRow = (bid) => {
+    const ticket = ticketsMap[bid.ticketId];
+    return (
+      <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-foreground">
+                {ticket?.expand?.categoryId?.name || 'Service Request'}
+              </h3>
+              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                {bid.status}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket?.description}</p>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <span className="font-medium text-primary">€{bid.proposedRate}</span>
+              {ticket?.location && (
+                <span className="text-muted-foreground flex items-center gap-1">
+                  <MapPin className="h-3 w-3" /> {ticket.location}
+                </span>
+              )}
+              <span className="text-muted-foreground flex items-center gap-1">
+                <Clock className="h-3 w-3" /> {new Date(bid.created).toLocaleDateString()}
+              </span>
+            </div>
+          </div>
+          <Button size="sm" variant="ghost" asChild className="rounded-lg shrink-0">
             <Link to={`/auction-ticket/${bid.ticketId}`}>{t('auction.view_details')}</Link>
           </Button>
         </div>
       </div>
-    </div>
-  );
-
-  const renderBidRow = (bid) => (
-    <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="font-semibold text-foreground">
-              {bid.expand?.ticketId?.expand?.categoryId?.name || 'Service Request'}
-            </h3>
-            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-              {bid.status}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{bid.expand?.ticketId?.description}</p>
-          <div className="flex flex-wrap gap-3 text-sm">
-            <span className="font-medium text-primary">€{bid.proposedRate}</span>
-            {bid.expand?.ticketId?.location && (
-              <span className="text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> {bid.expand.ticketId.location}
-              </span>
-            )}
-            <span className="text-muted-foreground flex items-center gap-1">
-              <Clock className="h-3 w-3" /> {new Date(bid.created).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-        <Button size="sm" variant="ghost" asChild className="rounded-lg shrink-0">
-          <Link to={`/auction-ticket/${bid.ticketId}`}>{t('auction.view_details')}</Link>
-        </Button>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const panels = {
     direct: {
@@ -380,27 +400,30 @@ const ContractorDashboard = () => {
       icon: <span className="text-lg font-bold text-primary leading-none">€</span>,
       content: completedJobs.length > 0 ? (
         <div className="space-y-4">
-          {completedJobs.map(bid => (
-            <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground mb-1">
-                    {bid.expand?.ticketId?.expand?.categoryId?.name || 'Service Request'}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{bid.expand?.ticketId?.description}</p>
-                  {bid.expand?.ticketId?.location && (
-                    <span className="text-sm text-muted-foreground flex items-center gap-1">
-                      <MapPin className="h-3 w-3" /> {bid.expand.ticketId.location}
-                    </span>
-                  )}
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-2xl font-bold text-primary">€{bid.proposedRate}</p>
-                  <p className="text-xs text-muted-foreground mt-1">{new Date(bid.expand?.ticketId?.updated).toLocaleDateString()}</p>
+          {completedJobs.map(bid => {
+            const ticket = ticketsMap[bid.ticketId];
+            return (
+              <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-1">
+                      {ticket?.expand?.categoryId?.name || 'Service Request'}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket?.description}</p>
+                    {ticket?.location && (
+                      <span className="text-sm text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" /> {ticket.location}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-2xl font-bold text-primary">€{bid.proposedRate}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{ticket?.updated ? new Date(ticket.updated).toLocaleDateString() : ''}</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <div className="flex justify-end pt-2 border-t border-border">
             <p className="text-lg font-bold text-foreground">{t('dashboard.total_earnings')}: <span className="text-primary">€{balance.toFixed(2)}</span></p>
           </div>

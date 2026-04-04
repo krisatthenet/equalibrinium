@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
-const ReviewModal = ({ open, onClose, contractorId, contractorName, ticketId, onSubmitted }) => {
+const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractorName: contractorNameProp, ticketId, onSubmitted }) => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -16,21 +16,63 @@ const ReviewModal = ({ open, onClose, contractorId, contractorName, ticketId, on
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resolvedContractorId, setResolvedContractorId] = useState(contractorIdProp);
+  const [resolvedContractorName, setResolvedContractorName] = useState(contractorNameProp);
+
+  // If contractorId wasn't passed, look it up from the accepted bid on the ticket
+  React.useEffect(() => {
+    if (open && !contractorIdProp && ticketId) {
+      pb.collection('bids').getFirstListItem(`ticketId = "${ticketId}" && status = "accepted"`, { $autoCancel: false })
+        .then(bid => {
+          if (bid?.masterId) {
+            setResolvedContractorId(bid.masterId);
+            pb.collection('users').getOne(bid.masterId, { $autoCancel: false })
+              .then(u => setResolvedContractorName(u.name))
+              .catch(() => {});
+          }
+        })
+        .catch(() => {});
+    } else {
+      setResolvedContractorId(contractorIdProp);
+      setResolvedContractorName(contractorNameProp);
+    }
+  }, [open, contractorIdProp, ticketId]);
 
   const handleSubmit = async () => {
     if (!rating) {
       toast({ title: 'Please select a rating', variant: 'destructive' });
       return;
     }
+    if (!resolvedContractorId) {
+      toast({ title: 'Could not identify contractor', variant: 'destructive' });
+      return;
+    }
     setLoading(true);
     try {
       await pb.collection('reviews').create({
-        contractorId,
+        contractorId: resolvedContractorId,
         clientId: currentUser.id,
         ticketId,
         rating,
         comment
       }, { $autoCancel: false });
+
+      // Recompute and update contractor rating/reviewCount
+      try {
+        const allReviews = await pb.collection('reviews').getFullList({
+          filter: `contractorId = "${resolvedContractorId}"`,
+          $autoCancel: false
+        });
+        const avg = allReviews.reduce((sum, r) => sum + r.rating, 0) / allReviews.length;
+        const contractorRecord = await pb.collection('contractors').getFirstListItem(
+          `userId = "${resolvedContractorId}"`, { $autoCancel: false }
+        );
+        await pb.collection('contractors').update(contractorRecord.id, {
+          rating: parseFloat(avg.toFixed(2)),
+          reviewCount: allReviews.length
+        }, { $autoCancel: false });
+      } catch (_) {}
+
       toast({ title: 'Review submitted!' });
       if (onSubmitted) onSubmitted();
       onClose();
@@ -48,9 +90,9 @@ const ReviewModal = ({ open, onClose, contractorId, contractorName, ticketId, on
           <DialogTitle>Leave a Review</DialogTitle>
         </DialogHeader>
         <div className="space-y-5 pt-2">
-          {contractorName && (
+          {resolvedContractorName && (
             <p className="text-sm text-muted-foreground">
-              Rate your experience with <span className="font-semibold text-foreground">{contractorName}</span>
+              Rate your experience with <span className="font-semibold text-foreground">{resolvedContractorName}</span>
             </p>
           )}
 

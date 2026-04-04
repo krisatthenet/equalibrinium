@@ -14,10 +14,7 @@ const PALETTE = [
 ];
 
 const GoogleMapsIntegration = ({
-  contractors = [],
-  masters = [],
   tickets = [],
-  categories = [],
   radius,
   onLocationChange,
 }) => {
@@ -35,16 +32,16 @@ const GoogleMapsIntegration = ({
   const userMarkerRef = useRef(null);
   const radiusCircleRef = useRef(null);
 
-  const displayItems = contractors.length > 0 ? contractors : masters;
-
-  // Build a colour map: categoryId → hex
-  const catColorMap = {};
-  categories.forEach((cat, i) => {
-    catColorMap[cat.id] = PALETTE[i % PALETTE.length];
-  });
-
-  const getCategoryColor = (categoryId) =>
-    catColorMap[categoryId] || '#94a3b8';
+  // Build a colour map: categoryId → hex from ticket expand data
+  const getCategoryColor = (() => {
+    const seen = {};
+    let idx = 0;
+    return (categoryId) => {
+      if (!categoryId) return '#94a3b8';
+      if (!seen[categoryId]) seen[categoryId] = PALETTE[idx++ % PALETTE.length];
+      return seen[categoryId];
+    };
+  })();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -91,55 +88,6 @@ const GoogleMapsIntegration = ({
 
     const newMarkers = [];
     const legendEntries = [];
-
-    // Contractor markers — arrow shape
-    displayItems.forEach(item => {
-      if (!item.latitude || !item.longitude) return;
-      const color = item.isPromoted ? '#f59e0b' : '#10b981';
-
-      const marker = new window.google.maps.Marker({
-        position: { lat: item.latitude, lng: item.longitude },
-        map: mapInstance,
-        title: item.name,
-        icon: {
-          path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-          scale: 7,
-          fillColor: color,
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 2,
-        },
-      });
-
-      marker.addListener('click', () => {
-        const stars = '★'.repeat(Math.round(item.rating || 0)) + '☆'.repeat(5 - Math.round(item.rating || 0));
-        const content = `
-          <div style="font-family:system-ui,sans-serif;padding:14px 16px;min-width:220px;max-width:260px;background:#1e293b;color:#f1f5f9;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-              <div style="width:38px;height:38px;border-radius:50%;background:${color}22;border:2px solid ${color};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">👤</div>
-              <div>
-                <div style="font-weight:700;font-size:15px;color:#f1f5f9;">${item.name}</div>
-                ${item.profession ? `<div style="font-size:12px;color:#94a3b8;">${item.profession}</div>` : ''}
-              </div>
-            </div>
-            ${item.isPromoted ? `<div style="display:inline-block;background:#fef08a22;color:#fbbf24;font-size:11px;padding:2px 10px;border-radius:99px;border:1px solid #fbbf2444;margin-bottom:8px;font-weight:600;">⭐ Promoted</div>` : ''}
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-              <span style="color:#fbbf24;font-size:14px;">${stars}</span>
-              <span style="font-size:13px;color:#94a3b8;">(${item.reviewCount || 0})</span>
-            </div>
-            ${item.hourlyRate ? `<div style="font-weight:600;color:#60a5fa;font-size:14px;margin-bottom:10px;">€${item.hourlyRate}/hr</div>` : ''}
-            ${item.location ? `<div style="font-size:12px;color:#64748b;margin-bottom:10px;">📍 ${item.location}</div>` : ''}
-            <button onclick="window.location.href='/contractor/${item.id}'" style="width:100%;background:${color};color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;">
-              View Profile →
-            </button>
-          </div>
-        `;
-        infoWindowRef.current.setContent(content);
-        infoWindowRef.current.open(mapInstance, marker);
-      });
-
-      newMarkers.push(marker);
-    });
 
     // Ticket markers — circle, colored by category
     const seenCategories = new Set();
@@ -220,7 +168,7 @@ const GoogleMapsIntegration = ({
       map: mapInstance,
       markers: newMarkers,
     });
-  }, [mapInstance, displayItems, tickets, categories]);
+  }, [mapInstance, tickets]);
 
   // User location marker & radius circle
   useEffect(() => {
@@ -309,17 +257,6 @@ const GoogleMapsIntegration = ({
         </div>
       )}
 
-      {/* Marker type legend */}
-      <div className="absolute top-4 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-xl px-3 py-2 z-10 shadow-lg flex items-center gap-4">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="inline-block w-3 h-3 rounded-full bg-emerald-500" />
-          Contractors
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="inline-block w-3 h-3 rounded-full bg-blue-500" />
-          Requests
-        </div>
-      </div>
     </div>
     </div>
   );

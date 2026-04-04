@@ -25,6 +25,7 @@ const AuctionTicketDetailsPage = () => {
 
   const [ticket, setTicket] = useState(null);
   const [bids, setBids] = useState([]);
+  const [bidders, setBidders] = useState({}); // masterId -> user
   const [loading, setLoading] = useState(true);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -39,11 +40,22 @@ const AuctionTicketDetailsPage = () => {
 
       const bidsData = await pb.collection('bids').getFullList({
         filter: `ticketId = "${id}"`,
-        expand: 'masterId',
         sort: 'proposedRate',
         $autoCancel: false
       });
       setBids(bidsData);
+
+      // Fetch bidder user records (masterId is a plain text field, not a relation)
+      const masterIds = [...new Set(bidsData.map(b => b.masterId).filter(Boolean))];
+      if (masterIds.length > 0) {
+        const users = await pb.collection('users').getFullList({
+          filter: masterIds.map(id => `id = "${id}"`).join(' || '),
+          $autoCancel: false
+        }).catch(() => []);
+        const map = {};
+        users.forEach(u => { map[u.id] = u; });
+        setBidders(map);
+      }
     } catch (error) {
       console.error('Error fetching ticket details:', error);
       toast({ title: "Error", description: "Could not load ticket details.", variant: "destructive" });
@@ -256,22 +268,25 @@ const AuctionTicketDetailsPage = () => {
                     <CardContent>
                       {bids.length > 0 ? (
                         <div className="space-y-4">
-                          {bids.map(bid => (
+                          {bids.map(bid => {
+                            const bidder = bidders[bid.masterId];
+                            const avatarField = bidder?.profilePicture || bidder?.avatar;
+                            return (
                             <div key={bid.id} className={`border rounded-xl p-5 ${bid.status === 'accepted' ? 'border-primary bg-primary/5' : 'border-border'}`}>
                               <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
                                   <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                    {bid.expand?.masterId?.avatar ? (
-                                      <img src={pb.files.getUrl(bid.expand.masterId, bid.expand.masterId.avatar)} alt="Avatar" className="w-full h-full object-cover" />
+                                    {avatarField ? (
+                                      <img src={pb.files.getUrl(bidder, avatarField)} alt="Avatar" className="w-full h-full object-cover" />
                                     ) : (
                                       <User className="h-6 w-6 text-muted-foreground" />
                                     )}
                                   </div>
                                   <div>
-                                    <p className="font-semibold text-foreground">{bid.expand?.masterId?.name || 'Contractor'}</p>
+                                    <p className="font-semibold text-foreground">{bidder?.name || 'Contractor'}</p>
                                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                       <Star className="h-3.5 w-3.5 text-primary fill-primary" />
-                                      <span>{bid.expand?.masterId?.rating || '0.0'}</span>
+                                      <span>{bidder?.rating || '0.0'}</span>
                                     </div>
                                   </div>
                                 </div>
@@ -293,7 +308,8 @@ const AuctionTicketDetailsPage = () => {
                                 </div>
                               )}
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-muted-foreground text-center py-8">{t('auction.no_bids_placed')}</p>
@@ -391,7 +407,10 @@ const AuctionTicketDetailsPage = () => {
                 )}
 
                 {/* Contact card — shown after bid acceptance */}
-                {ticket.status === 'In Progress' && acceptedBid && isClient && acceptedBid.expand?.masterId && (
+                {ticket.status === 'In Progress' && acceptedBid && isClient && bidders[acceptedBid.masterId] && (() => {
+                  const contractor = bidders[acceptedBid.masterId];
+                  const avatarField = contractor.profilePicture || contractor.avatar;
+                  return (
                   <Card className="bg-card border-primary/40 border rounded-2xl">
                     <CardHeader className="pb-3">
                       <CardTitle className="text-base flex items-center gap-2">
@@ -402,30 +421,31 @@ const AuctionTicketDetailsPage = () => {
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                          {acceptedBid.expand.masterId.avatar ? (
-                            <img src={pb.files.getUrl(acceptedBid.expand.masterId, acceptedBid.expand.masterId.avatar)} alt="Avatar" className="w-full h-full object-cover" />
+                          {avatarField ? (
+                            <img src={pb.files.getUrl(contractor, avatarField)} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
                             <User className="h-5 w-5 text-muted-foreground" />
                           )}
                         </div>
                         <div>
-                          <p className="font-semibold text-sm text-foreground">{acceptedBid.expand.masterId.name}</p>
+                          <p className="font-semibold text-sm text-foreground">{contractor.name}</p>
                           <p className="text-xs text-primary font-medium">{t('auction.rate_agreed', { rate: acceptedBid.proposedRate })}</p>
                         </div>
                       </div>
-                      <a href={`mailto:${acceptedBid.expand.masterId.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                      <a href={`mailto:${contractor.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
                         <Mail className="h-4 w-4 text-primary shrink-0" />
-                        <span className="truncate text-foreground">{acceptedBid.expand.masterId.email}</span>
+                        <span className="truncate text-foreground">{contractor.email}</span>
                       </a>
-                      {acceptedBid.expand.masterId.phone && (
-                        <a href={`tel:${acceptedBid.expand.masterId.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
+                      {contractor.phone && (
+                        <a href={`tel:${contractor.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
                           <Phone className="h-4 w-4 text-primary shrink-0" />
-                          <span className="text-foreground">{acceptedBid.expand.masterId.phone}</span>
+                          <span className="text-foreground">{contractor.phone}</span>
                         </a>
                       )}
                     </CardContent>
                   </Card>
-                )}
+                  );
+                })()}
 
                 {/* Contact card for contractor — shown when their bid is accepted */}
                 {ticket.status === 'In Progress' && myBid?.status === 'accepted' && ticket.expand?.clientId && (

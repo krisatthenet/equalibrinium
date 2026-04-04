@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, ArrowRight, Loader2, Receipt, Star } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
@@ -13,13 +13,13 @@ import ReviewModal from '@/components/ReviewModal.jsx';
 
 const PaymentSuccessPage = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { currentUser } = useAuth();
-  
+
   const [status, setStatus] = useState('verifying'); // verifying, success, error
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [reviewTarget, setReviewTarget] = useState(null);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const [reviewDone, setReviewDone] = useState(false);
 
   useEffect(() => {
@@ -46,8 +46,8 @@ const PaymentSuccessPage = () => {
 
         const amount = (sessionData.amountTotal || 0) / 100;
 
-        // Wait briefly for webhook to process (it may beat us here)
-        await new Promise(r => setTimeout(r, 1500));
+        // Mark ticket as Completed (webhook does this too, but may not reach localhost in dev)
+        await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' }, { $autoCancel: false }).catch(() => {});
 
         // Fetch ticket for display
         const ticket = await pb.collection('auction_tickets').getOne(ticketId, {
@@ -55,15 +55,14 @@ const PaymentSuccessPage = () => {
           $autoCancel: false
         });
 
-        // Find contractor for review prompt
+        // Find contractor for review link
         const bids = await pb.collection('bids').getFullList({
           filter: `ticketId = "${ticketId}" && status = "accepted"`,
-          expand: 'masterId',
           $autoCancel: false
         }).catch(() => []);
-        if (bids.length > 0 && bids[0].expand?.masterId) {
-          const c = bids[0].expand.masterId;
-          setReviewTarget({ contractorId: c.id, contractorName: c.name, ticketId });
+        if (bids.length > 0 && bids[0].masterId) {
+          const c = await pb.collection('users').getOne(bids[0].masterId, { $autoCancel: false }).catch(() => null);
+          if (c) setReviewTarget({ contractorId: c.id, contractorName: c.name, ticketId });
         }
 
         setPaymentDetails({ ticket, amount, sessionId });
@@ -113,22 +112,32 @@ const PaymentSuccessPage = () => {
                   </div>
                   <h1 className="text-3xl font-bold text-foreground mb-2">Payment Successful!</h1>
                   <p className="text-green-600 font-medium">Your transaction has been completed.</p>
+                  {!reviewDone ? (
+                    <button
+                      onClick={() => setShowReviewModal(true)}
+                      className="mt-2 text-sm text-muted-foreground hover:text-foreground underline underline-offset-2 flex items-center gap-1"
+                    >
+                      <Star className="h-3.5 w-3.5" /> Leave a review
+                    </button>
+                  ) : (
+                    <p className="mt-2 text-sm text-green-600">✓ Review submitted, thank you!</p>
+                  )}
                 </div>
-                
+
                 <CardContent className="p-8 space-y-6">
                   <div className="bg-muted/50 rounded-xl p-6 space-y-4">
                     <div className="flex justify-between items-center border-b border-border pb-4">
                       <span className="text-muted-foreground">Amount Paid</span>
                       <span className="text-2xl font-bold text-foreground">€{paymentDetails.amount.toFixed(2)}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Service</span>
                       <span className="font-medium text-foreground text-right max-w-[200px] truncate">
                         {paymentDetails.ticket?.expand?.categoryId?.name || 'Service Request'}
                       </span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Payment Method</span>
                       <span className="font-medium text-foreground">Stripe / Card</span>
@@ -145,22 +154,6 @@ const PaymentSuccessPage = () => {
                   <p className="text-sm text-center text-muted-foreground">
                     A confirmation email has been sent to your registered email address.
                   </p>
-
-                  {reviewTarget && !reviewDone && (
-                    <div className="bg-muted/40 rounded-xl p-4 border border-border text-center space-y-3">
-                      <p className="text-sm font-medium text-foreground">How was your experience?</p>
-                      <p className="text-xs text-muted-foreground">Leave a review for <strong>{reviewTarget.contractorName}</strong></p>
-                      <Button
-                        onClick={() => setReviewTarget(reviewTarget)}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl w-full"
-                      >
-                        <Star className="h-4 w-4 mr-2" /> Leave a Review
-                      </Button>
-                    </div>
-                  )}
-                  {reviewDone && (
-                    <p className="text-sm text-center text-green-500 font-medium">✓ Review submitted, thank you!</p>
-                  )}
 
                   <div className="flex flex-col sm:flex-row gap-4 pt-4">
                     <Button asChild variant="outline" className="flex-1 rounded-xl h-12">
@@ -202,16 +195,14 @@ const PaymentSuccessPage = () => {
         <Footer />
       </div>
 
-      {reviewTarget && (
-        <ReviewModal
-          open={!!reviewTarget}
-          onClose={() => setReviewTarget(null)}
-          contractorId={reviewTarget.contractorId}
-          contractorName={reviewTarget.contractorName}
-          ticketId={reviewTarget.ticketId}
-          onSubmitted={() => { setReviewDone(true); setReviewTarget(null); }}
-        />
-      )}
+      <ReviewModal
+        open={showReviewModal}
+        onClose={() => setShowReviewModal(false)}
+        contractorId={reviewTarget?.contractorId}
+        contractorName={reviewTarget?.contractorName}
+        ticketId={reviewTarget?.ticketId ?? searchParams.get('ticketId')}
+        onSubmitted={() => { setReviewDone(true); setShowReviewModal(false); }}
+      />
     </>
   );
 };

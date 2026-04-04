@@ -7,9 +7,9 @@ import pb from '@/lib/pocketbaseClient';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { useToast } from '@/hooks/use-toast';
 import {
-  User, CreditCard, Shield, Camera, Loader2, Trash2, Plus, CheckCircle2, XCircle, Landmark, ExternalLink
+  User, CreditCard, Shield, Camera, Loader2, CheckCircle2, ExternalLink
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,39 +50,14 @@ const SettingsPage = () => {
     influencerBio: currentUser?.influencerBio || ''
   });
 
-  // Payment State
-  const [paymentMethods, setPaymentMethods] = useState([]);
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [cardForm, setCardForm] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardholderName: ''
-  });
-  const [paypalData, setPaypalData] = useState({
-    email: currentUser?.paypalEmail || '',
-    connected: currentUser?.paypalConnected || false
-  });
-  const [stripeData, setStripeData] = useState({
-    email: currentUser?.stripeEmail || '',
-    connected: currentUser?.stripeConnected || false
-  });
-
   // Payout State (contractors only)
-  const [payoutData, setPayoutData] = useState({
-    payoutMethod: currentUser?.payoutMethod || 'bank',
-    bankAccountHolder: currentUser?.bankAccountHolder || '',
-    ibanNumber: currentUser?.ibanNumber || '',
-    bicSwift: currentUser?.bicSwift || '',
-    bankName: currentUser?.bankName || '',
-    payoutPaypalEmail: currentUser?.payoutPaypalEmail || '',
-  });
-  const [payoutLoading, setPayoutLoading] = useState(false);
   const [stripeConnectStatus, setStripeConnectStatus] = useState({
     accountId: currentUser?.stripeAccountId || null,
     onboarded: currentUser?.stripeOnboarded || false,
   });
   const [stripeConnectLoading, setStripeConnectLoading] = useState(false);
+  const [contractorBalance, setContractorBalance] = useState(0);
+  const [payoutLoading, setPayoutLoading] = useState(false);
 
   // Account State
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -117,17 +92,12 @@ const SettingsPage = () => {
               location: contractor.location || prev.location
             }));
           }
-          // Load payout details from users record
           const user = await pb.collection('users').getOne(currentUser.id, { $autoCancel: false });
-          setPayoutData({
-            payoutMethod: user.payoutMethod || 'bank',
-            bankAccountHolder: user.bankAccountHolder || '',
-            ibanNumber: user.ibanNumber || '',
-            bicSwift: user.bicSwift || '',
-            bankName: user.bankName || '',
-            payoutPaypalEmail: user.payoutPaypalEmail || '',
-            payoutStripeEmail: user.payoutStripeEmail || '',
+          setStripeConnectStatus({
+            accountId: user.stripeAccountId || null,
+            onboarded: user.stripeOnboarded || false,
           });
+          setContractorBalance(Number(user.balance) || 0);
         } catch (err) {
           console.error('Error fetching contractor record:', err);
         }
@@ -152,22 +122,8 @@ const SettingsPage = () => {
       }
     };
 
-    const fetchPaymentMethods = async () => {
-      try {
-        const records = await pb.collection('payment_methods').getFullList({
-          filter: `userId = "${currentUser.id}"`,
-          sort: '-created',
-          $autoCancel: false
-        });
-        setPaymentMethods(records);
-      } catch (err) {
-        console.error('Error fetching payment methods:', err);
-      }
-    };
-
     fetchContractorData();
     fetchClientLocation();
-    fetchPaymentMethods();
   }, [currentUser]);
 
   // --- Profile Handlers ---
@@ -282,90 +238,22 @@ const SettingsPage = () => {
     }
   };
 
-  // --- Payment Handlers ---
-  const handleAddCard = async (e) => {
-    e.preventDefault();
-    setPaymentLoading(true);
-    try {
-      const newCard = await pb.collection('payment_methods').create({
-        userId: currentUser.id,
-        cardNumber: cardForm.cardNumber,
-        expiryDate: cardForm.expiryDate,
-        cvv: cardForm.cvv,
-        cardholderName: cardForm.cardholderName,
-        isDefault: paymentMethods.length === 0
-      }, { $autoCancel: false });
-
-      setPaymentMethods([newCard, ...paymentMethods]);
-      setCardForm({ cardNumber: '', expiryDate: '', cvv: '', cardholderName: '' });
-      toast({ title: "Card Added", description: "Payment method saved successfully." });
-    } catch (error) {
-      console.error('Add card error:', error);
-      toast({ title: "Failed to add card", description: "Please check your card details.", variant: "destructive" });
-    } finally {
-      setPaymentLoading(false);
-    }
-  };
-
-  const handleDeleteCard = async (id) => {
-    try {
-      await pb.collection('payment_methods').delete(id, { $autoCancel: false });
-      setPaymentMethods(paymentMethods.filter(card => card.id !== id));
-      toast({ title: "Card Removed", description: "Payment method has been deleted." });
-    } catch (error) {
-      console.error('Delete card error:', error);
-      toast({ title: "Error", description: "Could not remove card.", variant: "destructive" });
-    }
-  };
-
-  const handleConnectPaypal = async () => {
-    if (!paypalData.email) return toast({ title: "Email Required", description: "Please enter your PayPal email.", variant: "destructive" });
-    try {
-      const isConnecting = !paypalData.connected;
-      await pb.collection('users').update(currentUser.id, {
-        paypalEmail: isConnecting ? paypalData.email : '',
-        paypalConnected: isConnecting
-      }, { $autoCancel: false });
-      
-      setPaypalData({ email: isConnecting ? paypalData.email : '', connected: isConnecting });
-      toast({ title: isConnecting ? "PayPal Connected" : "PayPal Disconnected" });
-    } catch (error) {
-      toast({ title: "Error", description: "Could not update PayPal settings.", variant: "destructive" });
-    }
-  };
-
-  const handleConnectStripe = async () => {
-    if (!stripeData.email) return toast({ title: "Email Required", description: "Please enter your Stripe email.", variant: "destructive" });
-    try {
-      const isConnecting = !stripeData.connected;
-      await pb.collection('users').update(currentUser.id, {
-        stripeEmail: isConnecting ? stripeData.email : '',
-        stripeConnected: isConnecting
-      }, { $autoCancel: false });
-      
-      setStripeData({ email: isConnecting ? stripeData.email : '', connected: isConnecting });
-      toast({ title: isConnecting ? "Stripe Connected" : "Stripe Disconnected" });
-    } catch (error) {
-      toast({ title: "Error", description: "Could not update Stripe settings.", variant: "destructive" });
-    }
-  };
-
-  const handleSavePayout = async (e) => {
-    e.preventDefault();
+  // --- Payout Handler ---
+  const handleRequestPayout = async () => {
+    if (contractorBalance <= 0) return;
     setPayoutLoading(true);
     try {
-      await pb.collection('users').update(currentUser.id, {
-        payoutMethod: payoutData.payoutMethod,
-        bankAccountHolder: payoutData.bankAccountHolder,
-        ibanNumber: payoutData.ibanNumber,
-        bicSwift: payoutData.bicSwift,
-        bankName: payoutData.bankName,
-        payoutPaypalEmail: payoutData.payoutPaypalEmail,
-        payoutStripeEmail: payoutData.payoutStripeEmail,
-      }, { $autoCancel: false });
-      toast({ title: 'Payout details saved', description: 'Your payout information has been updated.' });
-    } catch (error) {
-      toast({ title: 'Error', description: 'Could not save payout details.', variant: 'destructive' });
+      const res = await apiServerClient.fetch('/stripe/request-payout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id, amount: contractorBalance }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Payout failed');
+      setContractorBalance(data.remaining || 0);
+      toast({ title: 'Payout requested!', description: `€${contractorBalance.toFixed(2)} is being transferred to your Stripe account.` });
+    } catch (err) {
+      toast({ title: 'Payout failed', description: err.message, variant: 'destructive' });
     } finally {
       setPayoutLoading(false);
     }
@@ -438,11 +326,6 @@ const SettingsPage = () => {
     }
   };
 
-  const maskCardNumber = (number) => {
-    if (!number) return '****';
-    const last4 = number.slice(-4);
-    return `**** **** **** ${last4}`;
-  };
 
   return (
     <>
@@ -632,15 +515,14 @@ const SettingsPage = () => {
                   <Card className="bg-card border-border rounded-2xl">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
-                        <Landmark className="w-5 h-5 text-primary" />
+                        <CreditCard className="w-5 h-5 text-primary" />
                         Payout Details
                       </CardTitle>
                       <CardDescription>
-                        Where should we send your earnings? Choose your preferred payout method.
+                        Connect your Stripe account to receive earnings from completed jobs.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {/* Service fee notice */}
                       <div className="flex items-start gap-3 p-4 mb-6 bg-primary/5 border border-primary/20 rounded-xl">
                         <span className="text-primary text-lg font-bold shrink-0">5%</span>
                         <p className="text-sm text-muted-foreground">
@@ -648,274 +530,71 @@ const SettingsPage = () => {
                         </p>
                       </div>
 
-                      <form onSubmit={handleSavePayout} className="space-y-6">
-                        {/* Method selector */}
-                        <div className="flex gap-3">
-                          {['bank', 'paypal', 'stripe'].map(method => (
-                            <button
-                              key={method}
-                              type="button"
-                              onClick={() => setPayoutData({ ...payoutData, payoutMethod: method })}
-                              className={`flex-1 py-3 px-4 rounded-xl border-2 text-sm font-medium transition-colors ${
-                                payoutData.payoutMethod === method
-                                  ? 'border-primary bg-primary/10 text-primary'
-                                  : 'border-border text-muted-foreground hover:border-primary/50'
-                              }`}
+                      <div className="rounded-xl border border-border p-4 space-y-4">
+                        {stripeConnectStatus.onboarded ? (
+                          <>
+                            <div className="flex items-center gap-2 text-green-500 font-medium">
+                              <CheckCircle2 className="h-5 w-5" />
+                              Stripe account connected
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              Payments will be transferred directly to your Stripe account (minus 5% platform fee).
+                            </p>
+
+                            {/* Balance & payout */}
+                            <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Available balance</p>
+                                <p className="text-2xl font-bold text-primary">€{contractorBalance.toFixed(2)}</p>
+                              </div>
+                              <Button
+                                className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
+                                onClick={handleRequestPayout}
+                                disabled={payoutLoading || contractorBalance <= 0}
+                              >
+                                {payoutLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                                Withdraw to Stripe
+                              </Button>
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="rounded-lg"
+                              onClick={handleStripeOpenDashboard}
+                              disabled={stripeConnectLoading}
                             >
-                              {method === 'bank' ? 'Bank Transfer' : method === 'paypal' ? 'PayPal' : 'Stripe'}
-                            </button>
-                          ))}
-                        </div>
-
-                        {/* Bank fields */}
-                        {payoutData.payoutMethod === 'bank' && (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2 md:col-span-2">
-                              <Label>Account Holder Name</Label>
-                              <Input
-                                required
-                                value={payoutData.bankAccountHolder}
-                                onChange={e => setPayoutData({ ...payoutData, bankAccountHolder: e.target.value })}
-                                placeholder="Full name as on bank account"
-                                className="bg-input border-border border-l-2 border-l-primary rounded-lg"
-                              />
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                              <Label>IBAN</Label>
-                              <Input
-                                required
-                                value={payoutData.ibanNumber}
-                                onChange={e => setPayoutData({ ...payoutData, ibanNumber: e.target.value.toUpperCase() })}
-                                placeholder="LT12 3456 7890 1234 5678"
-                                className="bg-input border-border border-l-2 border-l-primary rounded-lg font-mono"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>BIC / SWIFT</Label>
-                              <Input
-                                value={payoutData.bicSwift}
-                                onChange={e => setPayoutData({ ...payoutData, bicSwift: e.target.value.toUpperCase() })}
-                                placeholder="HABALT22"
-                                className="bg-input border-border border-l-2 border-l-primary rounded-lg font-mono"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>Bank Name</Label>
-                              <Input
-                                value={payoutData.bankName}
-                                onChange={e => setPayoutData({ ...payoutData, bankName: e.target.value })}
-                                placeholder="e.g. Swedbank, SEB"
-                                className="bg-input border-border border-l-2 border-l-primary rounded-lg"
-                              />
-                            </div>
-                          </div>
+                              {stripeConnectLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ExternalLink className="h-4 w-4 mr-2" />}
+                              Open Stripe Dashboard
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm text-muted-foreground">
+                              Connect your Stripe account to receive payments directly after each completed job. Takes ~5 minutes.
+                            </p>
+                            <Button
+                              className="bg-[#635BFF] hover:bg-[#5750e8] text-white rounded-lg w-full"
+                              onClick={handleStripeConnect}
+                              disabled={stripeConnectLoading}
+                            >
+                              {stripeConnectLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                              Connect with Stripe
+                            </Button>
+                          </>
                         )}
-
-                        {/* PayPal fields */}
-                        {payoutData.payoutMethod === 'paypal' && (
-                          <div className="space-y-2">
-                            <Label>PayPal Email</Label>
-                            <Input
-                              required
-                              type="email"
-                              value={payoutData.payoutPaypalEmail}
-                              onChange={e => setPayoutData({ ...payoutData, payoutPaypalEmail: e.target.value })}
-                              placeholder="your-paypal@email.com"
-                              className="bg-input border-border border-l-2 border-l-primary rounded-lg"
-                            />
-                            <p className="text-xs text-muted-foreground">Earnings (minus 5% fee) will be sent to this PayPal account.</p>
-                          </div>
-                        )}
-
-                        {/* Stripe Connect */}
-                        {payoutData.payoutMethod === 'stripe' && (
-                          <div className="rounded-xl border border-border p-4 space-y-4">
-                            {stripeConnectStatus.onboarded ? (
-                              <>
-                                <div className="flex items-center gap-2 text-green-500 font-medium">
-                                  <CheckCircle2 className="h-5 w-5" />
-                                  Stripe account connected
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                  Payments will be transferred directly to your Stripe account (minus 5% platform fee).
-                                </p>
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="rounded-lg"
-                                  onClick={handleStripeOpenDashboard}
-                                  disabled={stripeConnectLoading}
-                                >
-                                  {stripeConnectLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ExternalLink className="h-4 w-4 mr-2" />}
-                                  Open Stripe Dashboard
-                                </Button>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-sm text-muted-foreground">
-                                  Connect your Stripe account to receive payments directly after each completed job. Takes ~5 minutes.
-                                </p>
-                                <Button
-                                  type="button"
-                                  className="bg-[#635BFF] hover:bg-[#5750e8] text-white rounded-lg w-full"
-                                  onClick={handleStripeConnect}
-                                  disabled={stripeConnectLoading}
-                                >
-                                  {stripeConnectLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                                  Connect with Stripe
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        )}
-
-                        <Button type="submit" disabled={payoutLoading} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl">
-                          {payoutLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                          Save Payout Details
-                        </Button>
-                      </form>
+                      </div>
                     </CardContent>
                   </Card>
                 ) : (
-                  /* Clients / others: saved cards + PayPal + Stripe */
-                  <>
-                    <Card className="bg-card border-border rounded-2xl">
-                      <CardHeader>
-                        <CardTitle>{t('settings.saved_cards')}</CardTitle>
-                        <CardDescription>{t('settings.cards_desc')}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-6">
-                        {paymentMethods.length > 0 ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {paymentMethods.map(card => (
-                              <div key={card.id} className="p-4 rounded-xl border border-border bg-muted/30 flex justify-between items-start">
-                                <div className="flex gap-3">
-                                  <div className="p-2 bg-background rounded-lg h-fit">
-                                    <CreditCard className="w-6 h-6 text-primary" />
-                                  </div>
-                                  <div>
-                                    <p className="font-medium text-foreground">{maskCardNumber(card.cardNumber)}</p>
-                                    <p className="text-sm text-muted-foreground">Expires {card.expiryDate}</p>
-                                    <p className="text-sm text-muted-foreground mt-1">{card.cardholderName}</p>
-                                  </div>
-                                </div>
-                                <Button variant="ghost" size="icon" onClick={() => handleDeleteCard(card.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-sm">{t('settings.no_cards')}</p>
-                        )}
-
-                        <div className="pt-6 border-t border-border">
-                          <h4 className="font-medium mb-4">{t('settings.add_card')}</h4>
-                          <form onSubmit={handleAddCard} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2 md:col-span-2">
-                              <Label>{t('settings.card_number')}</Label>
-                              <Input
-                                required value={cardForm.cardNumber} onChange={e => setCardForm({...cardForm, cardNumber: e.target.value})}
-                                placeholder="0000 0000 0000 0000" className="bg-input border-border text-foreground rounded-lg"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>{t('settings.expiry')}</Label>
-                              <Input
-                                required value={cardForm.expiryDate} onChange={e => setCardForm({...cardForm, expiryDate: e.target.value})}
-                                placeholder="MM/YY" className="bg-input border-border text-foreground rounded-lg"
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label>{t('settings.cvv')}</Label>
-                              <Input
-                                required type="password" maxLength={4} value={cardForm.cvv} onChange={e => setCardForm({...cardForm, cvv: e.target.value})}
-                                placeholder="123" className="bg-input border-border text-foreground rounded-lg"
-                              />
-                            </div>
-                            <div className="space-y-2 md:col-span-2">
-                              <Label>{t('settings.cardholder')}</Label>
-                              <Input
-                                required value={cardForm.cardholderName} onChange={e => setCardForm({...cardForm, cardholderName: e.target.value})}
-                                placeholder="John Doe" className="bg-input border-border text-foreground rounded-lg"
-                              />
-                            </div>
-                            <Button type="submit" disabled={paymentLoading} className="w-fit mt-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl">
-                              {paymentLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-                              {t('settings.add_btn')}
-                            </Button>
-                          </form>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Card className="bg-card border-border rounded-2xl">
-                        <CardHeader>
-                          <CardTitle>{t('settings.paypal')}</CardTitle>
-                          <CardDescription>{t('settings.paypal_desc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>PayPal Email</Label>
-                            <Input
-                              type="email" value={paypalData.email} onChange={e => setPaypalData({...paypalData, email: e.target.value})}
-                              disabled={paypalData.connected} className="bg-input border-border text-foreground rounded-lg" placeholder="email@example.com"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            {paypalData.connected ? (
-                              <><CheckCircle2 className="w-4 h-4 text-green-500" /><span className="text-green-500">{t('settings.connected')}</span></>
-                            ) : (
-                              <><XCircle className="w-4 h-4 text-muted-foreground" /><span className="text-muted-foreground">{t('settings.not_connected')}</span></>
-                            )}
-                          </div>
-                        </CardContent>
-                        <CardFooter>
-                          <Button
-                            variant={paypalData.connected ? "outline" : "default"}
-                            onClick={handleConnectPaypal}
-                            className={!paypalData.connected ? "bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl" : "rounded-xl"}
-                          >
-                            {paypalData.connected ? t('settings.disconnect') : t('settings.connect')}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-
-                      <Card className="bg-card border-border rounded-2xl">
-                        <CardHeader>
-                          <CardTitle>{t('settings.stripe')}</CardTitle>
-                          <CardDescription>{t('settings.stripe_desc')}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="space-y-2">
-                            <Label>Stripe Email</Label>
-                            <Input
-                              type="email" value={stripeData.email} onChange={e => setStripeData({...stripeData, email: e.target.value})}
-                              disabled={stripeData.connected} className="bg-input border-border text-foreground rounded-lg" placeholder="email@example.com"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            {stripeData.connected ? (
-                              <><CheckCircle2 className="w-4 h-4 text-green-500" /><span className="text-green-500">{t('settings.connected')}</span></>
-                            ) : (
-                              <><XCircle className="w-4 h-4 text-muted-foreground" /><span className="text-muted-foreground">{t('settings.not_connected')}</span></>
-                            )}
-                          </div>
-                        </CardContent>
-                        <CardFooter>
-                          <Button
-                            variant={stripeData.connected ? "outline" : "default"}
-                            onClick={handleConnectStripe}
-                            className={!stripeData.connected ? "bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl" : "rounded-xl"}
-                          >
-                            {stripeData.connected ? t('settings.disconnect') : t('settings.connect')}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    </div>
-                  </>
+                  /* Clients: payments handled via Stripe at checkout */
+                  <Card className="bg-card border-border rounded-2xl">
+                    <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-3">
+                      <CreditCard className="w-10 h-10 text-primary" />
+                      <p className="font-medium text-foreground">Payments are handled securely via Stripe</p>
+                      <p className="text-sm text-muted-foreground">Your card details are entered at checkout and managed by Stripe — nothing is stored here.</p>
+                    </CardContent>
+                  </Card>
                 )}
               </TabsContent>
 

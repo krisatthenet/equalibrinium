@@ -27,6 +27,7 @@ const ClientDashboard = () => {
   const { currentUser } = useAuth();
   const [tickets, setTickets] = useState([]);
   const [acceptedBids, setAcceptedBids] = useState({}); // ticketId -> bid
+  const [contractors, setContractors] = useState({}); // masterId -> user
   const [existingReviews, setExistingReviews] = useState({}); // ticketId -> true
   const [paidTickets, setPaidTickets] = useState({}); // ticketId -> payment record
   const [loading, setLoading] = useState(true);
@@ -52,13 +53,24 @@ const ClientDashboard = () => {
         const filter = ids.map(id => `ticketId = "${id}"`).join(' || ');
         const bids = await pb.collection('bids').getFullList({
           filter: `(${filter}) && status = "accepted"`,
-          expand: 'masterId',
           $autoCancel: false
         }).catch(() => []);
 
         const bidsMap = {};
         bids.forEach(b => { bidsMap[b.ticketId] = b; });
         setAcceptedBids(bidsMap);
+
+        // Fetch contractor user records (masterId is a plain text field, not a relation)
+        const masterIds = [...new Set(bids.map(b => b.masterId).filter(Boolean))];
+        if (masterIds.length > 0) {
+          const contractorUsers = await pb.collection('users').getFullList({
+            filter: masterIds.map(id => `id = "${id}"`).join(' || '),
+            $autoCancel: false
+          }).catch(() => []);
+          const contractorsMap = {};
+          contractorUsers.forEach(u => { contractorsMap[u.id] = u; });
+          setContractors(contractorsMap);
+        }
 
         // Fetch existing reviews by this client
         const reviews = await pb.collection('reviews').getFullList({
@@ -136,12 +148,11 @@ const ClientDashboard = () => {
 
   const renderTicketRow = (ticket, isCompleted = false) => {
     const bid = acceptedBids[ticket.id];
-    const contractor = bid?.expand?.masterId;
+    const contractor = bid?.masterId ? contractors[bid.masterId] : null;
     const alreadyReviewed = existingReviews[ticket.id];
     const payment = paidTickets[ticket.id];
-    const avatarUrl = contractor?.avatar
-      ? pb.files.getUrl(contractor, contractor.avatar)
-      : null;
+    const avatarField = contractor?.profilePicture || contractor?.avatar;
+    const avatarUrl = avatarField ? pb.files.getUrl(contractor, avatarField) : null;
 
     // Paid & completed — compact historical note, no action buttons
     if (isCompleted && payment) {
@@ -414,16 +425,14 @@ const ClientDashboard = () => {
       </Dialog>
 
       {/* Review modal */}
-      {reviewTarget && (
-        <ReviewModal
-          open={!!reviewTarget}
-          onClose={() => setReviewTarget(null)}
-          contractorId={reviewTarget.contractorId}
-          contractorName={reviewTarget.contractorName}
-          ticketId={reviewTarget.ticketId}
-          onSubmitted={fetchTickets}
-        />
-      )}
+      <ReviewModal
+        open={!!reviewTarget}
+        onClose={() => setReviewTarget(null)}
+        contractorId={reviewTarget?.contractorId}
+        contractorName={reviewTarget?.contractorName}
+        ticketId={reviewTarget?.ticketId}
+        onSubmitted={() => { setReviewTarget(null); fetchTickets(); }}
+      />
     </>
   );
 };
