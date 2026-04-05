@@ -128,9 +128,6 @@ const FavouritesPage = () => {
                                 <MapPin className="h-3.5 w-3.5 shrink-0" /> {contractor.location}
                               </span>
                             )}
-                            {contractor.hourlyRate > 0 && (
-                              <span className="text-primary font-medium">€{contractor.hourlyRate}/hr</span>
-                            )}
                           </div>
                         </div>
                       </div>

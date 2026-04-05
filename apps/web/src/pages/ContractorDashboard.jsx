@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { usePushNotifications } from '@/hooks/usePushNotifications.js';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 
@@ -36,6 +37,13 @@ const ContractorDashboard = () => {
   const [activePanel, setActivePanel] = useState(null);
   const [finishingId, setFinishingId] = useState(null);
   const [acceptingId, setAcceptingId] = useState(null);
+  const [now, setNow] = useState(Date.now());
+  const { permission, requestPermission } = usePushNotifications(currentUser?.id);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -102,6 +110,18 @@ const ContractorDashboard = () => {
 
   const activeJobs = myBids.filter(b => b.status === 'accepted' && ticketsMap[b.ticketId]?.status !== 'Completed' && ticketsMap[b.ticketId]?.status !== 'Cancelled');
   const completedJobs = myBids.filter(b => b.status === 'accepted' && ticketsMap[b.ticketId]?.status === 'Completed');
+  const pendingBids = myBids.filter(b => b.status === 'pending');
+
+  const getBidTimeRemaining = (bid) => {
+    if (!bid.expiresAt) return null;
+    const ms = new Date(bid.expiresAt) - now;
+    if (ms <= 0) return 'Pasiūlymas baigėsi';
+    const h = Math.floor(ms / 3600000);
+    const m = Math.floor((ms % 3600000) / 60000);
+    if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h`;
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}min`;
+  };
   const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
 
   const handleMarkFinished = async (ticketId) => {
@@ -174,6 +194,14 @@ const ContractorDashboard = () => {
       ring: 'ring-yellow-500/50',
     },
     {
+      key: 'pending',
+      label: 'Mano pasiūlymai',
+      value: pendingBids.length,
+      icon: <Clock className="h-6 w-6 text-orange-500" />,
+      bg: 'bg-orange-500/10',
+      ring: 'ring-orange-500/50',
+    },
+    {
       key: 'active',
       label: t('dashboard.active_jobs'),
       value: activeJobs.length,
@@ -189,14 +217,6 @@ const ContractorDashboard = () => {
       bg: 'bg-green-500/10',
       ring: 'ring-green-500/50',
     },
-    {
-      key: 'earnings',
-      label: t('dashboard.total_earnings'),
-      value: `€${balance.toFixed(2)}`,
-      icon: <span className="text-xl font-bold text-primary leading-none">€</span>,
-      bg: 'bg-primary/10',
-      ring: 'ring-primary/50',
-    },
   ];
 
   const renderActiveJobRow = (bid) => {
@@ -207,7 +227,7 @@ const ContractorDashboard = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-foreground">
-                {ticket?.expand?.categoryId?.name || 'Service Request'}
+                {ticket?.expand?.categoryId?.name || t('auction.service_request')}
               </h3>
               <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
                 {bid.status}
@@ -244,7 +264,7 @@ const ContractorDashboard = () => {
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold text-foreground">
-                {ticket?.expand?.categoryId?.name || 'Service Request'}
+                {ticket?.expand?.categoryId?.name || t('auction.service_request')}
               </h3>
               <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
                 {bid.status}
@@ -284,7 +304,7 @@ const ContractorDashboard = () => {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-foreground">{ticket.expand?.categoryId?.name || 'Service Request'}</h3>
+                    <h3 className="font-semibold text-foreground">{ticket.expand?.categoryId?.name || t('auction.service_request')}</h3>
                     <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-xs">Direct</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket.description}</p>
@@ -339,7 +359,7 @@ const ContractorDashboard = () => {
             <div key={ticket.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-foreground mb-1">{ticket.expand?.categoryId?.name || 'Service Request'}</h3>
+                  <h3 className="font-semibold text-foreground mb-1">{ticket.expand?.categoryId?.name || t('auction.service_request')}</h3>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket.description}</p>
                   <div className="flex flex-wrap gap-3 text-sm">
                     {ticket.budget && <span className="font-medium text-primary">€{ticket.budget}</span>}
@@ -359,6 +379,54 @@ const ContractorDashboard = () => {
         <div className="text-center py-12">
           <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
           <p className="text-muted-foreground">{t('auction.no_requests_available')}</p>
+        </div>
+      ),
+    },
+    pending: {
+      title: 'Mano pasiūlymai',
+      icon: <Clock className="h-5 w-5 text-orange-500" />,
+      content: loading ? (
+        <div className="space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>
+      ) : pendingBids.length > 0 ? (
+        <div className="space-y-4">
+          {pendingBids.map(bid => {
+            const ticket = ticketsMap[bid.ticketId];
+            const timeLeft = getBidTimeRemaining(bid);
+            const isExpiringSoon = bid.expiresAt && (new Date(bid.expiresAt) - Date.now()) < 6 * 3600000;
+            return (
+              <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground mb-1">
+                      {ticket?.expand?.categoryId?.name || t('auction.service_request')}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket?.description}</p>
+                    <div className="flex flex-wrap gap-3 text-sm">
+                      <span className="font-medium text-primary">€{bid.proposedRate}</span>
+                      {ticket?.location && (
+                        <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{ticket.location}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="shrink-0 flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Laukiama</Badge>
+                      {timeLeft && (
+                        <span className={`text-xs flex items-center gap-1 ${isExpiringSoon ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
+                          <Clock className="h-3 w-3" />{timeLeft}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">Nėra aktyvių pasiūlymų.</p>
         </div>
       ),
     },
@@ -388,46 +456,6 @@ const ContractorDashboard = () => {
         </div>
       ),
     },
-    earnings: {
-      title: t('dashboard.total_earnings'),
-      icon: <span className="text-lg font-bold text-primary leading-none">€</span>,
-      content: completedJobs.length > 0 ? (
-        <div className="space-y-4">
-          {completedJobs.map(bid => {
-            const ticket = ticketsMap[bid.ticketId];
-            return (
-              <div key={bid.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground mb-1">
-                      {ticket?.expand?.categoryId?.name || 'Service Request'}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket?.description}</p>
-                    {ticket?.location && (
-                      <span className="text-sm text-muted-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" /> {ticket.location}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-2xl font-bold text-primary">€{bid.proposedRate}</p>
-                    <p className="text-xs text-muted-foreground mt-1">{ticket?.updated ? new Date(ticket.updated).toLocaleDateString() : ''}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          <div className="flex justify-end pt-2 border-t border-border">
-            <p className="text-lg font-bold text-foreground">{t('dashboard.total_earnings')}: <span className="text-primary">€{balance.toFixed(2)}</span></p>
-          </div>
-        </div>
-      ) : (
-        <div className="text-center py-12">
-          <span className="text-5xl font-bold text-muted-foreground block text-center mb-3">€</span>
-          <p className="text-muted-foreground">{t('dashboard.total_earnings')} — €{balance.toFixed(2)}</p>
-        </div>
-      ),
-    },
   };
 
   return (
@@ -441,6 +469,12 @@ const ContractorDashboard = () => {
 
         <div className="flex-1 py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {permission === 'default' && (
+              <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/50 px-4 py-3">
+                <p className="text-sm text-muted-foreground">Įjunk pranešimus — gauk žinutę kai atsiranda naujas darbas.</p>
+                <Button size="sm" onClick={requestPermission}>Įjungti</Button>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
                 <h1 className="text-4xl font-bold mb-2 text-foreground">{t('dashboard.contractor_title')}</h1>

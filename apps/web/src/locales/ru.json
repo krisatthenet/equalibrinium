@@ -220,6 +220,7 @@
       "back": "Вернуться на главную"
     },
     "auction": {
+      "service_request": "Запрос услуги",
       "ticket": "Аукционный билет",
       "place_bid": "Сделать ставку",
       "available_requests": "Доступные заявки",

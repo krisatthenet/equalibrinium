@@ -26,6 +26,7 @@ const AuctionTicketDetailsPage = () => {
   const navigate = useNavigate();
 
   const [ticket, setTicket] = useState(null);
+  const [categoryName, setCategoryName] = useState('');
   const [bids, setBids] = useState([]);
   const [bidders, setBidders] = useState({}); // masterId -> user
   const [loading, setLoading] = useState(true);
@@ -36,10 +37,16 @@ const AuctionTicketDetailsPage = () => {
   const fetchData = async () => {
     try {
       const ticketData = await pb.collection('auction_tickets').getOne(id, {
-        expand: 'categoryId,clientId',
+        expand: 'clientId',
         $autoCancel: false
       });
       setTicket(ticketData);
+
+      if (ticketData.categoryId) {
+        pb.collection('categories').getOne(ticketData.categoryId, { $autoCancel: false })
+          .then(cat => setCategoryName(cat.name))
+          .catch(() => {});
+      }
 
       const bidsData = await pb.collection('bids').getFullList({
         filter: `ticketId = "${id}"`,
@@ -154,7 +161,7 @@ const AuctionTicketDetailsPage = () => {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-3xl font-bold text-foreground">
-                    {ticket.expand?.categoryId?.name || 'Service Request'}
+                    {categoryName ? t(`professions.${categoryName}`, { defaultValue: categoryName }) : t('auction.service_request')}
                   </h1>
                   <Badge className={
                     ticket.status === 'Open' ? 'bg-yellow-500/10 text-yellow-500 border-none' :
@@ -206,7 +213,7 @@ const AuctionTicketDetailsPage = () => {
                     </DialogHeader>
                     <BidForm 
                       ticketId={ticket.id} 
-                      onSuccess={() => { setIsBidModalOpen(false); fetchData(); }} 
+                      onSuccess={() => { setIsBidModalOpen(false); navigate('/dashboard'); }} 
                       onCancel={() => setIsBidModalOpen(false)} 
                     />
                   </DialogContent>

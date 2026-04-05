@@ -15,7 +15,8 @@
     "helmet": "^8.0.0",
     "morgan": "^1.10.0",
     "pocketbase": "^0.25.0",
-    "stripe": "^14.0.0"
+    "stripe": "^14.0.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",

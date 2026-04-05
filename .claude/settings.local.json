@@ -9,7 +9,9 @@
       "Bash(xargs kill:*)",
       "Read(//private/tmp/**)",
       "Bash(cat /Users/kristupas/Documents/GitHub/equalibrinium/apps/api/src/constants/*.js)",
-      "Bash(sqlite3:*)"
+      "Bash(sqlite3:*)",
+      "Bash(concurrently --kill-others --raw \"npm run dev --prefix apps/web\" \"npm run dev --prefix apps/api\")",
+      "Bash(echo \"PID $!\")"
     ]
   }
 }

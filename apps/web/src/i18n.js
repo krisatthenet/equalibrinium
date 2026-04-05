@@ -6,7 +6,6 @@ import enTranslations from './locales/en.json';
 import ltTranslations from './locales/lt.json';
 import ruTranslations from './locales/ru.json';
 import plTranslations from './locales/pl.json';
-import trTranslations from './locales/tr.json';
 
 i18n
   .use(LanguageDetector)
@@ -16,8 +15,7 @@ i18n
       en: enTranslations,
       lt: ltTranslations,
       ru: ruTranslations,
-      pl: plTranslations,
-      tr: trTranslations
+      pl: plTranslations
     },
     fallbackLng: 'en',
     interpolation: {

@@ -220,6 +220,7 @@
       "back": "Grįžti į pagrindinį"
     },
     "auction": {
+      "service_request": "Paslaugų užklausa",
       "ticket": "Aukciono bilietas",
       "place_bid": "Pateikti pasiūlymą",
       "available_requests": "Galimos užklausos",

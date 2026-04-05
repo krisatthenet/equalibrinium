@@ -48,7 +48,6 @@ const SettingsPage = () => {
     location: currentUser?.location || '',
     bio: currentUser?.bio || '',
     profession: currentUser?.profession || '',
-    hourlyRate: currentUser?.hourlyRate || '',
     instagramHandle: currentUser?.instagramHandle || '',
     youtubeChannel: currentUser?.youtubeChannel || '',
     tiktokHandle: currentUser?.tiktokHandle || '',
@@ -191,7 +190,6 @@ const SettingsPage = () => {
       if (currentUser.userType === 'contractor') {
         formData.append('bio', profileData.bio);
         formData.append('profession', profileData.profession);
-        if (profileData.hourlyRate) formData.append('hourlyRate', profileData.hourlyRate);
         workExampleFiles.forEach(file => formData.append('workExamples', file));
         removedWorkExamples.forEach(name => formData.append('workExamples-', name));
         // Geocode location to coordinates
@@ -458,15 +456,6 @@ const SettingsPage = () => {
                                 value={profileData.profession}
                                 onChange={handleProfessionChange}
                                 required={true}
-                              />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="hourlyRate">Hourly Rate (€)</Label>
-                              <Input
-                                id="hourlyRate" name="hourlyRate" type="number" min="0"
-                                value={profileData.hourlyRate} onChange={handleProfileChange}
-                                className="bg-input border-border text-foreground rounded-lg"
-                                placeholder="e.g. 25"
                               />
                             </div>
                             <div className="space-y-2 md:col-span-2">

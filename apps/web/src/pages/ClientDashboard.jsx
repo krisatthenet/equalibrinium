@@ -32,6 +32,7 @@ const ClientDashboard = () => {
   const [existingReviews, setExistingReviews] = useState({}); // ticketId -> true
   const [paidTickets, setPaidTickets] = useState({}); // ticketId -> payment record
   const [pendingBidCounts, setPendingBidCounts] = useState({}); // ticketId -> count
+  const [categoriesMap, setCategoriesMap] = useState({}); // categoryId -> name
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [activePanel, setActivePanel] = useState(null);
@@ -44,10 +45,21 @@ const ClientDashboard = () => {
       const records = await pb.collection('auction_tickets').getFullList({
         filter: `clientId = "${currentUser.id}"`,
         sort: '-created',
-        expand: 'categoryId',
         $autoCancel: false
       });
       setTickets(records);
+
+      // Fetch category names (categoryId is a plain text field, not a relation)
+      const catIds = [...new Set(records.map(r => r.categoryId).filter(Boolean))];
+      if (catIds.length > 0) {
+        const cats = await pb.collection('categories').getFullList({
+          filter: catIds.map(id => `id = "${id}"`).join(' || '),
+          $autoCancel: false
+        }).catch(() => []);
+        const map = {};
+        cats.forEach(c => { map[c.id] = c.name; });
+        setCategoriesMap(map);
+      }
 
       // Fetch accepted bids for all tickets
       const ids = records.map(r => r.id);
@@ -157,6 +169,11 @@ const ClientDashboard = () => {
     },
   ];
 
+  const getCategoryName = (ticket) => {
+    const raw = categoriesMap[ticket.categoryId];
+    return raw ? t(`professions.${raw}`, { defaultValue: raw }) : t('auction.service_request');
+  };
+
   const renderTicketRow = (ticket, isCompleted = false) => {
     const bid = acceptedBids[ticket.id];
     const contractor = bid?.masterId ? contractors[bid.masterId] : null;
@@ -172,7 +189,7 @@ const ClientDashboard = () => {
           <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />
           <div className="flex-1 min-w-0">
             <span className="font-medium text-foreground">
-              {ticket.expand?.categoryId?.name || 'Service Request'}
+              {getCategoryName(ticket)}
             </span>
             {contractor && (
               <span className="text-muted-foreground"> · {contractor.name}</span>
@@ -195,7 +212,7 @@ const ClientDashboard = () => {
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2 flex-wrap">
               <h3 className="font-semibold text-lg text-foreground">
-                {ticket.expand?.categoryId?.name || 'Service Request'}
+                {getCategoryName(ticket)}
               </h3>
               <Badge className={statusClass(ticket.status)}>
                 {t(`auction.${ticket.status.toLowerCase().replace(' ', '_')}`, { defaultValue: ticket.status })}

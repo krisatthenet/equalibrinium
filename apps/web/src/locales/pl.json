@@ -220,6 +220,7 @@
       "back": "Wróć na stronę główną"
     },
     "auction": {
+      "service_request": "Zapytanie o usługę",
       "ticket": "Bilet aukcyjny",
       "place_bid": "Złóż ofertę",
       "available_requests": "Dostępne zlecenia",

@@ -220,6 +220,7 @@
       "back": "Back to Home"
     },
     "auction": {
+      "service_request": "Service Request",
       "ticket": "Auction Ticket",
       "place_bid": "Place Bid",
       "available_requests": "Available Requests",

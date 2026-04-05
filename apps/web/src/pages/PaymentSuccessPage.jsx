@@ -134,7 +134,7 @@ const PaymentSuccessPage = () => {
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">Service</span>
                       <span className="font-medium text-foreground text-right max-w-[200px] truncate">
-                        {paymentDetails.ticket?.expand?.categoryId?.name || 'Service Request'}
+                        {paymentDetails.ticket?.expand?.categoryId?.name || 'Paslaugų užklausa'}
                       </span>
                     </div>
 

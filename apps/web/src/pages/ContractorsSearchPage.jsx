@@ -179,9 +179,6 @@ const ContractorsSearchPage = () => {
                                 <span className="line-clamp-2">{contractor.location}</span>
                               </div>
                             )}
-                            {contractor.hourlyRate > 0 && (
-                              <p className="text-lg font-semibold text-primary mb-4">€{contractor.hourlyRate}/hr</p>
-                            )}
                             <Button className="w-full mt-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl" asChild>
                               <Link to={`/contractor/${contractor.id}`}>{t('home.view_profile')}</Link>
                             </Button>

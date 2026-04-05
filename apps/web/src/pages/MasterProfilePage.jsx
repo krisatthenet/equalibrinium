@@ -144,12 +144,6 @@ const MasterProfilePage = () => {
                       </div>
                     )}
 
-                    {master.hourlyRate && (
-                      <div className="mb-6">
-                        <p className="text-sm text-muted-foreground mb-1">Hourly Rate</p>
-                        <p className="text-2xl font-bold text-primary">€{master.hourlyRate}/hour</p>
-                      </div>
-                    )}
 
                     <Separator className="my-6" />
 

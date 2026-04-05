@@ -185,7 +185,7 @@ const MasterDashboard = () => {
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1">
                               <h3 className="font-semibold text-foreground mb-1">
-                                {ticket.expand?.categoryId?.name || 'Service Request'}
+                                {ticket.expand?.categoryId?.name || t('auction.service_request')}
                               </h3>
                               <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{ticket.description}</p>
                               <div className="flex flex-wrap gap-3 text-sm">
@@ -241,7 +241,7 @@ const MasterDashboard = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <h3 className="font-semibold text-foreground">
-                                  {bid.expand?.ticketId?.expand?.categoryId?.name || 'Service Request'}
+                                  {bid.expand?.ticketId?.expand?.categoryId?.name || t('auction.service_request')}
                                 </h3>
                                 <Badge variant="outline" className={
                                   bid.status === 'accepted' ? 'bg-green-500/10 text-green-500 border-green-500/20' :

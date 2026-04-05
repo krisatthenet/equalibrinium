@@ -188,12 +188,6 @@ const ContractorProfilePage = () => {
                       );
                     })()}
 
-                    {contractor.hourlyRate > 0 && (
-                      <div className="mb-6">
-                        <p className="text-sm text-muted-foreground mb-1">Hourly Rate</p>
-                        <p className="text-2xl font-bold text-primary">€{contractor.hourlyRate}/hour</p>
-                      </div>
-                    )}
 
                     <Separator className="my-6" />
 

@@ -50,7 +50,7 @@ const BidForm = ({ ticketId, onSuccess, onCancel }) => {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label>{t('auction.proposed_rate')} (€/hr or total)</Label>
+        <Label>{t('auction.proposed_rate')} (€)</Label>
         <Input 
           type="number" 
           min="0" 

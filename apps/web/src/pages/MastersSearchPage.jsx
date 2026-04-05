@@ -277,11 +277,6 @@ const MastersSearchPage = () => {
                               )}
                             </div>
                           )}
-                          {master.hourlyRate && (
-                            <p className="text-lg font-semibold text-primary mb-4">
-                              {t('search.hourly_rate', { rate: master.hourlyRate })}
-                            </p>
-                          )}
                           <Button 
                             className="w-full mt-auto bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 active:scale-[0.98] rounded-xl"
                             asChild

@@ -125,7 +125,7 @@ const AuctionTicketPaymentPage = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Service</span>
-                  <span className="font-medium text-foreground">{ticket.expand?.categoryId?.name || 'Service Request'}</span>
+                  <span className="font-medium text-foreground">{ticket.expand?.categoryId?.name || 'Paslaugų užklausa'}</span>
                 </div>
                 {ticket.location && (
                   <div className="flex justify-between text-sm">

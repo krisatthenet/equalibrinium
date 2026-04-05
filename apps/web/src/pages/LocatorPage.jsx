@@ -227,7 +227,7 @@ const LocatorPage = () => {
                               </Badge>
                             </div>
                             <h3 className="font-semibold text-foreground mb-1 line-clamp-2">
-                              {ticket.expand?.categoryId?.name || 'Service Request'}
+                              {ticket.expand?.categoryId?.name || 'Paslaugų užklausa'}
                             </h3>
                             {ticket.description && (
                               <p className="text-sm text-muted-foreground line-clamp-3 mb-3 flex-1">
@@ -359,11 +359,7 @@ const LocatorPage = () => {
                             )}
 
                             <div className="mt-auto pt-3 border-t border-border flex items-center justify-between">
-                              {contractor.hourlyRate > 0 ? (
-                                <span className="font-semibold text-primary text-sm">€{contractor.hourlyRate}/hr</span>
-                              ) : (
-                                <span />
-                              )}
+                              <span />
                               <span className="text-xs text-muted-foreground flex items-center gap-1">
                                 View profile <ChevronRight className="h-3 w-3" />
                               </span>

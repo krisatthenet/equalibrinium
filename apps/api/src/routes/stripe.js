@@ -320,16 +320,14 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
         const contractorUser = await pb.collection('users').getOne(resolvedContractorUserId);
         contractorStripeOnboarded = !!(contractorUser.stripeAccountId && contractorUser.stripeOnboarded);
 
-        // Only credit balance if the payment did NOT go via Stripe Connect transfer
-        if (!contractorStripeOnboarded) {
-          const currentBalance = Number(contractorUser.balance) || 0;
-          await pb.collection('users').update(resolvedContractorUserId, {
-            balance: parseFloat((currentBalance + contractorPayout).toFixed(2)),
-          });
-          logger.info(`Credited €${contractorPayout.toFixed(2)} to contractor ${resolvedContractorUserId}`);
-        } else {
-          logger.info(`Contractor ${resolvedContractorUserId} has Stripe Connect — funds transferred directly, skipping balance credit`);
-        }
+        // Always credit balance as earnings tracker.
+        // For Stripe Connect contractors the money already transferred to their Stripe account;
+        // balance here serves as a display-only earnings total (payout requests are disabled for them).
+        const currentBalance = Number(contractorUser.balance) || 0;
+        await pb.collection('users').update(resolvedContractorUserId, {
+          balance: parseFloat((currentBalance + contractorPayout).toFixed(2)),
+        });
+        logger.info(`Credited €${contractorPayout.toFixed(2)} to contractor ${resolvedContractorUserId} (stripeConnect=${contractorStripeOnboarded})`);
       }
 
       logger.info(`Webhook processed: ticket ${ticketId} completed, €${amountPaid} paid`);
