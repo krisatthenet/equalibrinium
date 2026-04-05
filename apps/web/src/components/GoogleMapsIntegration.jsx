@@ -6,12 +6,7 @@ import { Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
-// Palette: index maps to a category
-const PALETTE = [
-  '#f59e0b', '#3b82f6', '#10b981', '#ef4444',
-  '#8b5cf6', '#f97316', '#ec4899', '#06b6d4',
-  '#84cc16', '#6366f1', '#14b8a6', '#e11d48',
-];
+const ORANGE = '#f97316';
 
 const GoogleMapsIntegration = ({
   tickets = [],
@@ -24,24 +19,12 @@ const GoogleMapsIntegration = ({
   const { isLoaded, initMap } = useGoogleMaps();
   const [mapInstance, setMapInstance] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
-  const [legend, setLegend] = useState([]);
 
   const markersRef = useRef([]);
   const clustererRef = useRef(null);
   const infoWindowRef = useRef(null);
   const userMarkerRef = useRef(null);
   const radiusCircleRef = useRef(null);
-
-  // Build a colour map: categoryId → hex from ticket expand data
-  const getCategoryColor = (() => {
-    const seen = {};
-    let idx = 0;
-    return (categoryId) => {
-      if (!categoryId) return '#94a3b8';
-      if (!seen[categoryId]) seen[categoryId] = PALETTE[idx++ % PALETTE.length];
-      return seen[categoryId];
-    };
-  })();
 
   useEffect(() => {
     if (navigator.geolocation) {
@@ -87,22 +70,10 @@ const GoogleMapsIntegration = ({
     if (clustererRef.current) clustererRef.current.clearMarkers();
 
     const newMarkers = [];
-    const legendEntries = [];
-
-    // Ticket markers — circle, colored by category
-    const seenCategories = new Set();
     const geocoder = new window.google.maps.Geocoder();
 
     const placeTicketMarker = (ticket, lat, lng) => {
-      const catId = ticket.categoryId;
-      const color = getCategoryColor(catId);
-      const catName = ticket.expand?.categoryId?.name || 'Request';
-
-      if (!seenCategories.has(catId)) {
-        seenCategories.add(catId);
-        legendEntries.push({ color, label: catName });
-        setLegend([...legendEntries]);
-      }
+      const catName = ticket.expand?.categoryId?.name || 'Other';
 
       const marker = new window.google.maps.Marker({
         position: { lat, lng },
@@ -111,7 +82,7 @@ const GoogleMapsIntegration = ({
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
           scale: 9,
-          fillColor: color,
+          fillColor: ORANGE,
           fillOpacity: 0.9,
           strokeColor: '#ffffff',
           strokeWeight: 2.5,
@@ -122,14 +93,13 @@ const GoogleMapsIntegration = ({
         const content = `
           <div style="font-family:system-ui,sans-serif;padding:14px 16px;min-width:220px;max-width:260px;background:#1e293b;color:#f1f5f9;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-              <div style="width:10px;height:10px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+              <div style="width:10px;height:10px;border-radius:50%;background:${ORANGE};flex-shrink:0;"></div>
               <div style="font-size:12px;color:#94a3b8;font-weight:500;">${catName}</div>
             </div>
-            <div style="font-weight:700;font-size:15px;color:#f1f5f9;margin-bottom:8px;line-height:1.4;">${ticket.expand?.categoryId?.name || 'Service Request'}</div>
             <p style="font-size:13px;color:#94a3b8;margin-bottom:10px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${ticket.description || ''}</p>
             ${ticket.budget ? `<div style="font-weight:600;color:#34d399;font-size:14px;margin-bottom:8px;">Budget: €${ticket.budget}</div>` : '<div style="font-size:12px;color:#64748b;margin-bottom:8px;">Open to offers</div>'}
             ${ticket.location ? `<div style="font-size:12px;color:#64748b;margin-bottom:10px;">📍 ${ticket.location}</div>` : ''}
-            <button onclick="window.location.href='/auction-ticket/${ticket.id}'" style="width:100%;background:${color};color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;">
+            <button onclick="window.location.href='/auction-ticket/${ticket.id}'" style="width:100%;background:${ORANGE};color:#fff;border:none;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;">
               View Request →
             </button>
           </div>
@@ -161,7 +131,6 @@ const GoogleMapsIntegration = ({
       }
     });
 
-    setLegend(legendEntries);
     markersRef.current = newMarkers;
 
     clustererRef.current = new MarkerClusterer({
@@ -239,23 +208,6 @@ const GoogleMapsIntegration = ({
         <Navigation className="h-5 w-5 text-primary" />
       </Button>
 
-      {/* Category legend */}
-      {legend.length > 0 && (
-        <div className="absolute bottom-6 left-4 bg-card/90 backdrop-blur-sm border border-border rounded-xl p-3 z-10 max-w-[200px] shadow-lg">
-          <p className="text-xs font-semibold text-foreground mb-2">Categories</p>
-          <div className="space-y-1.5">
-            {legend.map(entry => (
-              <div key={entry.label} className="flex items-center gap-2">
-                <span
-                  className="inline-block w-3 h-3 rounded-full shrink-0"
-                  style={{ background: entry.color }}
-                />
-                <span className="text-xs text-muted-foreground truncate">{entry.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
     </div>
     </div>

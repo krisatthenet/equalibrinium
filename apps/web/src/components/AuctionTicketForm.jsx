@@ -27,6 +27,7 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
 
   const [formData, setFormData] = useState({
     categoryId: initialData?.categoryId || '',
+    otherCategory: '',
     description: initialData?.description || '',
     budget: initialData?.budget || '',
     durationEstimate: initialData?.durationEstimate || '',
@@ -143,12 +144,20 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
       toast({ title: "Required Field", description: "Please select a category.", variant: "destructive" });
       return;
     }
+    if (formData.categoryId === 'other' && !formData.otherCategory.trim()) {
+      toast({ title: "Required Field", description: "Please describe your category.", variant: "destructive" });
+      return;
+    }
 
     setLoading(true);
     try {
       const submitData = new FormData();
-      submitData.append('categoryId', formData.categoryId);
-      submitData.append('description', formData.description);
+      const isOther = formData.categoryId === 'other';
+      if (!isOther) submitData.append('categoryId', formData.categoryId);
+      const description = isOther
+        ? `Category: ${formData.otherCategory.trim()}\n\n${formData.description}`
+        : formData.description;
+      submitData.append('description', description);
       if (formData.budget) submitData.append('budget', formData.budget);
       if (formData.durationEstimate) submitData.append('durationEstimate', formData.durationEstimate);
       if (formData.location) submitData.append('location', formData.location);
@@ -188,7 +197,8 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
       if (onSuccess) onSuccess();
     } catch (error) {
       console.error('Error saving ticket:', error);
-      toast({ title: "Error", description: isEditing ? "Failed to update request." : "Failed to create request.", variant: "destructive" });
+      const message = error?.response?.message || error?.message || 'Unknown error';
+      toast({ title: "Error", description: message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -211,9 +221,22 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
             {categories.map(cat => (
               <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
             ))}
+            <SelectItem value="other">Other</SelectItem>
           </SelectContent>
         </Select>
       </div>
+
+      {formData.categoryId === 'other' && (
+        <div className="space-y-2">
+          <Label htmlFor="otherCategory">Describe your category *</Label>
+          <Input
+            id="otherCategory" name="otherCategory"
+            value={formData.otherCategory} onChange={handleChange}
+            className="bg-input border-border border-l-2 border-l-primary text-foreground rounded-lg"
+            placeholder="e.g. Aquarium maintenance"
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="description">{t('auction.description')} *</Label>
