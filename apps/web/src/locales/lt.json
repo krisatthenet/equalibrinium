@@ -15,7 +15,7 @@
       "join": "Prisijunkite"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.5",
+      "soft_launch": "Beta v. 0.2.0",
       "full_release": "Pilnas startas: Q2 pabaiga",
       "days_left": "Liko {{days}} d."
     },
@@ -88,6 +88,7 @@
       "email": "El. paštas",
       "password": "Slaptažodis",
       "forgot_password": "Pamiršote slaptažodį?",
+      "reset_sent": "Slaptažodžio atstatymo el. laiškas išsiųstas. Patikrinkite gautuosius.",
       "login_btn": "Prisijungti",
       "logging_in": "Jungiamasi...",
       "no_account": "Neturite paskyros?",

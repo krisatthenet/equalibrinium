@@ -8,7 +8,8 @@
       "Bash(lsof -ti:3000,3001,8090)",
       "Bash(xargs kill:*)",
       "Read(//private/tmp/**)",
-      "Bash(cat /Users/kristupas/Documents/GitHub/equalibrinium/apps/api/src/constants/*.js)"
+      "Bash(cat /Users/kristupas/Documents/GitHub/equalibrinium/apps/api/src/constants/*.js)",
+      "Bash(sqlite3:*)"
     ]
   }
 }

@@ -1,10 +1,8 @@
 import React, { Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
-import { AdminAuthProvider } from '@/contexts/AdminAuthContext.jsx';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
-import ProtectedAdminRoute from '@/components/ProtectedAdminRoute.jsx';
 import ScrollToTop from '@/components/ScrollToTop.jsx';
 import CookieConsent from '@/components/CookieConsent.jsx';
 // Lazy load pages for better performance
@@ -32,13 +30,6 @@ const PrivacyPolicyPage = React.lazy(() => import('@/pages/PrivacyPolicyPage.jsx
 const TermsOfServicePage = React.lazy(() => import('@/pages/TermsOfServicePage.jsx'));
 const CookiePolicy = React.lazy(() => import('@/pages/CookiePolicy.jsx'));
 
-// Admin Pages
-const AdminLoginPage = React.lazy(() => import('@/pages/admin/AdminLoginPage.jsx'));
-const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard.jsx'));
-const AdminUsersPage = React.lazy(() => import('@/pages/admin/AdminUsersPage.jsx'));
-const AdminTicketsPage = React.lazy(() => import('@/pages/admin/AdminTicketsPage.jsx'));
-const AdminReviewsPage = React.lazy(() => import('@/pages/admin/AdminReviewsPage.jsx'));
-const AdminAnalyticsPage = React.lazy(() => import('@/pages/admin/AdminAnalyticsPage.jsx'));
 const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 
@@ -54,7 +45,6 @@ const App = () => {
     <BrowserRouter>
       <ScrollToTop />
       <AuthProvider>
-        <AdminAuthProvider>
           <Suspense fallback={<PageLoader />}>
               <Routes>
                 {/* Public Routes */}
@@ -127,20 +117,10 @@ const App = () => {
                   </ProtectedRoute>
                 } />
 
-                {/* Admin Routes */}
-                <Route path="/admin/login" element={<AdminLoginPage />} />
-                <Route path="/admin" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-                <Route path="/admin/dashboard" element={<ProtectedAdminRoute><AdminDashboard /></ProtectedAdminRoute>} />
-                <Route path="/admin/users" element={<ProtectedAdminRoute><AdminUsersPage /></ProtectedAdminRoute>} />
-                <Route path="/admin/tickets" element={<ProtectedAdminRoute><AdminTicketsPage /></ProtectedAdminRoute>} />
-                <Route path="/admin/reviews" element={<ProtectedAdminRoute><AdminReviewsPage /></ProtectedAdminRoute>} />
-                <Route path="/admin/analytics" element={<ProtectedAdminRoute><AdminAnalyticsPage /></ProtectedAdminRoute>} />
-
                 {/* Catch-all 404 */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
-        </AdminAuthProvider>
       </AuthProvider>
       <Toaster />
       <CookieConsent />

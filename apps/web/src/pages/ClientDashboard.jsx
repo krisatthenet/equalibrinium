@@ -31,6 +31,7 @@ const ClientDashboard = () => {
   const [contractors, setContractors] = useState({}); // masterId -> user
   const [existingReviews, setExistingReviews] = useState({}); // ticketId -> true
   const [paidTickets, setPaidTickets] = useState({}); // ticketId -> payment record
+  const [pendingBidCounts, setPendingBidCounts] = useState({}); // ticketId -> count
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [activePanel, setActivePanel] = useState(null);
@@ -56,6 +57,15 @@ const ClientDashboard = () => {
           filter: `(${filter}) && status = "accepted"`,
           $autoCancel: false
         }).catch(() => []);
+
+        // Fetch pending bids count per ticket
+        const allBids = await pb.collection('bids').getFullList({
+          filter: `(${filter}) && status = "pending"`,
+          $autoCancel: false
+        }).catch(() => []);
+        const countsMap = {};
+        allBids.forEach(b => { countsMap[b.ticketId] = (countsMap[b.ticketId] || 0) + 1; });
+        setPendingBidCounts(countsMap);
 
         const bidsMap = {};
         bids.forEach(b => { bidsMap[b.ticketId] = b; });
@@ -153,6 +163,7 @@ const ClientDashboard = () => {
     const alreadyReviewed = existingReviews[ticket.id];
     const payment = paidTickets[ticket.id];
     const avatarUrl = getUserImageUrl(contractor, { thumb: '100x100' });
+    const pendingBids = pendingBidCounts[ticket.id] || 0;
 
     // Paid & completed — compact historical note, no action buttons
     if (isCompleted && payment) {
@@ -182,13 +193,19 @@ const ClientDashboard = () => {
       <div key={ticket.id} className="border border-border rounded-xl p-5 hover:bg-muted/30 transition-colors duration-200">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
               <h3 className="font-semibold text-lg text-foreground">
                 {ticket.expand?.categoryId?.name || 'Service Request'}
               </h3>
               <Badge className={statusClass(ticket.status)}>
                 {t(`auction.${ticket.status.toLowerCase().replace(' ', '_')}`, { defaultValue: ticket.status })}
               </Badge>
+              {pendingBids > 0 && (
+                <span className="flex items-center gap-1.5 bg-primary/10 border border-primary/30 text-primary text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                  <span className="flex items-center justify-center bg-primary text-black font-bold text-xs rounded-full w-4 h-4 leading-none">{pendingBids}</span>
+                  new bid{pendingBids !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
             <p className="text-muted-foreground mb-3 line-clamp-2">{ticket.description}</p>
             <div className="flex flex-wrap gap-4 text-sm mb-3">

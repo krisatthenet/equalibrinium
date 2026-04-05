@@ -15,7 +15,7 @@
       "join": "Join us"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.5",
+      "soft_launch": "Beta v. 0.2.0",
       "full_release": "Full release: End of Q2",
       "days_left": "{{days}} days left"
     },
@@ -88,6 +88,7 @@
       "email": "Email",
       "password": "Password",
       "forgot_password": "Forgot password?",
+      "reset_sent": "Password reset email sent. Check your inbox.",
       "login_btn": "Login",
       "logging_in": "Logging in...",
       "no_account": "Don't have an account?",

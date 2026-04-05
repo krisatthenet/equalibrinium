@@ -130,9 +130,9 @@ const LoginPage = () => {
         <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
           <Card className="w-full max-w-md bg-card border-border rounded-2xl shadow-xl">
             <CardHeader className="pb-6">
-              <CardTitle className="text-2xl text-center font-bold">Welcome Back</CardTitle>
+              <CardTitle className="text-2xl text-center font-bold">{t('auth.login_title')}</CardTitle>
               <CardDescription className="text-center">
-                Login to your WorkBee account
+                {t('auth.login_subtitle')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -167,13 +167,13 @@ const LoginPage = () => {
                 {resetSent && (
                   <Alert className="rounded-xl bg-primary/10 text-primary border-primary/20">
                     <AlertDescription>
-                      Password reset email sent. Check your inbox.
+                      {t('auth.reset_sent')}
                     </AlertDescription>
                   </Alert>
                 )}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('auth.email')}</Label>
                   <Input
                     id="email"
                     name="email"
@@ -186,7 +186,7 @@ const LoginPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t('auth.password')}</Label>
                   <Input
                     id="password"
                     name="password"
@@ -204,7 +204,7 @@ const LoginPage = () => {
                     onClick={handlePasswordReset}
                     className="text-sm text-primary hover:underline font-medium"
                   >
-                    Forgot password?
+                    {t('auth.forgot_password')}
                   </button>
                 </div>
 
@@ -214,16 +214,16 @@ const LoginPage = () => {
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200 active:scale-[0.98] rounded-xl h-11 font-semibold mt-2"
                 >
                   {loading ? (
-                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...</>
+                    <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('auth.logging_in')}</>
                   ) : (
-                    'Login'
+                    t('auth.login_btn')
                   )}
                 </Button>
 
                 <p className="text-center text-sm text-muted-foreground mt-4">
-                  Don't have an account?{' '}
+                  {t('auth.no_account')}{' '}
                   <Link to="/register" className="text-primary hover:underline font-medium">
-                    Register
+                    {t('header.register')}
                   </Link>
                 </p>
               </form>

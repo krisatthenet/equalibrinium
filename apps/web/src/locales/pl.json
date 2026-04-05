@@ -15,7 +15,7 @@
       "join": "Dołącz do nas"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.5",
+      "soft_launch": "Beta v. 0.2.0",
       "full_release": "Pełne wydanie: Koniec Q2",
       "days_left": "Pozostało {{days}} dni"
     },
@@ -88,6 +88,7 @@
       "email": "E-mail",
       "password": "Hasło",
       "forgot_password": "Zapomniałeś hasła?",
+      "reset_sent": "E-mail do resetowania hasła został wysłany. Sprawdź swoją skrzynkę.",
       "login_btn": "Zaloguj się",
       "logging_in": "Logowanie...",
       "no_account": "Nie masz konta?",

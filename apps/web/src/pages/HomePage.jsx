@@ -183,7 +183,7 @@ const HomePage = () => {
                             <IconComponent className="h-8 w-8 text-primary" />
                           </div>
                           <div>
-                            <h3 className="font-semibold text-lg text-foreground">{category.name}</h3>
+                            <h3 className="font-semibold text-lg text-foreground">{t(`professions.${category.name}`, { defaultValue: category.name })}</h3>
                             {category.description && (
                               <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
                             )}

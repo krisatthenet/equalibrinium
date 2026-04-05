@@ -15,7 +15,7 @@
       "join": "Bize katılın"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.5",
+      "soft_launch": "Beta v. 0.2.0",
       "full_release": "Tam sürüm: 2. Çeyrek sonu",
       "days_left": "{{days}} gün kaldı"
     },
@@ -88,6 +88,7 @@
       "email": "E-posta",
       "password": "Şifre",
       "forgot_password": "Şifrenizi mi unuttunuz?",
+      "reset_sent": "Şifre sıfırlama e-postası gönderildi. Gelen kutunuzu kontrol edin.",
       "login_btn": "Giriş Yap",
       "logging_in": "Giriş yapılıyor...",
       "no_account": "Hesabınız yok mu?",

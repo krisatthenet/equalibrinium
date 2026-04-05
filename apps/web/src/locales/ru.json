@@ -15,7 +15,7 @@
       "join": "Присоединяйтесь"
     },
     "beta": {
-      "soft_launch": "Beta v. 0.1.5",
+      "soft_launch": "Beta v. 0.2.0",
       "full_release": "Полный релиз: Конец Q2",
       "days_left": "Осталось {{days}} дн."
     },
@@ -88,6 +88,7 @@
       "email": "Эл. почта",
       "password": "Пароль",
       "forgot_password": "Забыли пароль?",
+      "reset_sent": "Письмо для сброса пароля отправлено. Проверьте входящие.",
       "login_btn": "Войти",
       "logging_in": "Вход...",
       "no_account": "Нет аккаунта?",

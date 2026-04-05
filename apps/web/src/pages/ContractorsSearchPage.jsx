@@ -19,17 +19,19 @@ const ContractorsSearchPage = () => {
   const [searchParams] = useSearchParams();
   const [contractors, setContractors] = useState([]);
   const [tickets, setTickets] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
 
   const [keyword, setKeyword] = useState(searchParams.get('q') || '');
   const [cityQuery, setCityQuery] = useState(searchParams.get('city') || '');
+  const categoryParam = searchParams.get('category') || '';
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const [contractorsData, ticketsData] = await Promise.all([
+        const [contractorsData, ticketsData, categoriesData] = await Promise.all([
           pb.collection('users').getFullList({
             filter: 'userType = "contractor"',
             sort: '-rating',
@@ -40,10 +42,12 @@ const ContractorsSearchPage = () => {
             filter: 'status="Open"',
             expand: 'categoryId',
             $autoCancel: false
-          })
+          }),
+          pb.collection('categories').getFullList({ $autoCancel: false })
         ]);
         setContractors(contractorsData);
         setTickets(ticketsData.items);
+        setCategories(categoriesData);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -61,10 +65,15 @@ const ContractorsSearchPage = () => {
       ...(c.expand?.categories?.map(cat => cat.name) || [])
     ].some(field => field?.toLowerCase().includes(kw));
     const matchesCity = !city || c.location?.toLowerCase().includes(city);
-    return matchesKeyword && matchesCity;
+    const categoryName = categories.find(cat => cat.id === categoryParam)?.name?.toLowerCase();
+    const matchesCategory = !categoryParam ||
+      c.expand?.categories?.some(cat => cat.id === categoryParam) ||
+      c.categories?.includes(categoryParam) ||
+      (categoryName && c.profession?.toLowerCase() === categoryName);
+    return matchesKeyword && matchesCity && matchesCategory;
   });
 
-  const hasFilters = keyword || cityQuery;
+  const hasFilters = keyword || cityQuery || categoryParam;
 
   return (
     <>

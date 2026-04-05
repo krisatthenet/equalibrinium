@@ -110,8 +110,7 @@ const AuctionTicketDetailsPage = () => {
   const handleMarkCompleted = async () => {
     try {
       await pb.collection('auction_tickets').update(id, { status: 'Completed' }, { $autoCancel: false });
-      toast({ title: "Success", description: t('auction.ticket_completed') });
-      fetchData();
+      navigate(`/auction-ticket/${id}/payment`);
     } catch (error) {
       toast({ title: "Error", description: "Could not mark as completed.", variant: "destructive" });
     }

@@ -135,6 +135,11 @@ const LocatorPage = () => {
               </TabsTrigger>
               <TabsTrigger value="contractors" className="flex items-center gap-2 px-5 py-2.5 rounded-lg data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Users className="h-4 w-4" /> Contractors
+                {!loading && contractors.length > 0 && (
+                  <span className="ml-1 flex items-center justify-center bg-primary text-black font-bold text-xs rounded-full w-5 h-5 leading-none">
+                    {contractors.length}
+                  </span>
+                )}
               </TabsTrigger>
             </TabsList>
 

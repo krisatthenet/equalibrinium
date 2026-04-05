@@ -7,7 +7,8 @@ import pb from '@/lib/pocketbaseClient';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { useToast } from '@/hooks/use-toast';
 import {
-  User, CreditCard, Shield, Camera, Loader2, CheckCircle2, ExternalLink
+  User, CreditCard, Shield, Camera, Loader2, CheckCircle2, ExternalLink,
+  UploadCloud, X, FileText
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,11 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const fileInputRef = useRef(null);
+  const workExamplesInputRef = useRef(null);
+  const [workExampleFiles, setWorkExampleFiles] = useState([]);
+  const [workExamplePreviews, setWorkExamplePreviews] = useState([]);
+  const [existingWorkExamples, setExistingWorkExamples] = useState([]);
+  const [removedWorkExamples, setRemovedWorkExamples] = useState([]);
 
   // Profile State
   const [profileLoading, setProfileLoading] = useState(false);
@@ -72,6 +78,10 @@ const SettingsPage = () => {
 
   useEffect(() => {
     loadAvatar();
+
+    if (currentUser?.workExamples?.length) {
+      setExistingWorkExamples(currentUser.workExamples);
+    }
 
     const fetchClientLocation = async () => {
       if (currentUser?.userType === 'client') {
@@ -123,6 +133,40 @@ const SettingsPage = () => {
     }
   };
 
+  const handleWorkExampleFiles = (newFiles) => {
+    Array.from(newFiles).forEach(file => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({ title: "File too large", description: `${file.name} exceeds 5MB.`, variant: "destructive" });
+        return;
+      }
+      if (!file.type.match(/(jpeg|png|gif|webp|pdf)$/i)) {
+        toast({ title: "Invalid format", description: `${file.name} is not supported.`, variant: "destructive" });
+        return;
+      }
+      setWorkExampleFiles(prev => [...prev, file]);
+      if (file.type.startsWith('image/')) {
+        setWorkExamplePreviews(prev => [...prev, { url: URL.createObjectURL(file), type: 'image', name: file.name }]);
+      } else {
+        setWorkExamplePreviews(prev => [...prev, { url: null, type: 'pdf', name: file.name }]);
+      }
+    });
+  };
+
+  const removeNewWorkExample = (index) => {
+    setWorkExampleFiles(prev => prev.filter((_, i) => i !== index));
+    setWorkExamplePreviews(prev => {
+      const updated = [...prev];
+      if (updated[index].url) URL.revokeObjectURL(updated[index].url);
+      updated.splice(index, 1);
+      return updated;
+    });
+  };
+
+  const removeExistingWorkExample = (filename) => {
+    setExistingWorkExamples(prev => prev.filter(f => f !== filename));
+    setRemovedWorkExamples(prev => [...prev, filename]);
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     setProfileLoading(true);
@@ -148,6 +192,8 @@ const SettingsPage = () => {
         formData.append('bio', profileData.bio);
         formData.append('profession', profileData.profession);
         if (profileData.hourlyRate) formData.append('hourlyRate', profileData.hourlyRate);
+        workExampleFiles.forEach(file => formData.append('workExamples', file));
+        removedWorkExamples.forEach(name => formData.append('workExamples-', name));
         // Geocode location to coordinates
         if (profileData.location && window.google?.maps?.Geocoder) {
           try {
@@ -165,8 +211,12 @@ const SettingsPage = () => {
         }
       }
 
-      await pb.collection('users').update(currentUser.id, formData, { $autoCancel: false });
+      const updated = await pb.collection('users').update(currentUser.id, formData, { $autoCancel: false });
 
+      setExistingWorkExamples(updated.workExamples || []);
+      setWorkExampleFiles([]);
+      setWorkExamplePreviews([]);
+      setRemovedWorkExamples([]);
       toast({ title: "Profile Updated", description: "Your profile has been saved successfully." });
     } catch (error) {
       console.error('Profile update error:', error);
@@ -321,9 +371,11 @@ const SettingsPage = () => {
                 <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                   <User className="w-4 h-4 mr-2" /> {t('settings.tab_profile')}
                 </TabsTrigger>
-                <TabsTrigger value="payment" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
-                  <CreditCard className="w-4 h-4 mr-2" /> {t('settings.tab_payment')}
-                </TabsTrigger>
+                {currentUser?.userType === 'contractor' && (
+                  <TabsTrigger value="payment" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
+                    <CreditCard className="w-4 h-4 mr-2" /> {t('settings.tab_payment')}
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="account" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                   <Shield className="w-4 h-4 mr-2" /> {t('settings.tab_account')}
                 </TabsTrigger>
@@ -425,6 +477,83 @@ const SettingsPage = () => {
                                 placeholder={t('settings.bio_placeholder')}
                               />
                             </div>
+
+                            <div className="space-y-3 md:col-span-2">
+                              <Label>Work Examples</Label>
+                              <p className="text-xs text-muted-foreground -mt-1">Upload photos or PDFs of past work to showcase on your profile.</p>
+
+                              {/* Existing examples */}
+                              {existingWorkExamples.length > 0 && (
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                                  {existingWorkExamples.map(filename => {
+                                    const url = pb.files.getUrl(currentUser, filename);
+                                    const isPdf = filename.endsWith('.pdf');
+                                    return (
+                                      <div key={filename} className="relative group aspect-square rounded-lg border border-border overflow-hidden bg-muted flex items-center justify-center">
+                                        {isPdf ? (
+                                          <div className="flex flex-col items-center p-2 text-center">
+                                            <FileText className="h-7 w-7 text-primary mb-1" />
+                                            <span className="text-xs text-muted-foreground truncate w-full px-1">{filename}</span>
+                                          </div>
+                                        ) : (
+                                          <img src={url} alt={filename} className="w-full h-full object-cover" />
+                                        )}
+                                        <button
+                                          type="button"
+                                          onClick={() => removeExistingWorkExample(filename)}
+                                          className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+
+                              {/* New file previews */}
+                              {workExamplePreviews.length > 0 && (
+                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                                  {workExamplePreviews.map((preview, i) => (
+                                    <div key={i} className="relative group aspect-square rounded-lg border border-primary/40 overflow-hidden bg-muted flex items-center justify-center">
+                                      {preview.type === 'image' ? (
+                                        <img src={preview.url} alt={preview.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <div className="flex flex-col items-center p-2 text-center">
+                                          <FileText className="h-7 w-7 text-primary mb-1" />
+                                          <span className="text-xs text-muted-foreground truncate w-full px-1">{preview.name}</span>
+                                        </div>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => removeNewWorkExample(i)}
+                                        className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive"
+                                      >
+                                        <X className="h-3 w-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Drop zone */}
+                              <div
+                                className="border-2 border-dashed border-border hover:border-primary/50 rounded-xl p-6 text-center cursor-pointer transition-colors hover:bg-muted/30"
+                                onClick={() => workExamplesInputRef.current?.click()}
+                              >
+                                <UploadCloud className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                                <p className="text-sm font-medium text-foreground">Drop files or click to upload</p>
+                                <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WEBP, PDF — max 5MB each</p>
+                                <input
+                                  type="file"
+                                  ref={workExamplesInputRef}
+                                  onChange={e => e.target.files?.length && handleWorkExampleFiles(e.target.files)}
+                                  className="hidden"
+                                  multiple
+                                  accept="image/jpeg,image/png,image/gif,image/webp,application/pdf"
+                                />
+                              </div>
+                            </div>
                           </>
                         )}
 
@@ -491,9 +620,8 @@ const SettingsPage = () => {
               </TabsContent>
 
               {/* PAYMENT TAB */}
-              {/* PAYMENT TAB */}
               <TabsContent value="payment" className="space-y-6">
-                {(currentUser?.userType === 'contractor') ? (
+                {currentUser?.userType === 'contractor' && (
                   <Card className="bg-card border-border rounded-2xl">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -562,14 +690,6 @@ const SettingsPage = () => {
                           </>
                         )}
                       </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <Card className="bg-card border-border rounded-2xl">
-                    <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-                      <CreditCard className="w-10 h-10 text-primary" />
-                      <p className="font-medium text-foreground">Payments are handled securely via Stripe</p>
-                      <p className="text-sm text-muted-foreground">Your card details are entered at checkout and managed by Stripe — nothing is stored here.</p>
                     </CardContent>
                   </Card>
                 )}

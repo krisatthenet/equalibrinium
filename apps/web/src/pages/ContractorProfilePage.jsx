@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
 import { getUserImageUrl } from '@/lib/userImage';
-import { Star, Heart, Briefcase, User, Send } from 'lucide-react';
+import { Star, Heart, Briefcase, User, Send, FileText, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -133,18 +133,8 @@ const ContractorProfilePage = () => {
   }
 
   if (!contractor) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold mb-4">{t('profile.not_found')}</h2>
-            <Button asChild><a href="/contractors">{t('profile.back_search')}</a></Button>
-          </div>
-        </div>
-        <Footer />
-      </>
-    );
+    navigate('/register');
+    return null;
   }
 
   return (
@@ -254,6 +244,15 @@ const ContractorProfilePage = () => {
                   </Card>
                 )}
 
+                {contractor.workExamples?.length > 0 && (
+                  <Card className="bg-card border-border rounded-2xl">
+                    <CardHeader><CardTitle>Work Examples</CardTitle></CardHeader>
+                    <CardContent>
+                      <WorkExamplesGallery contractor={contractor} />
+                    </CardContent>
+                  </Card>
+                )}
+
                 <Card className="bg-card border-border rounded-2xl">
                   <CardHeader>
                     <CardTitle>{t('profile.reviews_title', { count: reviews.length })}</CardTitle>
@@ -312,6 +311,72 @@ const ContractorProfilePage = () => {
           />
         </DialogContent>
       </Dialog>
+    </>
+  );
+};
+
+const WorkExamplesGallery = ({ contractor }) => {
+  const [lightbox, setLightbox] = useState(null);
+
+  const images = contractor.workExamples.filter(f => f.match(/\.(jpg|jpeg|png|gif|webp)$/i));
+  const pdfs = contractor.workExamples.filter(f => f.match(/\.pdf$/i));
+
+  return (
+    <>
+      {images.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+          {images.map(filename => {
+            const url = pb.files.getUrl(contractor, filename);
+            return (
+              <div
+                key={filename}
+                className="aspect-square rounded-xl overflow-hidden border border-border cursor-pointer hover:opacity-90 transition-opacity bg-muted"
+                onClick={() => setLightbox(url)}
+              >
+                <img src={url} alt={filename} className="w-full h-full object-cover" />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {pdfs.length > 0 && (
+        <div className="space-y-2">
+          {pdfs.map(filename => (
+            <a
+              key={filename}
+              href={pb.files.getUrl(contractor, filename)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors"
+            >
+              <FileText className="h-5 w-5 text-primary shrink-0" />
+              <span className="text-sm text-foreground truncate">{filename}</span>
+            </a>
+          ))}
+        </div>
+      )}
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <div className="relative max-w-full max-h-full" onClick={e => e.stopPropagation()}>
+            <button
+              className="absolute -top-3 -right-3 text-white border-2 border-white rounded-full p-1 bg-black/60 hover:bg-black/90 transition-colors z-10"
+              onClick={() => setLightbox(null)}
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <img
+              src={lightbox}
+              alt="Work example"
+              className="max-w-full max-h-[85vh] rounded-xl object-contain"
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 };
