@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { Star, MapPin, Wrench, Paintbrush, Package, Hammer, Zap, Droplet, Rocket } from 'lucide-react';
 import { motion } from 'framer-motion';
 import pb from '@/lib/pocketbaseClient';
+import { getUserImageUrl } from '@/lib/userImage';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -229,9 +230,9 @@ const HomePage = () => {
                   >
                     <Card className="bg-card border-border hover:shadow-xl hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-2 overflow-hidden h-full flex flex-col rounded-2xl">
                       <div className="aspect-square bg-muted relative overflow-hidden">
-                        {contractor.profilePicture ? (
-                          <img 
-                            src={pb.files.getUrl(contractor, contractor.profilePicture)} 
+                        {getUserImageUrl(contractor) ? (
+                          <img
+                            src={getUserImageUrl(contractor, { thumb: '400x400' })}
                             alt={contractor.name}
                             className="w-full h-full object-cover"
                           />

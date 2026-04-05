@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
-import pb from '@/lib/pocketbaseClient';
+import { getUserImageUrl } from '@/lib/userImage';
 import { Menu, X, User, LogOut, LayoutDashboard, Settings, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -35,11 +35,7 @@ const Header = () => {
     return '/';
   };
 
-  const avatarUrl = currentUser?.avatar 
-    ? pb.files.getUrl(currentUser, currentUser.avatar) 
-    : currentUser?.profilePicture 
-      ? pb.files.getUrl(currentUser, currentUser.profilePicture) 
-      : null;
+  const avatarUrl = getUserImageUrl(currentUser, { thumb: '100x100' });
 
   return (
     <>

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
+import { getUserImageUrl } from '@/lib/userImage';
 import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -151,8 +152,7 @@ const ClientDashboard = () => {
     const contractor = bid?.masterId ? contractors[bid.masterId] : null;
     const alreadyReviewed = existingReviews[ticket.id];
     const payment = paidTickets[ticket.id];
-    const avatarField = contractor?.profilePicture || contractor?.avatar;
-    const avatarUrl = avatarField ? pb.files.getUrl(contractor, avatarField) : null;
+    const avatarUrl = getUserImageUrl(contractor, { thumb: '100x100' });
 
     // Paid & completed — compact historical note, no action buttons
     if (isCompleted && payment) {

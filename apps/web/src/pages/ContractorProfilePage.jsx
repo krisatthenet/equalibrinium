@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
+import { getUserImageUrl } from '@/lib/userImage';
 import { Star, Heart, Briefcase, User, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -164,11 +165,7 @@ const ContractorProfilePage = () => {
                   <CardContent className="p-6">
                     <div className="aspect-square bg-muted rounded-xl overflow-hidden mb-6 border border-border">
                       {(() => {
-                        const src = contractor.profilePicture
-                          ? pb.files.getUrl(contractor, contractor.profilePicture)
-                          : contractor.avatar
-                          ? pb.files.getUrl(contractor, contractor.avatar)
-                          : null;
+                        const src = getUserImageUrl(contractor, { thumb: '400x400' });
                         return src ? (
                           <img src={src} alt={contractor.name} className="w-full h-full object-cover" />
                         ) : (

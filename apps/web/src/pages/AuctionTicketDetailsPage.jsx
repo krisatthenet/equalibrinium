@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
+import { getUserImageUrl } from '@/lib/userImage';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
@@ -284,14 +285,13 @@ const AuctionTicketDetailsPage = () => {
                         <div className="space-y-4">
                           {bids.map(bid => {
                             const bidder = bidders[bid.masterId];
-                            const avatarField = bidder?.profilePicture || bidder?.avatar;
                             return (
                             <div key={bid.id} className={`border rounded-xl p-5 ${bid.status === 'accepted' ? 'border-primary bg-primary/5' : 'border-border'}`}>
                               <div className="flex justify-between items-start mb-4">
                                 <div className="flex items-center gap-3">
                                   <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                    {avatarField ? (
-                                      <img src={pb.files.getUrl(bidder, avatarField)} alt="Avatar" className="w-full h-full object-cover" />
+                                    {getUserImageUrl(bidder) ? (
+                                      <img src={getUserImageUrl(bidder, { thumb: '100x100' })} alt="Avatar" className="w-full h-full object-cover" />
                                     ) : (
                                       <User className="h-6 w-6 text-muted-foreground" />
                                     )}
@@ -423,7 +423,6 @@ const AuctionTicketDetailsPage = () => {
                 {/* Contact card — shown after bid acceptance */}
                 {ticket.status === 'In Progress' && acceptedBid && isClient && bidders[acceptedBid.masterId] && (() => {
                   const contractor = bidders[acceptedBid.masterId];
-                  const avatarField = contractor.profilePicture || contractor.avatar;
                   return (
                   <Card className="bg-card border-primary/40 border rounded-2xl">
                     <CardHeader className="pb-3">
@@ -435,8 +434,8 @@ const AuctionTicketDetailsPage = () => {
                     <CardContent className="space-y-3">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                          {avatarField ? (
-                            <img src={pb.files.getUrl(contractor, avatarField)} alt="Avatar" className="w-full h-full object-cover" />
+                          {getUserImageUrl(contractor) ? (
+                            <img src={getUserImageUrl(contractor, { thumb: '100x100' })} alt="Avatar" className="w-full h-full object-cover" />
                           ) : (
                             <User className="h-5 w-5 text-muted-foreground" />
                           )}

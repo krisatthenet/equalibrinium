@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient';
+import { getUserImageUrl } from '@/lib/userImage';
 import { Mail, Instagram, Youtube, Music, Users, Megaphone, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -76,11 +77,7 @@ const InfluencerProfilePage = () => {
                          (influencer.youtubeFollowers || 0) + 
                          (influencer.tiktokFollowers || 0);
 
-  const avatarUrl = influencer.profilePicture 
-    ? pb.files.getUrl(influencer, influencer.profilePicture) 
-    : influencer.avatar 
-      ? pb.files.getUrl(influencer, influencer.avatar) 
-      : null;
+  const avatarUrl = getUserImageUrl(influencer, { thumb: '400x400' });
 
   return (
     <>

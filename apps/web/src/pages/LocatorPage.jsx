@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link, useSearchParams } from 'react-router-dom';
 import pb from '@/lib/pocketbaseClient.js';
+import { getUserImageUrl } from '@/lib/userImage';
 import {
   MapPin, Users, FileText, Search, X, Star,
   Clock, ChevronRight, Briefcase, Filter
@@ -298,9 +299,9 @@ const LocatorPage = () => {
                             {/* Avatar */}
                             <div className="flex items-center gap-3 mb-4">
                               <div className="h-14 w-14 rounded-2xl overflow-hidden bg-primary/10 shrink-0">
-                                {contractor.profilePicture ? (
+                                {getUserImageUrl(contractor) ? (
                                   <img
-                                    src={pb.files.getUrl(contractor, contractor.profilePicture)}
+                                    src={getUserImageUrl(contractor, { thumb: '100x100' })}
                                     alt={contractor.name}
                                     className="w-full h-full object-cover"
                                   />

@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
+import { getUserImageUrl } from '@/lib/userImage';
 import { Heart, Star, Briefcase, User, MapPin, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -97,9 +98,9 @@ const FavouritesPage = () => {
                     <CardContent className="p-5">
                       <div className="flex items-start gap-4">
                         <div className="w-14 h-14 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0 overflow-hidden">
-                          {contractor.profilePicture ? (
+                          {getUserImageUrl(contractor) ? (
                             <img
-                              src={pb.files.getUrl(contractor, contractor.profilePicture)}
+                              src={getUserImageUrl(contractor, { thumb: '100x100' })}
                               alt={contractor.name}
                               className="w-full h-full object-cover"
                             />

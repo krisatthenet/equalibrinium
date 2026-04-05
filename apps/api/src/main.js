@@ -4,10 +4,14 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 import routes from './routes/index.js';
 import { errorMiddleware } from './middleware/index.js';
 import logger from './utils/logger.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 
 const app = express();
@@ -36,12 +40,17 @@ process.on('SIGTERM', async () => {
 
 // CRITICAL: Configure CORS FIRST, before all other middleware
 // This ensures CORS headers are processed before any other middleware
+const extraOrigins = process.env.ALLOWED_ORIGINS
+	? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+	: [];
+
 const corsOptions = {
 	origin: (origin, callback) => {
 		// Allow requests from specified origins
 		const allowedOrigins = [
 			'https://workbee.space',
 			'http://workbee.space',
+			...extraOrigins,
 		];
 
 		// Allow localhost with any port for development
@@ -79,10 +88,24 @@ app.use(helmet({
 app.use(morgan('combined'));
 // Stripe webhook needs raw body — must be before express.json()
 app.use('/stripe/webhook', express.raw({ type: 'application/json' }));
+app.use('/hcgi/api/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Mount API routes at both root (for direct calls) and /hcgi/api (for production frontend)
 app.use('/', routes());
+app.use('/hcgi/api', routes());
+
+// Serve built frontend static files in production
+const isProduction = process.env.NODE_ENV === 'production';
+if (isProduction) {
+	const staticPath = path.resolve(__dirname, '../../../dist/apps/web');
+	app.use(express.static(staticPath));
+	// SPA fallback — serve index.html for any non-API route
+	app.get('/{*path}', (req, res) => {
+		res.sendFile(path.join(staticPath, 'index.html'));
+	});
+}
 
 app.use(errorMiddleware);
 

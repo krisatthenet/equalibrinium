@@ -65,9 +65,7 @@ const SettingsPage = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const loadAvatar = () => {
-    if (currentUser?.profilePicture) {
-      setAvatarPreview(pb.files.getUrl(currentUser, currentUser.profilePicture));
-    } else if (currentUser?.avatar) {
+    if (currentUser?.avatar) {
       setAvatarPreview(pb.files.getUrl(currentUser, currentUser.avatar));
     }
   };
@@ -143,7 +141,6 @@ const SettingsPage = () => {
       }
 
       if (avatarFile) {
-        formData.append('profilePicture', avatarFile);
         formData.append('avatar', avatarFile);
       }
 

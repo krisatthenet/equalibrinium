@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
+import { getUserImageUrl } from '@/lib/userImage';
 import { Star, MapPin, Map as MapIcon, Users, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,9 +137,9 @@ const ContractorsSearchPage = () => {
                       {filtered.map(contractor => (
                         <Card key={contractor.id} className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-all duration-200 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl">
                           <div className="aspect-square bg-muted relative overflow-hidden">
-                            {contractor.profilePicture ? (
+                            {getUserImageUrl(contractor) ? (
                               <img
-                                src={pb.files.getUrl(contractor, contractor.profilePicture)}
+                                src={getUserImageUrl(contractor, { thumb: '400x400' })}
                                 alt={contractor.name}
                                 className="w-full h-full object-cover"
                               />

@@ -33,14 +33,14 @@ const TermsOfServicePage = React.lazy(() => import('@/pages/TermsOfServicePage.j
 const CookiePolicy = React.lazy(() => import('@/pages/CookiePolicy.jsx'));
 
 // Admin Pages
-// const AdminLoginPage = React.lazy(() => import('@/pages/admin/AdminLoginPage.jsx'));
-// const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard.jsx'));
-// const AdminUsersPage = React.lazy(() => import('@/pages/admin/AdminUsersPage.jsx'));
-// const AdminTicketsPage = React.lazy(() => import('@/pages/admin/AdminTicketsPage.jsx'));
-// const AdminReviewsPage = React.lazy(() => import('@/pages/admin/AdminReviewsPage.jsx'));
-// const AdminAnalyticsPage = React.lazy(() => import('@/pages/admin/AdminAnalyticsPage.jsx'));
-// const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
-// const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
+const AdminLoginPage = React.lazy(() => import('@/pages/admin/AdminLoginPage.jsx'));
+const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard.jsx'));
+const AdminUsersPage = React.lazy(() => import('@/pages/admin/AdminUsersPage.jsx'));
+const AdminTicketsPage = React.lazy(() => import('@/pages/admin/AdminTicketsPage.jsx'));
+const AdminReviewsPage = React.lazy(() => import('@/pages/admin/AdminReviewsPage.jsx'));
+const AdminAnalyticsPage = React.lazy(() => import('@/pages/admin/AdminAnalyticsPage.jsx'));
+const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
+const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 
 // Loading fallback component
 const PageLoader = () => (
