@@ -55,9 +55,10 @@ const corsOptions = {
 
 		// Allow localhost with any port for development
 		const isLocalhost = origin && (origin.startsWith('http://localhost:') || origin === 'http://localhost');
+		const isNgrok = origin && (origin.endsWith('.ngrok-free.dev') || origin.endsWith('.ngrok.io'));
 
 		// Allow requests without origin (like mobile apps or curl requests)
-		if (!origin || isLocalhost || allowedOrigins.includes(origin)) {
+		if (!origin || isLocalhost || isNgrok || allowedOrigins.includes(origin)) {
 			callback(null, true);
 		} else {
 			logger.warn(`CORS request blocked from origin: ${origin}`);

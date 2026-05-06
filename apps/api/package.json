@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node src/main.js",
     "start": "node src/main.js",
-    "lint": "eslint . --quiet"
+    "lint": "eslint . --quiet",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -21,6 +23,8 @@
   "devDependencies": {
     "@eslint/js": "^8.57.0",
     "eslint": "^8.57.1",
-    "globals": "^15.14.0"
+    "globals": "^15.14.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.1.5"
   }
 }

@@ -3,11 +3,16 @@ import { useState, useEffect, useCallback } from 'react';
 export const useRecaptchaEnterprise = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
-  // Use the provided site key as default if env var is missing
-  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '6LcmgqUsAAAAAHnyOtf3yX4-0nF641yU57mTa8_G';
+  const siteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
 
   useEffect(() => {
     const scriptId = 'recaptcha-enterprise-script';
+
+    if (!siteKey) {
+      setLoadError(new Error('reCaptcha site key is not configured. Set VITE_RECAPTCHA_SITE_KEY in your environment.'));
+      setIsLoaded(false);
+      return;
+    }
 
     const checkReady = () => {
       if (window.grecaptcha && window.grecaptcha.enterprise) {

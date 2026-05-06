@@ -1,6 +1,16 @@
 /// <reference path="../pb_data/types.d.ts" />
 migrate((app) => {
-  const settings = app.settings();
+  let settings = app.settings();
+
+  if (!settings) {
+    settings = {};
+  }
+  if (!settings.meta) {
+    settings.meta = {};
+  }
+  if (!settings.meta.verificationTemplate) {
+    settings.meta.verificationTemplate = {};
+  }
 
   // Point to production domain (update for local dev in admin UI if needed)
   settings.meta.appName = "WorkBee";
@@ -19,7 +29,9 @@ migrate((app) => {
   app.save(settings);
 }, (app) => {
   const settings = app.settings();
-  settings.meta.appName = "0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f.app-preview.com";
-  settings.meta.appURL = "https://0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f.app-preview.com/hcgi/platform";
-  app.save(settings);
+  if (settings) {
+    settings.meta.appName = "0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f.app-preview.com";
+    settings.meta.appURL = "https://0ff7ee04-bf2c-44c8-b614-e20aef0a5b9f.app-preview.com/hcgi/platform";
+    app.save(settings);
+  }
 });

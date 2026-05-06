@@ -11,7 +11,18 @@
       "Bash(cat /Users/kristupas/Documents/GitHub/equalibrinium/apps/api/src/constants/*.js)",
       "Bash(sqlite3:*)",
       "Bash(concurrently --kill-others --raw \"npm run dev --prefix apps/web\" \"npm run dev --prefix apps/api\")",
-      "Bash(echo \"PID $!\")"
+      "Bash(echo \"PID $!\")",
+      "Bash(npm test *)",
+      "Bash(ngrok version *)",
+      "Bash(ngrok http *)",
+      "Bash(curl -s http://127.0.0.1:4040/api/tunnels)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(t['public_url']\\) for t in d.get\\('tunnels',[]\\)]\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); [print\\(t['public_url'], '->', t['config']['addr']\\) for t in d.get\\('tunnels',[]\\)]\")",
+      "Bash(lsof -iTCP:3001 -sTCP:LISTEN)",
+      "Bash(lsof -iTCP:3000 -sTCP:LISTEN)",
+      "WebFetch(domain:kunopsichoterapija.lt)",
+      "Bash(curl -s https://kunopsichoterapija.lt/)",
+      "Bash(curl *)"
     ]
   }
 }
