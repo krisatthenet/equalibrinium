@@ -73,23 +73,23 @@ const ContactPage = () => {
               <div className="bg-card border border-border rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-primary/10 rounded-xl"><Mail className="h-5 w-5 text-primary" /></div>
-                  <h3 className="font-semibold">Email</h3>
+                  <h3 className="font-semibold">{t('contact.info_email')}</h3>
                 </div>
                 <p className="text-sm text-muted-foreground">hello@workbee.space</p>
               </div>
               <div className="bg-card border border-border rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-primary/10 rounded-xl"><MapPin className="h-5 w-5 text-primary" /></div>
-                  <h3 className="font-semibold">Location</h3>
+                  <h3 className="font-semibold">{t('contact.info_location')}</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">Vilnius, Lithuania</p>
+                <p className="text-sm text-muted-foreground">{t('contact.info_location_value')}</p>
               </div>
               <div className="bg-card border border-border rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="p-2 bg-primary/10 rounded-xl"><Clock className="h-5 w-5 text-primary" /></div>
-                  <h3 className="font-semibold">Response time</h3>
+                  <h3 className="font-semibold">{t('contact.info_response')}</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">Within 24 hours</p>
+                <p className="text-sm text-muted-foreground">{t('contact.info_response_value')}</p>
               </div>
             </div>
 
@@ -100,10 +100,10 @@ const ContactPage = () => {
                   <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
                     <CheckCircle className="h-8 w-8 text-primary" />
                   </div>
-                  <h2 className="text-2xl font-semibold text-foreground mb-2">Message Sent!</h2>
+                  <h2 className="text-2xl font-semibold text-foreground mb-2">{t('contact.success_title')}</h2>
                   <p className="text-muted-foreground mb-8">{t('contact.success')}</p>
                   <Button onClick={() => setIsSuccess(false)} variant="outline" className="rounded-xl">
-                    Send Another Message
+                    {t('contact.success_another')}
                   </Button>
                 </div>
               ) : (

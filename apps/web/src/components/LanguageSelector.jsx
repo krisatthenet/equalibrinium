@@ -10,10 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 const languages = [
-  { code: 'lt', label: 'Lietuvių', flag: '🇱🇹' },
-  { code: 'ru', label: 'Русский', flag: '🇷🇺' },
-  { code: 'pl', label: 'Polski', flag: '🇵🇱' },
-  { code: 'en', label: 'English', flag: '🇬🇧' }
+  { code: 'lt', label: 'Lietuvių', flag: 'https://flagcdn.com/24x18/lt.png' },
+  { code: 'ru', label: 'Русский', flag: 'https://flagcdn.com/24x18/ru.png' },
+  { code: 'pl', label: 'Polski',   flag: 'https://flagcdn.com/24x18/pl.png' },
+  { code: 'en', label: 'English',  flag: 'https://flagcdn.com/24x18/gb.png' },
 ];
 
 const LanguageSelector = () => {
@@ -30,9 +30,9 @@ const LanguageSelector = () => {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="sm" className="text-primary-foreground hover:bg-black/10 hover:text-primary-foreground font-semibold gap-2">
           <Globe className="h-4 w-4" />
-          <span className="hidden sm:inline text-xl">{currentLang.flag}</span>
+          <img src={currentLang.flag} alt={currentLang.label} className="hidden sm:block h-4 w-6 rounded-sm object-cover" />
           <span className="hidden sm:inline">{currentLang.code.toUpperCase()}</span>
-          <span className="sm:hidden text-xl">{currentLang.flag}</span>
+          <img src={currentLang.flag} alt={currentLang.label} className="sm:hidden h-4 w-6 rounded-sm object-cover" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="bg-card border-border">
@@ -42,7 +42,7 @@ const LanguageSelector = () => {
             onClick={() => changeLanguage(lang.code)}
             className={`cursor-pointer ${currentLang.code === lang.code ? 'bg-muted' : ''}`}
           >
-            <span className="mr-2 text-xl">{lang.flag}</span>
+            <img src={lang.flag} alt={lang.label} className="mr-2 h-4 w-6 rounded-sm object-cover" />
             {lang.label}
           </DropdownMenuItem>
         ))}

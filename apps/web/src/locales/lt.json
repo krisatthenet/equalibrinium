@@ -12,7 +12,10 @@
     },
     "banner": {
       "partners": "Ieškome partnerių",
-      "join": "Prisijunkite"
+      "join": "Prisijunkite",
+      "launch_title": "WorkBee Startas",
+      "launch_desc": "Švenčiame beta versijos paleidimą — prisijunkite prie vakarėlio!",
+      "launch_cta": "Gauti pakvietimą"
     },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
@@ -312,7 +315,14 @@
         "support": "Techninė pagalba",
         "partnership": "Partnerystė",
         "other": "Kita"
-      }
+      },
+      "info_email": "El. paštas",
+      "info_location": "Vieta",
+      "info_location_value": "Vilnius, Lietuva",
+      "info_response": "Atsakymo laikas",
+      "info_response_value": "Per 24 valandas",
+      "success_title": "Žinutė išsiųsta!",
+      "success_another": "Siųsti dar vieną žinutę"
     },
     "legal": {
       "terms_title": "Paslaugų teikimo sąlygos",

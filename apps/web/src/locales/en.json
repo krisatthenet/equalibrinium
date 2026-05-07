@@ -12,7 +12,10 @@
     },
     "banner": {
       "partners": "We're looking for partners",
-      "join": "Join us"
+      "join": "Join us",
+      "launch_title": "WorkBee Launch Party",
+      "launch_desc": "We're celebrating our beta launch — join us for the party!",
+      "launch_cta": "Get invited"
     },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
@@ -312,7 +315,14 @@
         "support": "Technical Support",
         "partnership": "Partnership",
         "other": "Other"
-      }
+      },
+      "info_email": "Email",
+      "info_location": "Location",
+      "info_location_value": "Vilnius, Lithuania",
+      "info_response": "Response time",
+      "info_response_value": "Within 24 hours",
+      "success_title": "Message Sent!",
+      "success_another": "Send Another Message"
     },
     "legal": {
       "terms_title": "Terms of Service",
