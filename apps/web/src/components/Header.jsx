@@ -48,6 +48,14 @@ const Header = () => {
                 <D20Icon className="w-16 h-16 md:w-20 md:h-20" />
               </Link>
               <BetaBadge />
+              <div className="hidden lg:flex items-center gap-1.5 bg-muted/60 border border-border px-2.5 py-1 rounded-full text-xs text-muted-foreground">
+                <img
+                  src="https://vilnius.lt/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fheader-logo.ce627a0f.svg&w=384&q=75"
+                  alt="Vilnius"
+                  className="h-4 w-auto"
+                />
+                <span>Launching in Vilnius first</span>
+              </div>
             </div>
 
             <nav className="hidden md:flex items-center gap-8">

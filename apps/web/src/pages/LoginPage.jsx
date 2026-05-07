@@ -47,7 +47,7 @@ const LoginPage = () => {
 
       if (!verifyResponse.ok) {
         const errData = await verifyResponse.json();
-        throw new Error(errData.error || errData.message || 'Login failed. Please try again.');
+        throw new Error(errData.message || errData.error?.message || 'Invalid credentials.');
       }
 
       // 2. Authenticate with PocketBase
@@ -68,16 +68,7 @@ const LoginPage = () => {
     } catch (err) {
       console.error('[Login Error]', err);
       
-      // Extract specific error messages
-      let errorMessage = err.message || 'Login failed. Please check your credentials.';
-      
-      if (err.status === 400 || err.response?.status === 400) {
-        errorMessage = 'Invalid email or password.';
-      } else if (err.status === 404 || err.response?.status === 404) {
-        errorMessage = 'User not found.';
-      } else if (err.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      }
+      const errorMessage = 'Invalid credentials.';
       
       setError(errorMessage);
     } finally {

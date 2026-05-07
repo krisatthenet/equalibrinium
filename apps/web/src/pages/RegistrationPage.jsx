@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import apiServerClient from '@/lib/apiServerClient.js';
@@ -149,6 +150,16 @@ const RegistrationPage = () => {
       [e.target.name]: e.target.value
     }));
   };
+
+  const COUNTRY_LANGUAGE_MAP = { LT: 'lt', RU: 'ru', PL: 'pl', BY: 'ru', UA: 'ru' };
+
+  const handleLocationSelect = useCallback((place) => {
+    setFormData(prev => ({ ...prev, location: place.address }));
+    if (place.countryCode) {
+      const lng = COUNTRY_LANGUAGE_MAP[place.countryCode] || 'en';
+      i18n.changeLanguage(lng);
+    }
+  }, []);
 
   const handleProfessionChange = (value) => {
     setFormData(prev => ({
@@ -315,7 +326,7 @@ const RegistrationPage = () => {
                           <PlacesAutocompleteInput
                             value={formData.location}
                             onChange={(val) => setFormData(prev => ({ ...prev, location: val }))}
-                            onSelectPlace={(place) => setFormData(prev => ({ ...prev, location: place.address }))}
+                            onSelectPlace={handleLocationSelect}
                             placeholder="Search for your city or address..."
                             className="bg-input border-border text-foreground rounded-lg"
                           />

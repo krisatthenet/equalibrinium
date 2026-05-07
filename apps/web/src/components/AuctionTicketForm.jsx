@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
+import { track } from '@/lib/mixpanel';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_FILES = 10;
@@ -191,6 +192,7 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
         }
         files.forEach(file => submitData.append('files', file));
         await pb.collection('auction_tickets').create(submitData, { $autoCancel: false });
+        track('auction_ticket_created', { has_assigned_contractor: !!assignedContractorId });
         toast({ title: "Success", description: assignedContractorId ? "Direct request sent!" : "Request created successfully." });
       }
 

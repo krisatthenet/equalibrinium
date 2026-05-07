@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import pb from '@/lib/pocketbaseClient.js';
+import { identify, track, reset as mixpanelReset } from '@/lib/mixpanel';
 
 const AuthContext = createContext(null);
 
@@ -38,20 +39,23 @@ export const AuthProvider = ({ children }) => {
     };
 
     const record = await pb.collection('users').create(data);
-    // Don't let verification email failure block account creation
     pb.collection('users').requestVerification(email).catch(() => {});
+    identify(record.id, { $email: email, user_type: userType });
+    track('sign_up_completed', { user_type: userType, sign_up_method: 'email' });
     return record;
   };
 
   const login = async (email, password) => {
     const authData = await pb.collection('users').authWithPassword(email, password);
     setCurrentUser(authData.record);
+    identify(authData.record.id, { $email: email, user_type: authData.record.userType });
     return authData;
   };
 
   const logout = () => {
     pb.authStore.clear();
     setCurrentUser(null);
+    mixpanelReset();
   };
 
   const requestPasswordReset = async (email) => {

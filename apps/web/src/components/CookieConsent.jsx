@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { initMixpanel } from '@/lib/mixpanel';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ const CookieConsent = () => {
 
   const handleAccept = () => {
     localStorage.setItem('cookieConsent', 'accepted');
+    initMixpanel();
     setIsVisible(false);
   };
 

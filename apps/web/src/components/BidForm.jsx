@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
+import { track } from '@/lib/mixpanel';
 
 const BidForm = ({ ticketId, onSuccess, onCancel }) => {
   const { t } = useTranslation();
@@ -37,6 +38,7 @@ const BidForm = ({ ticketId, onSuccess, onCancel }) => {
         status: 'pending'
       }, { $autoCancel: false });
 
+      track('bid_placed', { ticket_id: ticketId, proposed_rate: parseFloat(formData.proposedRate) });
       toast({ title: "Success", description: "Your bid has been placed." });
       if (onSuccess) onSuccess();
     } catch (error) {

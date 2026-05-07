@@ -1,5 +1,6 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { initMixpanel } from '@/lib/mixpanel';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
@@ -41,6 +42,8 @@ const PageLoader = () => (
 );
 
 const App = () => {
+  useEffect(() => { initMixpanel(); }, []);
+
   return (
     <BrowserRouter>
       <ScrollToTop />

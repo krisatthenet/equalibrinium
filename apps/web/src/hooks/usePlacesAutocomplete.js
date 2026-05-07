@@ -43,12 +43,14 @@ export const usePlacesAutocomplete = () => {
         reject(new Error('Places service not initialized'));
         return;
       }
-      placesService.getDetails({ placeId, fields: ['formatted_address', 'geometry'] }, (place, status) => {
+      placesService.getDetails({ placeId, fields: ['formatted_address', 'geometry', 'address_components'] }, (place, status) => {
         if (status === window.google.maps.places.PlacesServiceStatus.OK && place) {
+          const countryComponent = place.address_components?.find(c => c.types.includes('country'));
           resolve({
             address: place.formatted_address,
             lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng()
+            lng: place.geometry.location.lng(),
+            countryCode: countryComponent?.short_name || null,
           });
         } else {
           reject(new Error('Failed to fetch place details'));
