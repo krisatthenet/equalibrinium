@@ -4,11 +4,14 @@ import logger from './logger.js';
 
 const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
 
-webpush.setVapidDetails(
-  'mailto:kasparas@workbee.space',
-  process.env.VAPID_PUBLIC_KEY,
-  process.env.VAPID_PRIVATE_KEY
-);
+const vapidConfigured = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY;
+if (vapidConfigured) {
+  webpush.setVapidDetails(
+    'mailto:kasparas@workbee.space',
+    process.env.VAPID_PUBLIC_KEY,
+    process.env.VAPID_PRIVATE_KEY
+  );
+}
 
 async function adminPb() {
   const pb = new PocketBase(PB_URL);

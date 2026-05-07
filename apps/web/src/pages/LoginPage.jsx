@@ -3,7 +3,6 @@ import { Helmet } from 'react-helmet';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
-import apiServerClient from '@/lib/apiServerClient.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -35,22 +34,6 @@ const LoginPage = () => {
     setLoading(true);
 
     try {
-      // 1. Verify with backend
-      const verifyResponse = await apiServerClient.fetch('/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password
-        })
-      });
-
-      if (!verifyResponse.ok) {
-        const errData = await verifyResponse.json();
-        throw new Error(errData.message || errData.error?.message || 'Invalid credentials.');
-      }
-
-      // 2. Authenticate with PocketBase
       const authData = await login(formData.email, formData.password);
 
       // Block unverified accounts
