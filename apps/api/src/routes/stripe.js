@@ -313,7 +313,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
             const bid = await pb.collection('bids').getOne(ticket.acceptedBidId);
             resolvedContractorUserId = bid.masterId;
           }
-        } catch (_) {}
+        } catch (_) { /* ticket not found, skip */ }
       }
 
       if (resolvedContractorUserId) {
