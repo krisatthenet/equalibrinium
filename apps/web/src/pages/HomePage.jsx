@@ -14,6 +14,39 @@ import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import ReviewsCarousel from '@/components/ReviewsCarousel.jsx';
+import FireworksIntro from '@/components/FireworksIntro.jsx';
+
+const DndRollToast = ({ roll }) => {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(false), 2800);
+    return () => clearTimeout(t);
+  }, []);
+  if (!visible) return null;
+
+  const isNat20 = roll === 20;
+  const isNat1  = roll === 1;
+  const label   = isNat20 ? '🎆 Natural 20!' : isNat1 ? '💀 Critical Fail' : `🎲 You rolled ${roll}`;
+  const bg      = isNat20 ? 'bg-amber-500 text-white shadow-amber-500/40'
+                : isNat1  ? 'bg-red-700 text-white shadow-red-700/40'
+                : 'bg-card text-foreground shadow-black/20';
+
+  return (
+    <div
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[9997] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-2xl ${bg} animate-[roll-in_0.4s_cubic-bezier(0.34,1.56,0.64,1)_both]`}
+      style={{ minWidth: 180, textAlign: 'center' }}
+    >
+      <span className="text-4xl font-black leading-none">{roll}</span>
+      <span className="text-sm font-semibold leading-tight">{label}</span>
+      <style>{`
+        @keyframes roll-in {
+          from { transform: translateX(-50%) translateY(80px) scale(0.7); opacity: 0; }
+          to   { transform: translateX(-50%) translateY(0)   scale(1);   opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 const categoryIcons = {
   'Apdailos darbai': Wrench,
@@ -31,6 +64,7 @@ const HomePage = () => {
   const [categories, setCategories] = useState([]);
   const [featuredContractors, setFeaturedContractors] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dndRoll] = useState(() => Math.floor(Math.random() * 20) + 1);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -81,6 +115,8 @@ const HomePage = () => {
       </Helmet>
       
       <div className="min-h-screen flex flex-col bg-background">
+        <FireworksIntro roll={dndRoll} />
+        <DndRollToast roll={dndRoll} />
         <Header />
         
         <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
