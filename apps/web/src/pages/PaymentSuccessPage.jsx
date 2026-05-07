@@ -35,13 +35,18 @@ const PaymentSuccessPage = () => {
           throw new Error('No Stripe session ID found.');
         }
 
-        // Verify session with backend
-        const res = await apiServerClient.fetch(`/stripe/session/${sessionId}`);
+        // Verify session with backend — pass userId so endpoint can verify ownership
+        const res = await apiServerClient.fetch(`/stripe/session/${sessionId}?userId=${currentUser.id}`);
         if (!res.ok) throw new Error('Failed to verify payment session.');
         const sessionData = await res.json();
 
         if (sessionData.status !== 'paid') {
           throw new Error(`Payment not confirmed (status: ${sessionData.status}). Please contact support.`);
+        }
+
+        // Guard against URL-tampered ticketId
+        if (sessionData.ticketId && sessionData.ticketId !== ticketId) {
+          throw new Error('Session mismatch. Please contact support.');
         }
 
         const amount = (sessionData.amountTotal || 0) / 100;

@@ -86,15 +86,25 @@ router.post('/create-checkout', async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // GET /stripe/session/:sessionId — verify session status
+// Requires ?userId= matching the session's metadata.userId
 // ---------------------------------------------------------------------------
 router.get('/session/:sessionId', async (req, res) => {
   try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+
     const session = await stripe.checkout.sessions.retrieve(req.params.sessionId);
+
+    if (session.metadata?.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
     res.json({
       id: session.id,
       status: session.payment_status,
       amountTotal: session.amount_total,
       customerEmail: session.customer_details?.email || null,
+      ticketId: session.metadata?.ticketId || null,
     });
   } catch (err) {
     logger.error('session retrieve error:', err);
