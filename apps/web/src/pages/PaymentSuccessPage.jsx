@@ -44,30 +44,32 @@ const PaymentSuccessPage = () => {
           throw new Error(`Payment not confirmed (status: ${sessionData.status}). Please contact support.`);
         }
 
-        // Guard against URL-tampered ticketId
-        if (sessionData.ticketId && sessionData.ticketId !== ticketId) {
-          throw new Error('Session mismatch. Please contact support.');
+        // Use the ticketId from Stripe session metadata as the canonical value —
+        // never trust the URL param for any write operations
+        const verifiedTicketId = sessionData.ticketId;
+        if (!verifiedTicketId) {
+          throw new Error('Session metadata incomplete. Please contact support.');
         }
 
         const amount = (sessionData.amountTotal || 0) / 100;
 
         // Mark ticket as Completed (webhook does this too, but may not reach localhost in dev)
-        await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' }, { $autoCancel: false }).catch(() => {});
+        await pb.collection('auction_tickets').update(verifiedTicketId, { status: 'Completed' }, { $autoCancel: false }).catch(() => {});
 
         // Fetch ticket for display
-        const ticket = await pb.collection('auction_tickets').getOne(ticketId, {
+        const ticket = await pb.collection('auction_tickets').getOne(verifiedTicketId, {
           expand: 'categoryId',
           $autoCancel: false
         });
 
         // Find contractor for review link
         const bids = await pb.collection('bids').getFullList({
-          filter: `ticketId = "${ticketId}" && status = "accepted"`,
+          filter: `ticketId = "${verifiedTicketId}" && status = "accepted"`,
           $autoCancel: false
         }).catch(() => []);
         if (bids.length > 0 && bids[0].masterId) {
           const c = await pb.collection('users').getOne(bids[0].masterId, { $autoCancel: false }).catch(() => null);
-          if (c) setReviewTarget({ contractorId: c.id, contractorName: c.name, ticketId });
+          if (c) setReviewTarget({ contractorId: c.id, contractorName: c.name, ticketId: verifiedTicketId });
         }
 
         setPaymentDetails({ ticket, amount, sessionId });
