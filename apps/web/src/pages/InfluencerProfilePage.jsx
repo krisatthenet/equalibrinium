@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import PlanBadge from '@/components/PlanBadge.jsx';
 
 const InfluencerProfilePage = () => {
   const { t } = useTranslation();
@@ -111,10 +112,11 @@ const InfluencerProfilePage = () => {
 
                     <h1 className="text-2xl font-bold mb-2">{influencer.name}</h1>
 
-                    {influencer.title && (
-                      <Badge variant="secondary" className="mb-2">
-                        {influencer.title}
-                      </Badge>
+                    {(influencer.title || influencer.plan) && (
+                      <div className="flex items-center gap-2 mb-2">
+                        {influencer.title && <Badge variant="secondary">{influencer.title}</Badge>}
+                        <PlanBadge plan={influencer.plan} />
+                      </div>
                     )}
 
                     {influencer.contentNiche && (

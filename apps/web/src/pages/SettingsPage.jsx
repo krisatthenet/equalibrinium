@@ -8,8 +8,10 @@ import apiServerClient from '@/lib/apiServerClient.js';
 import { useToast } from '@/hooks/use-toast';
 import {
   User, CreditCard, Shield, Camera, Loader2, CheckCircle2, ExternalLink,
-  UploadCloud, X, FileText
+  UploadCloud, X, FileText, Zap, Check, Minus
 } from 'lucide-react';
+import PlanBadge from '@/components/PlanBadge.jsx';
+import { PLANS, PLAN_ORDER, formatLimit } from '@/lib/plans';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -374,6 +376,9 @@ const SettingsPage = () => {
                     <CreditCard className="w-4 h-4 mr-2" /> {t('settings.tab_payment')}
                   </TabsTrigger>
                 )}
+                <TabsTrigger value="plan" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
+                  <Zap className="w-4 h-4 mr-2" /> Plan
+                </TabsTrigger>
                 <TabsTrigger value="account" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                   <Shield className="w-4 h-4 mr-2" /> {t('settings.tab_account')}
                 </TabsTrigger>
@@ -682,6 +687,107 @@ const SettingsPage = () => {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              {/* PLAN TAB */}
+              <TabsContent value="plan" className="space-y-6">
+                {(() => {
+                  const currentPlan = currentUser?.plan || 'standard';
+                  const uType = currentUser?.userType === 'client' ? 'client' : 'contractor';
+                  const limits = PLANS[currentPlan]?.[uType] ?? PLANS.standard[uType];
+                  return (
+                    <>
+                      <Card className="bg-card border-border rounded-2xl">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-3">
+                            <Zap className="w-5 h-5 text-primary" />
+                            Current plan
+                            <PlanBadge plan={currentPlan} />
+                          </CardTitle>
+                          <CardDescription>
+                            {currentUser?.planExpiresAt
+                              ? `Renews ${new Date(currentUser.planExpiresAt).toLocaleDateString()}`
+                              : currentPlan === 'standard' ? 'Free forever' : 'No active subscription'}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            {uType === 'contractor' ? (
+                              <>
+                                <div className="rounded-xl bg-muted/40 border border-border p-4">
+                                  <p className="text-2xl font-bold text-foreground">{formatLimit(limits.bidsPerMonth)}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">Bids / month</p>
+                                </div>
+                                <div className="rounded-xl bg-muted/40 border border-border p-4">
+                                  <p className="text-2xl font-bold text-foreground">{formatLimit(limits.activeBids)}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">Active bids</p>
+                                </div>
+                                <div className="rounded-xl bg-muted/40 border border-border p-4">
+                                  <p className="text-2xl font-bold text-foreground">{formatLimit(limits.featuredSlots)}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">Featured slots</p>
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="rounded-xl bg-muted/40 border border-border p-4">
+                                  <p className="text-2xl font-bold text-foreground">{formatLimit(limits.ticketsPerMonth)}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">Tickets / month</p>
+                                </div>
+                                <div className="rounded-xl bg-muted/40 border border-border p-4">
+                                  <p className="text-2xl font-bold text-foreground">{formatLimit(limits.activeTickets)}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">Active tickets</p>
+                                </div>
+                                <div className="rounded-xl bg-muted/40 border border-border p-4">
+                                  {limits.priorityMatching
+                                    ? <Check className="w-6 h-6 text-primary" />
+                                    : <Minus className="w-6 h-6 text-muted-foreground" />}
+                                  <p className="text-xs text-muted-foreground mt-1">Priority matching</p>
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="bg-card border-border rounded-2xl">
+                        <CardHeader>
+                          <CardTitle>Upgrade your plan</CardTitle>
+                          <CardDescription>Unlock more capacity as your business grows.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                            {PLAN_ORDER.filter(k => k !== 'standard').map((key) => {
+                              const plan = PLANS[key];
+                              const price = plan.pricing[uType].monthly;
+                              const isCurrent = key === currentPlan;
+                              return (
+                                <div key={key} className={`rounded-xl border p-4 flex flex-col gap-3 ${isCurrent ? 'border-primary bg-primary/5' : 'border-border'}`}>
+                                  <div className="flex items-center justify-between">
+                                    <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-semibold ${plan.color}`}>{plan.label}</span>
+                                    {isCurrent && <span className="text-xs text-primary font-medium">Current</span>}
+                                  </div>
+                                  <p className="text-xl font-bold text-foreground">€{price}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                                  <Button
+                                    size="sm"
+                                    variant={isCurrent ? 'outline' : 'default'}
+                                    disabled={isCurrent}
+                                    className="w-full"
+                                    onClick={() => navigate('/pricing')}
+                                  >
+                                    {isCurrent ? 'Current plan' : 'Upgrade'}
+                                  </Button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-4">
+                            Payment via Primer · Cancel anytime · <Link to="/pricing" className="underline underline-offset-2">See full comparison</Link>
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </>
+                  );
+                })()}
               </TabsContent>
 
               {/* ACCOUNT TAB */}

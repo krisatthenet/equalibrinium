@@ -7,6 +7,7 @@ import { Search, ShieldBan, ShieldCheck, Trash2, MoreVertical, Loader2 } from 'l
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import PlanBadge from '@/components/PlanBadge.jsx';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -163,9 +164,8 @@ const AdminUsersPage = () => {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-white">{user.name || 'Unnamed User'}</span>
-                          {user.title && (
-                            <Badge variant="secondary" className="text-xs">{user.title}</Badge>
-                          )}
+                          {user.title && <Badge variant="secondary" className="text-xs">{user.title}</Badge>}
+                          <PlanBadge plan={user.plan} />
                         </div>
                         <span className="text-muted-foreground">{user.email}</span>
                       </div>

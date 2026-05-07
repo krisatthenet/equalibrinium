@@ -33,6 +33,7 @@ const CookiePolicy = React.lazy(() => import('@/pages/CookiePolicy.jsx'));
 
 const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
+const PricingPage = React.lazy(() => import('@/pages/PricingPage.jsx'));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -67,6 +68,7 @@ const App = () => {
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="/cookie-policy" element={<CookiePolicy />} />
+                <Route path="/pricing" element={<PricingPage />} />
 
                 {/* Protected User Routes */}
                 <Route path="/dashboard/client" element={

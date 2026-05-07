@@ -8,6 +8,7 @@ import { getUserImageUrl } from '@/lib/userImage';
 import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import PlanBadge from '@/components/PlanBadge.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -247,9 +248,8 @@ const ClientDashboard = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="font-medium text-sm text-foreground">{contractor.name || 'Contractor'}</p>
-                    {contractor.title && (
-                      <Badge variant="secondary" className="text-xs">{contractor.title}</Badge>
-                    )}
+                    {contractor.title && <Badge variant="secondary" className="text-xs">{contractor.title}</Badge>}
+                    <PlanBadge plan={contractor.plan} />
                   </div>
                   <p className="text-xs text-primary font-semibold">€{bid.proposedRate} agreed</p>
                 </div>
@@ -352,9 +352,8 @@ const ClientDashboard = () => {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <h1 className="text-4xl font-bold text-foreground">{t('dashboard.client_title')}</h1>
-                  {currentUser?.title && (
-                    <Badge variant="secondary">{currentUser.title}</Badge>
-                  )}
+                  {currentUser?.title && <Badge variant="secondary">{currentUser.title}</Badge>}
+                  <PlanBadge plan={currentUser?.plan} />
                 </div>
                 <p className="text-muted-foreground">{t('dashboard.welcome', { name: currentUser?.name || currentUser?.email })}</p>
               </div>

@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import PlanBadge from '@/components/PlanBadge.jsx';
 
 const MasterProfilePage = () => {
   const { t } = useTranslation();
@@ -120,10 +121,11 @@ const MasterProfilePage = () => {
 
                     <h1 className="text-2xl font-bold mb-2">{master.name}</h1>
 
-                    {master.title && (
-                      <Badge variant="secondary" className="mb-2">
-                        {master.title}
-                      </Badge>
+                    {(master.title || master.plan) && (
+                      <div className="flex items-center gap-2 mb-2">
+                        {master.title && <Badge variant="secondary">{master.title}</Badge>}
+                        <PlanBadge plan={master.plan} />
+                      </div>
                     )}
 
                     {master.profession && (
