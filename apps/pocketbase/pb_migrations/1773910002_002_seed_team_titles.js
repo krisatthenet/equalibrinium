@@ -2,7 +2,7 @@
 migrate((app) => {
   const team = [
     { email: "tadas@workbee.space",        title: "CEO" },
-    { email: "kristupas@yardventure.io",   title: "CTO" },
+    { email: "krisatthenet@gmail.com",      title: "CTO" },
     { email: "tomas@workbee.space",        title: "CMO" },
     { email: "justas@workbee.space",       title: "COO" },
   ];
@@ -17,7 +17,7 @@ migrate((app) => {
 }, (app) => {
   const emails = [
     "tadas@workbee.space",
-    "kristupas@yardventure.io",
+    "krisatthenet@gmail.com",
     "tomas@workbee.space",
     "justas@workbee.space",
   ];
