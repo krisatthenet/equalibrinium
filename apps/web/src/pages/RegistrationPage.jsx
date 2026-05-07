@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import apiServerClient from '@/lib/apiServerClient.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -77,23 +76,6 @@ const RegistrationPage = () => {
     setLoading(true);
 
     try {
-      // Verify with backend
-      const verifyResponse = await apiServerClient.fetch('/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          name: formData.name,
-          userType
-        })
-      });
-
-      if (!verifyResponse.ok) {
-        const errData = await verifyResponse.json();
-        throw new Error(errData.message || errData.error || 'Registration failed. Please try again.');
-      }
-
       const extraData = {
         name: formData.name,
         phone: formData.phone,
