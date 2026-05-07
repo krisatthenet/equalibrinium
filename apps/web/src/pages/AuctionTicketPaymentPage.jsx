@@ -58,8 +58,6 @@ const AuctionTicketPaymentPage = () => {
         body: JSON.stringify({
           ticketId,
           contractorUserId: acceptedBid?.masterId || null,
-          amount,
-          userId: currentUser.id,
         }),
       });
 
