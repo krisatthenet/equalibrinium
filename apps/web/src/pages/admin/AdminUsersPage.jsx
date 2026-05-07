@@ -161,7 +161,12 @@ const AdminUsersPage = () => {
                   <tr key={user.id} className="hover:bg-[hsl(var(--admin-border))/30] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-white">{user.name || 'Unnamed User'}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-white">{user.name || 'Unnamed User'}</span>
+                          {user.title && (
+                            <Badge variant="secondary" className="text-xs">{user.title}</Badge>
+                          )}
+                        </div>
                         <span className="text-muted-foreground">{user.email}</span>
                       </div>
                     </td>
