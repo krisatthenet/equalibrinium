@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { Check, Minus } from 'lucide-react';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
@@ -36,7 +36,7 @@ const PricingPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet><title>Pricing - WorkBee</title></Helmet>
+      <PageMeta title="Pricing - WorkBee" description="Simple, transparent pricing for accessing WorkBee's marketplace of qualified specialists." />
       <Header />
 
       <main className="flex-1 py-16 px-4">

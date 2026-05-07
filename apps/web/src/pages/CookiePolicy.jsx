@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Cookie, Shield, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,7 @@ import Footer from '@/components/Footer.jsx';
 const CookiePolicy = () => {
   return (
     <>
-      <Helmet>
-        <title>Slapukų politika - WorkBee</title>
-        <meta name="description" content="Sužinokite, kaip WorkBee naudoja slapukus jūsų naršymo patirčiai gerinti." />
-      </Helmet>
+      <PageMeta title="Slapukų politika - WorkBee" description="Sužinokite, kaip WorkBee naudoja slapukus jūsų naršymo patirčiai gerinti." />
 
       <div className="min-h-screen flex flex-col bg-black">
         <Header />

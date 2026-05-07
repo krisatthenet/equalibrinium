@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { Link, useSearchParams } from 'react-router-dom';
 import pb from '@/lib/pocketbaseClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
@@ -105,10 +105,7 @@ const LocatorPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet>
-        <title>Explore - WorkBee</title>
-        <meta name="description" content="Explore open job requests and contractors near you." />
-      </Helmet>
+      <PageMeta title="Explore - WorkBee" description="Explore open job requests and contractors near you." />
 
       <Header />
 

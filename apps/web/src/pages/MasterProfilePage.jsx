@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient';
@@ -89,9 +90,30 @@ const MasterProfilePage = () => {
 
   return (
     <>
+      <PageMeta
+        title={`${master.name} - WorkBee`}
+        description={master.bio || `View ${master.name}'s profile and reviews on WorkBee.`}
+        image={master.profilePicture ? pb.files.getUrl(master, master.profilePicture) : undefined}
+      />
       <Helmet>
-        <title>{`${master.name} - Bee Marketplace`}</title>
-        <meta name="description" content={master.bio || `View ${master.name}'s profile and reviews on Bee marketplace.`} />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: master.name,
+          ...(master.bio && { description: master.bio }),
+          url: `https://workbee.space/master/${master.id}`,
+          ...(master.profilePicture && { image: pb.files.getUrl(master, master.profilePicture) }),
+          ...(master.rating && master.reviewCount && {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: master.rating.toFixed(1),
+              reviewCount: master.reviewCount,
+            },
+          }),
+          ...(master.expand?.categories?.length && {
+            knowsAbout: master.expand.categories.map(c => c.name),
+          }),
+        })}</script>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-black">

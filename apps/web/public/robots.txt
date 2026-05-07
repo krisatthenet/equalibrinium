@@ -1,0 +1,12 @@
+User-agent: *
+Disallow: /dashboard/
+Disallow: /settings
+Disallow: /favourites
+Disallow: /ticket/
+Disallow: /auction-ticket/
+Disallow: /payment-success
+Disallow: /payment-error
+Disallow: /verify-email/
+Disallow: /auth/
+
+Sitemap: https://workbee.space/sitemap.xml

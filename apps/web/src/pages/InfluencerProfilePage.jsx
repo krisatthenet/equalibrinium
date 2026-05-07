@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient';
@@ -82,10 +82,11 @@ const InfluencerProfilePage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{`${influencer.name} - Influencer Profile`}</title>
-        <meta name="description" content={influencer.influencerBio || `View ${influencer.name}'s influencer profile.`} />
-      </Helmet>
+      <PageMeta
+        title={`${influencer.name} - WorkBee`}
+        description={influencer.influencerBio || `View ${influencer.name}'s influencer profile on WorkBee.`}
+        image={avatarUrl || undefined}
+      />
 
       <div className="min-h-screen flex flex-col bg-background">
         <Header />

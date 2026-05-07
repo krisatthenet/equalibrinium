@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { useTranslation } from 'react-i18next';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
@@ -9,9 +9,7 @@ const TermsOfServicePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet>
-        <title>{t('legal.terms_title')} - WorkBee</title>
-      </Helmet>
+      <PageMeta title={`${t('legal.terms_title')} - WorkBee`} description="Review the terms and conditions governing your use of the WorkBee marketplace platform." />
       
       <Header />
       

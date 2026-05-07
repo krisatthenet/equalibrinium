@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
@@ -146,9 +146,7 @@ const MastersSearchPage = () => {
 
   return (
     <>
-      <Helmet>
-        <title>{t('search.title')} - WorkBee</title>
-      </Helmet>
+      <PageMeta title={`${t('search.title')} - WorkBee`} description="Browse and connect with skilled specialists for home improvement near you." />
 
       <div className="min-h-screen flex flex-col bg-background">
         <Header />

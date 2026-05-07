@@ -1,5 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
+
+const HOME_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://workbee.space/#website',
+      url: 'https://workbee.space/',
+      name: 'WorkBee',
+      description: 'Connect with qualified specialists for all your home improvement needs',
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://workbee.space/#organization',
+      url: 'https://workbee.space/',
+      name: 'WorkBee',
+      logo: { '@type': 'ImageObject', url: 'https://workbee.space/logo-192.png' },
+    },
+  ],
+};
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Star, MapPin, Wrench, Paintbrush, Package, Hammer, Zap, Droplet, Rocket } from 'lucide-react';
@@ -213,9 +234,9 @@ const HomePage = () => {
 
   return (
     <>
+      <PageMeta title={`WorkBee - ${t('home.title')}`} description={t('home.subtitle')} />
       <Helmet>
-        <title>WorkBee - {t('home.title')}</title>
-        <meta name="description" content={t('home.subtitle')} />
+        <script type="application/ld+json">{JSON.stringify(HOME_JSON_LD)}</script>
       </Helmet>
       
       <div className="min-h-screen flex flex-col bg-background">

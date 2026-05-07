@@ -27,4 +27,11 @@ i18n
     }
   });
 
+i18n.on('languageChanged', (lng) => {
+  document.documentElement.lang = lng;
+});
+
+// LanguageDetector runs synchronously, so language is already resolved here
+document.documentElement.lang = i18n.language;
+
 export default i18n;

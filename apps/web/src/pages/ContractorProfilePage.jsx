@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
@@ -140,9 +141,30 @@ const ContractorProfilePage = () => {
 
   return (
     <>
+      <PageMeta
+        title={`${contractor.name} - WorkBee`}
+        description={contractor.bio || `View ${contractor.name}'s profile and reviews on WorkBee.`}
+        image={getUserImageUrl(contractor) || undefined}
+      />
       <Helmet>
-        <title>{`${contractor.name} - WorkBee`}</title>
-        <meta name="description" content={contractor.bio || `View ${contractor.name}'s profile and reviews on WorkBee.`} />
+        <script type="application/ld+json">{JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Person',
+          name: contractor.name,
+          ...(contractor.bio && { description: contractor.bio }),
+          url: `https://workbee.space/contractor/${contractor.id}`,
+          ...(getUserImageUrl(contractor) && { image: getUserImageUrl(contractor) }),
+          ...(reviews.length > 0 && {
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1),
+              reviewCount: reviews.length,
+            },
+          }),
+          ...(contractor.expand?.categories?.length && {
+            knowsAbout: contractor.expand.categories.map(c => c.name),
+          }),
+        })}</script>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">

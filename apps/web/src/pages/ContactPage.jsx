@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { useTranslation } from 'react-i18next';
 import { Send, CheckCircle, Loader2, Mail, MapPin, Clock } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient';
@@ -54,9 +54,7 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet>
-        <title>{t('contact.title')} - WorkBee</title>
-      </Helmet>
+      <PageMeta title={`${t('contact.title')} - WorkBee`} description="Get in touch with the WorkBee team for support, questions, and partnership inquiries." />
 
       <Header />
 

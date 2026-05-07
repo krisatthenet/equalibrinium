@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { PageMeta } from '@/components/PageMeta.jsx';
 import { useTranslation } from 'react-i18next';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
@@ -9,9 +9,7 @@ const PrivacyPolicyPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Helmet>
-        <title>{t('legal.privacy_title')} - WorkBee</title>
-      </Helmet>
+      <PageMeta title={`${t('legal.privacy_title')} - WorkBee`} description="Read WorkBee's privacy policy to understand how we collect and use your personal data." />
       
       <Header />
       

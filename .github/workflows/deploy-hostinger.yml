@@ -1,0 +1,44 @@
+name: Deploy Frontend to Hostinger
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'package.json'
+      - '.github/workflows/deploy-hostinger.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --prefix apps/web
+
+      - name: Build
+        run: npm run build --prefix apps/web
+        env:
+          VITE_POCKETBASE_URL: ${{ secrets.VITE_POCKETBASE_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
+          VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
+
+      - name: Deploy via rsync over SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          echo "lt-bnk-web508.main-hosting.eu ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZsl0v5Fo0qpqohH6E+puRY4jI6MSrrteKcvfwP/jCdg/aCRIhMMYANMopnomi1sojLxcw2tds2LsAclhrmgeFulKAVHawsNQcMCMx+X39XeSnCHnWWrH8Lbpje/jv+9o71hNvWJXP5x1oKmmHP5KQbyPEswHERziXk7HBAdglX76oTKacQhwua37vkQpj8nBRQLN1bjk16h5a4AIX9jT0YTOCccLyxy0UgzmPTJxPVBnU8uS9jyCHObf6HGMIv5FRlSmW0p1OGRDDeOgDEtls2Okg5QobhnWsX3brBDy3MTi/FaZBQuQVBBBN2cIfFmgmSwO/ygc4myN5Aj8CyQyUYo2kPzhbuBF7dLVuel80Aw3KFRl6EOFS/VDSiT2af4iN5ytme5dzCBXR8eeR2YNvOvoyApMp4W7vdhsrT5ygZMqW/CFFinJYZMGodJkvVK6uU4RM3Yh6wsHJ5kMjHemtvGqmGKtIyEBingnPEUO75fuNX2mOphXNGpVY2yA7Ou0=" >> ~/.ssh/known_hosts
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" \
+            dist/apps/web/ \
+            u168231407@lt-bnk-web508.main-hosting.eu:/home/u168231407/domains/workbee.space/public_html/
