@@ -168,6 +168,12 @@ const ContractorProfilePage = () => {
 
                     <h1 className="text-2xl font-bold mb-2">{contractor.name}</h1>
 
+                    {contractor.title && (
+                      <Badge variant="secondary" className="mb-2">
+                        {contractor.title}
+                      </Badge>
+                    )}
+
                     {contractor.profession && (
                       <Badge className="mb-4 bg-primary/20 text-primary hover:bg-primary/30 border-none">
                         <Briefcase className="w-3 h-3 mr-1" />

@@ -110,7 +110,13 @@ const InfluencerProfilePage = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold mb-2">{influencer.name}</h1>
-                    
+
+                    {influencer.title && (
+                      <Badge variant="secondary" className="mb-2">
+                        {influencer.title}
+                      </Badge>
+                    )}
+
                     {influencer.contentNiche && (
                       <Badge className="mb-4 bg-primary/20 text-primary hover:bg-primary/30 border-none px-3 py-1">
                         <Megaphone className="w-3 h-3 mr-1" />

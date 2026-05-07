@@ -119,7 +119,13 @@ const MasterProfilePage = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold mb-2">{master.name}</h1>
-                    
+
+                    {master.title && (
+                      <Badge variant="secondary" className="mb-2">
+                        {master.title}
+                      </Badge>
+                    )}
+
                     {master.profession && (
                       <Badge className="mb-4 bg-primary/20 text-primary hover:bg-primary/30 border-none">
                         <Briefcase className="w-3 h-3 mr-1" />
