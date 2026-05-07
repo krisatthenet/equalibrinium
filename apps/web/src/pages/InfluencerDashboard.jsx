@@ -6,9 +6,11 @@ import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { Users, Megaphone, HeartHandshake as Handshake, Settings, Instagram, Youtube, Music } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import PlanBadge from '@/components/PlanBadge.jsx';
 
 const InfluencerDashboard = () => {
   const { t } = useTranslation();
@@ -31,7 +33,11 @@ const InfluencerDashboard = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-4xl font-bold mb-2 text-foreground">{t('dashboard.influencer_title')}</h1>
+                <div className="flex items-center gap-2 mb-2">
+                  <h1 className="text-4xl font-bold text-foreground">{t('dashboard.influencer_title')}</h1>
+                  {currentUser?.title && <Badge variant="secondary">{currentUser.title}</Badge>}
+                  <PlanBadge plan={currentUser?.plan} />
+                </div>
                 <p className="text-muted-foreground">{t('dashboard.welcome', { name: currentUser?.name || currentUser?.email })}</p>
               </div>
               <div className="flex gap-3">

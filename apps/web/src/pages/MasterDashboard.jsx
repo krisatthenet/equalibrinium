@@ -7,6 +7,7 @@ import pb from '@/lib/pocketbaseClient.js';
 import { FileText, Clock, CheckCircle, DollarSign, Settings, Star, MapPin } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import PlanBadge from '@/components/PlanBadge.jsx';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import Header from '@/components/Header.jsx';
@@ -97,7 +98,11 @@ const MasterDashboard = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-4xl font-bold mb-2 text-foreground">{t('dashboard.master_title')}</h1>
+                <div className="flex items-center gap-2 mb-2">
+                  <h1 className="text-4xl font-bold text-foreground">{t('dashboard.master_title')}</h1>
+                  {currentUser?.title && <Badge variant="secondary">{currentUser.title}</Badge>}
+                  <PlanBadge plan={currentUser?.plan} />
+                </div>
                 <p className="text-muted-foreground">{t('dashboard.welcome', { name: currentUser?.name || currentUser?.email })}</p>
               </div>
               <Button variant="outline" asChild className="w-fit border-border hover:bg-muted">
