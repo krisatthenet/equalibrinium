@@ -12,8 +12,8 @@ const SparklesIntro = () => {
   const [particles, setParticles] = useState([]);
 
   useEffect(() => {
-    if (sessionStorage.getItem('sparkles_shown')) return;
-    sessionStorage.setItem('sparkles_shown', '1');
+    try { if (sessionStorage.getItem('sparkles_shown')) return; } catch {}
+    try { sessionStorage.setItem('sparkles_shown', '1'); } catch {}
 
     const pts = Array.from({ length: COUNT }, (_, i) => ({
       id: i,

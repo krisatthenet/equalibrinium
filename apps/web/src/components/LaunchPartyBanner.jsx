@@ -4,16 +4,16 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 const LaunchPartyBanner = () => {
-  const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem('launchPartyBannerDismissed') === 'true'
-  );
+  const [dismissed, setDismissed] = useState(() => {
+    try { return localStorage.getItem('launchPartyBannerDismissed') === 'true'; } catch { return false; }
+  });
 
   const { t } = useTranslation();
 
   if (dismissed) return null;
 
   const dismiss = () => {
-    localStorage.setItem('launchPartyBannerDismissed', 'true');
+    try { localStorage.setItem('launchPartyBannerDismissed', 'true'); } catch {}
     setDismissed(true);
   };
 
