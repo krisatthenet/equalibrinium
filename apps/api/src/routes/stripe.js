@@ -2,6 +2,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import PocketBase from 'pocketbase';
 import logger from '../utils/logger.js';
+import { getPriceId, planFromPriceId } from '../lib/stripePlans.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -250,6 +251,111 @@ router.post('/request-payout', async (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// POST /stripe/create-subscription-checkout
+// Body: { userId, plan, cycle }
+// ---------------------------------------------------------------------------
+router.post('/create-subscription-checkout', async (req, res) => {
+  try {
+    const { userId, plan, cycle } = req.body;
+    if (!userId || !plan || !cycle) {
+      return res.status(400).json({ error: 'userId, plan, and cycle are required' });
+    }
+
+    const pb = await adminPb();
+    const user = await pb.collection('users').getOne(userId);
+    const priceId = getPriceId(user.userType, plan, cycle);
+
+    if (!priceId) {
+      return res.status(400).json({ error: `No price configured for ${user.userType} ${plan} ${cycle}` });
+    }
+
+    // Reuse or create Stripe customer
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name || undefined,
+        metadata: { userId },
+      });
+      customerId = customer.id;
+      await pb.collection('users').update(userId, { stripeCustomerId: customerId });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'subscription',
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata: { userId, plan, cycle },
+      success_url: `${FRONTEND_URL}/settings?subscription=success`,
+      cancel_url:  `${FRONTEND_URL}/settings?subscription=cancel`,
+      allow_promotion_codes: true,
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    logger.error('create-subscription-checkout error:', err);
+    res.status(500).json({ error: 'Failed to create subscription checkout' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /stripe/cancel-subscription
+// Body: { userId }
+// ---------------------------------------------------------------------------
+router.post('/cancel-subscription', async (req, res) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+
+    const pb = await adminPb();
+    const user = await pb.collection('users').getOne(userId);
+
+    if (!user.stripeSubscriptionId) {
+      return res.status(400).json({ error: 'No active subscription found' });
+    }
+
+    // Cancel at period end so user keeps access until renewal date
+    await stripe.subscriptions.update(user.stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    logger.error('cancel-subscription error:', err);
+    res.status(500).json({ error: 'Failed to cancel subscription' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /stripe/subscription-status?userId=...
+// ---------------------------------------------------------------------------
+router.get('/subscription-status', async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ error: 'userId is required' });
+
+    const pb = await adminPb();
+    const user = await pb.collection('users').getOne(userId);
+
+    if (!user.stripeSubscriptionId) {
+      return res.json({ plan: 'standard', status: 'none' });
+    }
+
+    const sub = await stripe.subscriptions.retrieve(user.stripeSubscriptionId);
+    res.json({
+      plan: user.plan || 'standard',
+      cycle: user.planCycle || 'monthly',
+      status: sub.status,
+      cancelAtPeriodEnd: sub.cancel_at_period_end,
+      currentPeriodEnd: new Date(sub.current_period_end * 1000).toISOString(),
+    });
+  } catch (err) {
+    logger.error('subscription-status error:', err);
+    res.status(500).json({ error: 'Failed to fetch subscription status' });
+  }
+});
+
 // POST /stripe/webhook  — Stripe webhook (raw body, verified by signature)
 // ---------------------------------------------------------------------------
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -335,6 +441,66 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       logger.error('Webhook processing error:', err);
       // Still return 200 so Stripe doesn't retry infinitely
     }
+  }
+
+  // --- Subscription lifecycle events ---
+  if (['customer.subscription.created', 'customer.subscription.updated'].includes(event.type)) {
+    const sub = event.data.object;
+    try {
+      const pb = await adminPb();
+      const priceId = sub.items?.data?.[0]?.price?.id;
+      const mapped = planFromPriceId(priceId);
+      if (!mapped) {
+        logger.warn(`Unrecognised price ${priceId} in subscription ${sub.id}`);
+        return res.json({ received: true });
+      }
+
+      // Find user by stripeCustomerId
+      const results = await pb.collection('users').getList(1, 1, {
+        filter: `stripeCustomerId = "${sub.customer}"`,
+      });
+      if (!results.items.length) {
+        logger.warn(`No user found for Stripe customer ${sub.customer}`);
+        return res.json({ received: true });
+      }
+      const user = results.items[0];
+
+      await pb.collection('users').update(user.id, {
+        plan:                 mapped.plan,
+        planCycle:            mapped.cycle,
+        planExpiresAt:        new Date(sub.current_period_end * 1000).toISOString(),
+        stripeSubscriptionId: sub.id,
+      });
+      logger.info(`Plan updated: user=${user.id} plan=${mapped.plan} cycle=${mapped.cycle}`);
+    } catch (err) {
+      logger.error('Subscription create/update webhook error:', err);
+    }
+  }
+
+  if (event.type === 'customer.subscription.deleted') {
+    const sub = event.data.object;
+    try {
+      const pb = await adminPb();
+      const results = await pb.collection('users').getList(1, 1, {
+        filter: `stripeCustomerId = "${sub.customer}"`,
+      });
+      if (results.items.length) {
+        await pb.collection('users').update(results.items[0].id, {
+          plan:                 'standard',
+          planCycle:            '',
+          planExpiresAt:        '',
+          stripeSubscriptionId: '',
+        });
+        logger.info(`Subscription cancelled: user=${results.items[0].id} → standard`);
+      }
+    } catch (err) {
+      logger.error('Subscription deleted webhook error:', err);
+    }
+  }
+
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object;
+    logger.warn(`Payment failed for customer ${invoice.customer}, subscription ${invoice.subscription}`);
   }
 
   res.json({ received: true });

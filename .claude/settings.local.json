@@ -25,7 +25,9 @@
       "Bash(curl *)",
       "Bash(cp /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations_disabled/1773525739_001_created_categories.js /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations/)",
       "Bash(cp /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations_disabled/1773525764_002_seed_categories_6_records.js /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations/)",
-      "Bash(cp /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations_disabled/1773550991_002_seed_categories_3_records.js /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations/)"
+      "Bash(cp /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations_disabled/1773550991_002_seed_categories_3_records.js /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations/)",
+      "Bash(python3 -m json.tool)",
+      "WebFetch(domain:storage.googleapis.com)"
     ]
   }
 }

@@ -6,6 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
 import ScrollToTop from '@/components/ScrollToTop.jsx';
 import CookieConsent from '@/components/CookieConsent.jsx';
+import SparklesIntro from '@/components/SparklesIntro.jsx';
 // Lazy load pages for better performance
 const HomePage = React.lazy(() => import('@/pages/HomePage.jsx'));
 const LoginPage = React.lazy(() => import('@/pages/LoginPage.jsx'));
@@ -48,6 +49,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <SparklesIntro />
       <AuthProvider>
           <Suspense fallback={<PageLoader />}>
               <Routes>

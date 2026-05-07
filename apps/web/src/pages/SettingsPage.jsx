@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import PlanBadge from '@/components/PlanBadge.jsx';
 import { PLANS, PLAN_ORDER, formatLimit } from '@/lib/plans';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +31,10 @@ const SettingsPage = () => {
   const { t } = useTranslation();
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const [subLoading, setSubLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const fileInputRef = useRef(null);
   const workExamplesInputRef = useRef(null);
   const [workExampleFiles, setWorkExampleFiles] = useState([]);
@@ -76,6 +80,12 @@ const SettingsPage = () => {
       setAvatarPreview(pb.files.getUrl(currentUser, currentUser.avatar));
     }
   };
+
+  useEffect(() => {
+    const sub = searchParams.get('subscription');
+    if (sub === 'success') toast({ title: 'Subscription activated!', description: 'Your plan has been upgraded.' });
+    if (sub === 'cancel')  toast({ title: 'Checkout cancelled', description: 'No changes were made.' });
+  }, []);
 
   useEffect(() => {
     loadAvatar();
@@ -269,6 +279,43 @@ const SettingsPage = () => {
       toast({ title: 'Payout failed', description: err.message, variant: 'destructive' });
     } finally {
       setPayoutLoading(false);
+    }
+  };
+
+  // --- Subscription Handlers ---
+  const handleUpgrade = async (plan, cycle = 'monthly') => {
+    setSubLoading(true);
+    try {
+      const res = await apiServerClient.fetch('/stripe/create-subscription-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id, plan, cycle }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to start checkout');
+      window.location.href = data.url;
+    } catch (err) {
+      toast({ title: 'Upgrade failed', description: err.message, variant: 'destructive' });
+      setSubLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!window.confirm('Cancel subscription? You keep access until the end of the billing period.')) return;
+    setCancelLoading(true);
+    try {
+      const res = await apiServerClient.fetch('/stripe/cancel-subscription', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to cancel');
+      toast({ title: 'Subscription cancelled', description: 'Access continues until the end of your billing period.' });
+    } catch (err) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -770,19 +817,32 @@ const SettingsPage = () => {
                                   <Button
                                     size="sm"
                                     variant={isCurrent ? 'outline' : 'default'}
-                                    disabled={isCurrent}
+                                    disabled={isCurrent || subLoading}
                                     className="w-full"
-                                    onClick={() => navigate('/pricing')}
+                                    onClick={() => !isCurrent && handleUpgrade(key)}
                                   >
-                                    {isCurrent ? 'Current plan' : 'Upgrade'}
+                                    {subLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : isCurrent ? 'Current plan' : 'Upgrade'}
                                   </Button>
                                 </div>
                               );
                             })}
                           </div>
-                          <p className="text-xs text-muted-foreground mt-4">
-                            Payment via Primer · Cancel anytime · <Link to="/pricing" className="underline underline-offset-2">See full comparison</Link>
-                          </p>
+                          <div className="flex items-center justify-between mt-4">
+                            <p className="text-xs text-muted-foreground">
+                              Billed via Stripe · Cancel anytime · <Link to="/pricing" className="underline underline-offset-2">See full comparison</Link>
+                            </p>
+                            {currentPlan !== 'standard' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-xs text-muted-foreground hover:text-destructive"
+                                disabled={cancelLoading}
+                                onClick={handleCancelSubscription}
+                              >
+                                {cancelLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Cancel subscription'}
+                              </Button>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     </>
