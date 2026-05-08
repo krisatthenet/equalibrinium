@@ -9,6 +9,6 @@ RUN unzip /tmp/pb.zip -d /pb/ && rm /tmp/pb.zip
 COPY pb_migrations /pb/pb_migrations
 COPY pb_hooks /pb/pb_hooks
 
-EXPOSE 8090
+EXPOSE ${PORT:-8090}
 
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090", "--encryptionEnv=PB_ENCRYPTION_KEY", "--hooksWatch=false"]
+CMD ["/bin/sh", "-c", "/pb/pocketbase serve --http=0.0.0.0:${PORT:-8090} --encryptionEnv=PB_ENCRYPTION_KEY --hooksWatch=false"]
