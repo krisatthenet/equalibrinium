@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, Component } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { initMixpanel } from '@/lib/mixpanel';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { initMixpanel, trackPageView } from '@/lib/mixpanel';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
@@ -66,12 +66,19 @@ const PageLoader = () => (
   </div>
 );
 
+const RouteTracker = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { trackPageView(); }, [pathname]);
+  return null;
+};
+
 const App = () => {
   useEffect(() => { initMixpanel(); }, []);
 
   return (
     <ErrorBoundary>
     <BrowserRouter>
+      <RouteTracker />
       <ScrollToTop />
       <SparklesIntro />
       <AuthProvider>

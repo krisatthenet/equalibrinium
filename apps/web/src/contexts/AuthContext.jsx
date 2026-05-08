@@ -18,7 +18,9 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (pb.authStore.isValid) {
-      setCurrentUser(pb.authStore.model);
+      const model = pb.authStore.model;
+      setCurrentUser(model);
+      identify(model.id, { $email: model.email, user_type: model.userType });
     }
     setInitialLoading(false);
 
