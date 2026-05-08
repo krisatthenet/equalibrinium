@@ -10,8 +10,8 @@ const ALLOWED_ORIGINS = [
 
 function isAllowedOrigin(origin) {
     if (!origin) return false;
-    if (ALLOWED_ORIGINS.includes(origin)) return true;
-    if (origin.endsWith(".ngrok-free.dev") || origin.endsWith(".ngrok.app")) return true;
+    if (ALLOWED_ORIGINS.indexOf(origin) !== -1) return true;
+    if (origin.indexOf(".ngrok-free.dev") !== -1 || origin.indexOf(".ngrok.app") !== -1) return true;
     return false;
 }
 
