@@ -59,11 +59,12 @@ class ErrorBoundary extends Component {
   }
 }
 
-// Loading fallback component
 const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-  </div>
+  <div aria-hidden="true" style={{
+    position: 'fixed', top: 0, left: 0, right: 0, height: '3px',
+    background: 'hsl(var(--primary))', zIndex: 9999,
+    animation: 'nav-progress 1.5s ease-in-out infinite',
+  }} />
 );
 
 // Keeps old page visible while lazy chunk loads; shows slim progress bar instead of black screen.
