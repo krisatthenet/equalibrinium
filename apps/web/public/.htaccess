@@ -20,7 +20,11 @@
 	Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
 
 	# Never cache the SPA shell — must revalidate on every request
-	Header set Cache-Control "no-cache, no-store, must-revalidate"
+	# s-maxage=0 tells Hostinger's hcdn CDN not to cache this response
+	Header set Cache-Control "no-cache, no-store, must-revalidate, s-maxage=0"
+	Header set Surrogate-Control "no-store"
+	Header set Pragma "no-cache"
+	Header set Expires "0"
 
 	# Hashed assets are safe to cache for 1 year
 	<If "%{REQUEST_URI} =~ m#^/assets/.*$#">
