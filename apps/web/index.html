@@ -22,7 +22,13 @@
 		<title>WorkBee - Susisiekite su kvalifikuotais specialistais visiems jūsų namų tobulinimo poreikiams</title>
 	</head>
 	<body>
-		<div id="root"></div>
+		<div id="root">
+			<style>
+				#splash{position:fixed;top:0;left:0;right:0;height:3px;background:#facc15;z-index:9999;animation:sp 1.5s ease-in-out infinite}
+				@keyframes sp{0%{left:-40%;right:100%}50%{left:20%;right:20%}100%{left:100%;right:-40%}}
+			</style>
+			<div id="splash"></div>
+		</div>
 		<script type="module" src="/src/main.jsx"></script>
 	</body>
 </html>
