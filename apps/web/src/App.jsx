@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect, Component } from 'react';
+import React, { Suspense, useEffect, useState, useTransition, Component } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { initMixpanel, trackPageView } from '@/lib/mixpanel';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
@@ -66,10 +66,108 @@ const PageLoader = () => (
   </div>
 );
 
-const RouteTracker = () => {
-  const { pathname } = useLocation();
-  useEffect(() => { trackPageView(); }, [pathname]);
-  return null;
+// Keeps old page visible while lazy chunk loads; shows slim progress bar instead of black screen.
+const AppRoutes = () => {
+  const location = useLocation();
+  const [displayLocation, setDisplayLocation] = useState(location);
+  const [isPending, startTransition] = useTransition();
+
+  useEffect(() => {
+    trackPageView();
+    startTransition(() => setDisplayLocation(location));
+  }, [location.pathname, location.search]);
+
+  return (
+    <>
+      {isPending && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, height: '3px',
+            background: 'hsl(var(--primary))', zIndex: 9999,
+            animation: 'nav-progress 1.5s ease-in-out infinite',
+          }}
+        />
+      )}
+      <Suspense fallback={<PageLoader />}>
+        <Routes location={displayLocation}>
+          {/* Public Routes */}
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegistrationPage />} />
+          <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+          <Route path="/auth/confirm-verification/:token" element={<VerifyEmailPage />} />
+          <Route path="/masters" element={<MastersSearchPage />} />
+          <Route path="/contractors" element={<ContractorsSearchPage />} />
+          <Route path="/master/:id" element={<MasterProfilePage />} />
+          <Route path="/contractor/:id" element={<ContractorProfilePage />} />
+          <Route path="/influencer/:id" element={<InfluencerProfilePage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/locator" element={<LocatorPage />} />
+          <Route path="/explore" element={<LocatorPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+          <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+          <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/pricing" element={<PricingPage />} />
+
+          {/* Protected User Routes */}
+          <Route path="/dashboard/client" element={
+            <ProtectedRoute allowedRoles={['client']}>
+              <ClientDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/contractor" element={
+            <ProtectedRoute allowedRoles={['contractor']}>
+              <ContractorDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard/influencer" element={
+            <ProtectedRoute allowedRoles={['influencer']}>
+              <InfluencerDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/ticket/:id" element={
+            <ProtectedRoute>
+              <AuctionTicketDetailsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/auction-ticket/:id" element={
+            <ProtectedRoute>
+              <AuctionTicketDetailsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/auction-ticket/:ticketId/payment" element={
+            <ProtectedRoute>
+              <AuctionTicketPaymentPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment-success" element={
+            <ProtectedRoute>
+              <PaymentSuccessPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/payment-error" element={
+            <ProtectedRoute>
+              <PaymentErrorPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <SettingsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/favourites" element={
+            <ProtectedRoute>
+              <FavouritesPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Catch-all 404 */}
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </Suspense>
+    </>
+  );
 };
 
 const App = () => {
@@ -78,87 +176,10 @@ const App = () => {
   return (
     <ErrorBoundary>
     <BrowserRouter>
-      <RouteTracker />
       <ScrollToTop />
       <SparklesIntro />
       <AuthProvider>
-          <Suspense fallback={<PageLoader />}>
-              <Routes>
-                {/* Public Routes */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegistrationPage />} />
-                <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
-                <Route path="/auth/confirm-verification/:token" element={<VerifyEmailPage />} />
-                <Route path="/masters" element={<MastersSearchPage />} />
-                <Route path="/contractors" element={<ContractorsSearchPage />} />
-                <Route path="/master/:id" element={<MasterProfilePage />} />
-                <Route path="/contractor/:id" element={<ContractorProfilePage />} />
-                <Route path="/influencer/:id" element={<InfluencerProfilePage />} />
-                <Route path="/contact" element={<ContactPage />} />
-                <Route path="/locator" element={<LocatorPage />} />
-                <Route path="/explore" element={<LocatorPage />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-                <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-                <Route path="/cookie-policy" element={<CookiePolicy />} />
-                <Route path="/pricing" element={<PricingPage />} />
-
-                {/* Protected User Routes */}
-                <Route path="/dashboard/client" element={
-                  <ProtectedRoute allowedRoles={['client']}>
-                    <ClientDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/contractor" element={
-                  <ProtectedRoute allowedRoles={['contractor']}>
-                    <ContractorDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/dashboard/influencer" element={
-                  <ProtectedRoute allowedRoles={['influencer']}>
-                    <InfluencerDashboard />
-                  </ProtectedRoute>
-                } />
-                <Route path="/ticket/:id" element={
-                  <ProtectedRoute>
-                    <AuctionTicketDetailsPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auction-ticket/:id" element={
-                  <ProtectedRoute>
-                    <AuctionTicketDetailsPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/auction-ticket/:ticketId/payment" element={
-                  <ProtectedRoute>
-                    <AuctionTicketPaymentPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/payment-success" element={
-                  <ProtectedRoute>
-                    <PaymentSuccessPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/payment-error" element={
-                  <ProtectedRoute>
-                    <PaymentErrorPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/settings" element={
-                  <ProtectedRoute>
-                    <SettingsPage />
-                  </ProtectedRoute>
-                } />
-                <Route path="/favourites" element={
-                  <ProtectedRoute>
-                    <FavouritesPage />
-                  </ProtectedRoute>
-                } />
-
-                {/* Catch-all 404 */}
-                <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-            </Suspense>
+          <AppRoutes />
       </AuthProvider>
       <Toaster />
       <CookieConsent />
