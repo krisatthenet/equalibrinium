@@ -11,4 +11,4 @@ COPY pb_hooks /pb/pb_hooks
 
 EXPOSE 8090
 
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090", "--encryptionEnv=PB_ENCRYPTION_KEY", "--hooksWatch=false", "--origins=https://workbee.space,http://localhost:3000,http://localhost:5173"]
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090", "--encryptionEnv=PB_ENCRYPTION_KEY", "--hooksWatch=false"]
