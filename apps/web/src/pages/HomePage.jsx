@@ -244,7 +244,7 @@ const HomePage = () => {
         <DndRollToast roll={dndRoll} />
         <Header />
         
-        <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden">
+        <section className="relative min-h-screen min-h-[100dvh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background z-10"></div>
           
           <div className="relative z-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">

@@ -11,7 +11,9 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 export function usePushNotifications(userId) {
-  const [permission, setPermission] = useState(Notification.permission);
+  const [permission, setPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  );
   const [subscribed, setSubscribed] = useState(false);
 
   useEffect(() => {

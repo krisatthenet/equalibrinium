@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, Component } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { initMixpanel } from '@/lib/mixpanel';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
@@ -36,6 +36,29 @@ const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 const PricingPage = React.lazy(() => import('@/pages/PricingPage.jsx'));
 
+class ErrorBoundary extends Component {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="text-center px-4">
+            <p className="text-foreground text-lg mb-4">Something went wrong.</p>
+            <button
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg"
+              onClick={() => window.location.reload()}
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Loading fallback component
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -47,6 +70,7 @@ const App = () => {
   useEffect(() => { initMixpanel(); }, []);
 
   return (
+    <ErrorBoundary>
     <BrowserRouter>
       <ScrollToTop />
       <SparklesIntro />
@@ -132,6 +156,7 @@ const App = () => {
       <Toaster />
       <CookieConsent />
     </BrowserRouter>
+    </ErrorBoundary>
   );
 };
 

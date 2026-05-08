@@ -40,7 +40,7 @@ const Header = () => {
   return (
     <>
       <LaunchPartyBanner />
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border shadow-sm">
+      <header className="sticky top-0 z-40 bg-background/95 supports-[backdrop-filter]:bg-background/80 supports-[backdrop-filter]:backdrop-blur-md border-b border-border shadow-sm">
         <div className="w-full px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20 md:h-24">
             <div className="flex items-center gap-4 md:gap-6">
