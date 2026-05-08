@@ -4,6 +4,7 @@ import authRouter from './auth.js';
 import contactsRouter from './contacts.js';
 import stripeRouter from './stripe.js';
 import pushRouter from './push.js';
+import referralsRouter from './referrals.js';
 
 const router = Router();
 
@@ -13,6 +14,7 @@ export default () => {
   router.use('/contacts', contactsRouter);
   router.use('/stripe', stripeRouter);
   router.use('/push', pushRouter);
+  router.use('/referrals', referralsRouter);
 
   return router;
 };
