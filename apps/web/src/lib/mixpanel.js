@@ -1,6 +1,6 @@
 import mixpanel from 'mixpanel-browser';
 
-const TOKEN = '7c2fbafefffaf5caa2b94529c4e82d83';
+const TOKEN = import.meta.env.VITE_MIXPANEL_TOKEN || '7c2fbafefffaf5caa2b94529c4e82d83';
 let initialized = false;
 
 function hasConsent() {
@@ -9,8 +9,14 @@ function hasConsent() {
 
 export function initMixpanel() {
   if (initialized || !hasConsent()) return;
-  mixpanel.init(TOKEN, { persistence: 'localStorage', track_pageview: true });
+  mixpanel.init(TOKEN, { persistence: 'localStorage', track_pageview: false });
   initialized = true;
+  mixpanel.track_pageview();
+}
+
+export function trackPageView() {
+  if (!initialized) return;
+  mixpanel.track_pageview();
 }
 
 export function identify(userId, profileProps = {}) {
