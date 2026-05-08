@@ -21,12 +21,21 @@
 		<link rel="manifest" href="/manifest.json" />
 		<title>WorkBee - Susisiekite su kvalifikuotais specialistais visiems jūsų namų tobulinimo poreikiams</title>
 		<style>
-			#splash{position:fixed;top:0;left:0;right:0;height:3px;background:#facc15;z-index:9999;animation:sp 1.5s ease-in-out infinite}
-			@keyframes sp{0%{left:-40%;right:100%}50%{left:20%;right:20%}100%{left:100%;right:-40%}}
+			#splash{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:24px}
+			#splash-logo{width:72px;height:72px;animation:sp-pulse 1.8s ease-in-out infinite}
+			#splash-bar-wrap{width:160px;height:3px;background:#1f1f1f;border-radius:9999px;overflow:hidden;position:relative}
+			#splash-bar{position:absolute;top:0;height:100%;background:#facc15;border-radius:9999px;animation:sp-slide 1.5s ease-in-out infinite}
+			@keyframes sp-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.95)}}
+			@keyframes sp-slide{0%{left:-60%;width:60%}50%{left:30%;width:40%}100%{left:100%;width:60%}}
 		</style>
 	</head>
 	<body>
-		<div id="root"><div id="splash"></div></div>
+		<div id="root">
+			<div id="splash">
+				<img id="splash-logo" src="/logo-192.png" alt="WorkBee" />
+				<div id="splash-bar-wrap"><div id="splash-bar"></div></div>
+			</div>
+		</div>
 		<script type="module" src="/src/main.jsx"></script>
 	</body>
 </html>

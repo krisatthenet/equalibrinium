@@ -141,4 +141,15 @@
     50%  { left: 20%; right: 20%; }
     100% { left: 100%; right: -40%; }
   }
+
+  @keyframes sp-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: .7; transform: scale(.95); }
+  }
+
+  @keyframes sp-slide {
+    0%   { left: -60%; width: 60%; }
+    50%  { left: 30%;  width: 40%; }
+    100% { left: 100%; width: 60%; }
+  }
 }
