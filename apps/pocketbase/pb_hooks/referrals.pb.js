@@ -3,27 +3,26 @@
 onRecordAfterCreateSuccess(function(e) {
     var user = e.record;
 
-    // Always generate a referral code from the user's ID
+    // Always generate a referral code from the user's ID (8 hex chars, uppercase)
     try {
         var code = user.id.substring(0, 8).toUpperCase();
         user.set("referralCode", code);
         $app.save(user);
     } catch (err) {
-        $app.logger().error("referral: failed to set referral code", "error", err.message, "userId", user.id);
+        $app.logger().error("referral: set code failed", "error", err.message, "userId", user.id);
     }
 
-    // Process inbound referral
+    // Process inbound referral — wrapped entirely so it never blocks registration
     var referredByCode = user.getString("referredByCode");
     if (!referredByCode) return;
 
     try {
         var referrers = $app.findRecordsByFilter(
             "users",
-            "referralCode = {:code}",
-            "",
+            'referralCode = "' + referredByCode + '"',
+            "-created",
             1,
-            0,
-            { code: referredByCode }
+            0
         );
         if (!referrers || referrers.length === 0) {
             $app.logger().warn("referral: code not found", "code", referredByCode);
@@ -31,8 +30,8 @@ onRecordAfterCreateSuccess(function(e) {
         }
         var referrer = referrers[0];
 
-        // --- Reward referrer: +€10 balance, +30 days plan ---
-        var currentBalance = parseFloat(referrer.getString("balance")) || 0;
+        // Reward referrer: +€10 balance, +30 days on plan
+        var currentBalance = Number(referrer.get("balance")) || 0;
         referrer.set("balance", parseFloat((currentBalance + 10).toFixed(2)));
 
         var expiresStr = referrer.getString("planExpiresAt");
@@ -40,31 +39,25 @@ onRecordAfterCreateSuccess(function(e) {
         if (baseDate < new Date()) baseDate = new Date();
         baseDate.setDate(baseDate.getDate() + 30);
         referrer.set("planExpiresAt", baseDate.toISOString());
-
         $app.save(referrer);
 
-        // --- Reward referred user: 1 free month on first subscription ---
+        // Mark referred user: 1 free month on first subscription
         user.set("referralFreeMonths", 1);
         $app.save(user);
 
-        // --- Record referral ---
+        // Record the referral
         try {
-            var refCollection = $app.findCollectionByNameOrId("referrals");
-            var refRecord = new Record(refCollection);
-            refRecord.set("referrerId", referrer.id);
-            refRecord.set("referredId", user.id);
-            refRecord.set("rewardedAt", new Date().toISOString());
-            $app.save(refRecord);
+            var refCol = $app.findCollectionByNameOrId("referrals");
+            var refRec = new Record(refCol);
+            refRec.set("referrerId", referrer.id);
+            refRec.set("referredId", user.id);
+            refRec.set("rewardedAt", new Date().toISOString());
+            $app.save(refRec);
         } catch (recErr) {
-            $app.logger().error("referral: failed to create referral record", "error", recErr.message);
+            $app.logger().error("referral: record save failed", "error", recErr.message);
         }
 
-        $app.logger().info(
-            "referral rewarded",
-            "referrer", referrer.id,
-            "referred", user.id,
-            "code", referredByCode
-        );
+        $app.logger().info("referral rewarded", "referrer", referrer.id, "referred", user.id);
     } catch (err) {
         $app.logger().error("referral: processing failed", "error", err.message, "code", referredByCode);
     }

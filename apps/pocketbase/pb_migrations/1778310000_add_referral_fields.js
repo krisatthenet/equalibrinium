@@ -4,8 +4,8 @@ migrate((app) => {
   const users = app.findCollectionByNameOrId("users");
 
   const userFields = [
-    { name: "referralCode",      ctor: TextField,  opts: { required: false, max: 12 } },
-    { name: "referredByCode",    ctor: TextField,  opts: { required: false, max: 12 } },
+    { name: "referralCode",       ctor: TextField,  opts: { required: false, max: 12 } },
+    { name: "referredByCode",     ctor: TextField,  opts: { required: false, max: 12 } },
     { name: "referralFreeMonths", ctor: NumberField, opts: { required: false } },
   ];
 
@@ -19,20 +19,12 @@ migrate((app) => {
   try {
     app.findCollectionByNameOrId("referrals");
   } catch (_) {
-    const referrals = new Collection({
-      name: "referrals",
-      type: "base",
-      fields: [
-        new TextField({ name: "referrerId", required: true }),
-        new TextField({ name: "referredId", required: true }),
-        new DateField({ name: "rewardedAt" }),
-      ],
-      listRule: null,
-      viewRule: null,
-      createRule: null,
-      updateRule: null,
-      deleteRule: null,
-    });
+    const referrals = new Collection();
+    referrals.name = "referrals";
+    referrals.type = "base";
+    referrals.fields.add(new TextField({ name: "referrerId", required: true }));
+    referrals.fields.add(new TextField({ name: "referredId", required: true }));
+    referrals.fields.add(new DateField({ name: "rewardedAt" }));
     app.save(referrals);
   }
 }, (app) => {
