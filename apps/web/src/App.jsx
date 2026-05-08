@@ -7,10 +7,11 @@ import ProtectedRoute from '@/components/ProtectedRoute.jsx';
 import ScrollToTop from '@/components/ScrollToTop.jsx';
 import CookieConsent from '@/components/CookieConsent.jsx';
 import SparklesIntro from '@/components/SparklesIntro.jsx';
-// Lazy load pages for better performance
-const HomePage = React.lazy(() => import('@/pages/HomePage.jsx'));
-const LoginPage = React.lazy(() => import('@/pages/LoginPage.jsx'));
-const RegistrationPage = React.lazy(() => import('@/pages/RegistrationPage.jsx'));
+// Critical entry pages — eager so /home /login /register show instantly
+import LoginPage from '@/pages/LoginPage.jsx';
+import RegistrationPage from '@/pages/RegistrationPage.jsx';
+import HomePage from '@/pages/HomePage.jsx';
+// Remaining pages lazy-loaded
 const ClientDashboard = React.lazy(() => import('@/pages/ClientDashboard.jsx'));
 const MasterDashboard = React.lazy(() => import('@/pages/MasterDashboard.jsx'));
 const ContractorDashboard = React.lazy(() => import('@/pages/ContractorDashboard.jsx'));
