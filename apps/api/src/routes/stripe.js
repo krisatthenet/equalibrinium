@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import PocketBase from 'pocketbase';
 import logger from '../utils/logger.js';
 import { getPriceId, planFromPriceId } from '../lib/stripePlans.js';
+import { requirePbAuth } from '../middleware/pbAuth.js';
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -23,24 +24,55 @@ async function adminPb() {
 
 // ---------------------------------------------------------------------------
 // POST /stripe/create-checkout
-// Body: { ticketId, contractorUserId, amount, userId }
+// Body: { ticketId, contractorUserId }
+// Amount is fetched server-side from the ticket/bid — never trusted from the client
+// Requires a valid PocketBase auth token — userId is taken from the token, not the body
 // ---------------------------------------------------------------------------
-router.post('/create-checkout', async (req, res) => {
+router.post('/create-checkout', requirePbAuth, async (req, res) => {
   try {
-    const { ticketId, contractorUserId, amount, userId } = req.body;
-    if (!ticketId || !amount || !userId) {
-      return res.status(400).json({ error: 'ticketId, amount and userId are required' });
+    const { ticketId, contractorUserId } = req.body;
+    const userId = req.pbUser.id;
+    if (!ticketId) {
+      return res.status(400).json({ error: 'ticketId is required' });
     }
-    if (typeof amount !== 'number' || amount <= 0) {
-      return res.status(400).json({ error: 'amount must be a positive number' });
+
+    const pb = await adminPb();
+
+    // Fetch ticket and verify it belongs to the requesting user
+    let ticket;
+    try {
+      ticket = await pb.collection('auction_tickets').getOne(ticketId);
+    } catch {
+      return res.status(404).json({ error: 'Ticket not found' });
     }
+    if (ticket.userId !== userId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    // Resolve amount from the accepted bid or fall back to the ticket budget
+    let amount;
+    if (ticket.acceptedBidId) {
+      try {
+        const bid = await pb.collection('bids').getOne(ticket.acceptedBidId);
+        amount = Number(bid.proposedRate);
+      } catch {
+        amount = Number(ticket.budget);
+      }
+    } else {
+      amount = Number(ticket.budget);
+    }
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Could not determine a valid payment amount for this ticket' });
+    }
+
+    logger.info(`Server-resolved amount €${amount} for ticket ${ticketId}`);
 
     // Look up contractor's Stripe account if they have one
     let applicationFeeAmount;
     let transferData;
     if (contractorUserId) {
       try {
-        const pb = await adminPb();
         const contractorUser = await pb.collection('users').getOne(contractorUserId);
         if (contractorUser.stripeAccountId && contractorUser.stripeOnboarded) {
           applicationFeeAmount = Math.round(amount * PLATFORM_FEE_PCT * 100);

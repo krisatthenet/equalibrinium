@@ -6,6 +6,7 @@
 
 @layer base {
   :root {
+    color-scheme: dark;
     --background: 0 0% 4%;
     --foreground: 0 0% 98%;
     
@@ -70,8 +71,9 @@
   }
   
   body {
-    @apply bg-background text-foreground font-sans antialiased overflow-x-hidden;
+    @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: clip;
   }
 
   h1, h2, h3, h4, h5, h6 {
