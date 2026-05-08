@@ -4,7 +4,12 @@ migrate((app) => {
   // 1. Add contractor profile fields to users
   // -------------------------------------------------------------------------
   const users = app.findCollectionByNameOrId("users");
-  const categoriesCollection = app.findCollectionByNameOrId("categories");
+  let categoriesCollection;
+  try {
+    categoriesCollection = app.findCollectionByNameOrId("categories");
+  } catch (e) {
+    console.log("categories collection not found, skipping relation field: " + e.message);
+  }
 
   const textFields = [
     { id: "text_user_bio", name: "bio" },
@@ -44,7 +49,7 @@ migrate((app) => {
     }));
   }
 
-  if (!users.fields.getByName("categories")) {
+  if (categoriesCollection && !users.fields.getByName("categories")) {
     users.fields.add(new Field({
       hidden: false, id: "relation_user_categories", name: "categories",
       type: "relation", required: false, system: false, presentable: false,
