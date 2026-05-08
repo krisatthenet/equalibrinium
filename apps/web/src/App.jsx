@@ -60,11 +60,16 @@ class ErrorBoundary extends Component {
 }
 
 const PageLoader = () => (
-  <div aria-hidden="true" style={{
-    position: 'fixed', top: 0, left: 0, right: 0, height: '3px',
-    background: 'hsl(var(--primary))', zIndex: 9999,
-    animation: 'nav-progress 1.5s ease-in-out infinite',
-  }} />
+  <div style={{
+    position: 'fixed', inset: 0, background: '#0a0a0a',
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    justifyContent: 'center', zIndex: 9999, gap: '24px',
+  }}>
+    <img src="/logo-192.png" alt="WorkBee" style={{ width: 72, height: 72, animation: 'sp-pulse 1.8s ease-in-out infinite' }} />
+    <div style={{ width: 160, height: 3, background: '#1f1f1f', borderRadius: 9999, overflow: 'hidden', position: 'relative' }}>
+      <div style={{ position: 'absolute', top: 0, height: '100%', background: '#facc15', borderRadius: 9999, animation: 'sp-slide 1.5s ease-in-out infinite' }} />
+    </div>
+  </div>
 );
 
 // Keeps old page visible while lazy chunk loads; shows slim progress bar instead of black screen.
