@@ -81,12 +81,11 @@ export const AuthProvider = ({ children }) => {
 
   if (initialLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <div aria-hidden="true" style={{
+        position: 'fixed', top: 0, left: 0, right: 0, height: '3px',
+        background: 'hsl(var(--primary))', zIndex: 9999,
+        animation: 'nav-progress 1.5s ease-in-out infinite',
+      }} />
     );
   }
 

@@ -13,6 +13,7 @@ const languages = [
   { code: 'lt', label: 'Lietuvių', flag: 'https://flagcdn.com/24x18/lt.png' },
   { code: 'ru', label: 'Русский', flag: 'https://flagcdn.com/24x18/ru.png' },
   { code: 'pl', label: 'Polski',   flag: 'https://flagcdn.com/24x18/pl.png' },
+  { code: 'uk', label: 'Українська', flag: 'https://flagcdn.com/24x18/ua.png' },
   { code: 'en', label: 'English',  flag: 'https://flagcdn.com/24x18/gb.png' },
 ];
 

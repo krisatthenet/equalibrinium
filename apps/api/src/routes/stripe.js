@@ -297,11 +297,12 @@ router.post('/request-payout', async (req, res) => {
 // POST /stripe/create-subscription-checkout
 // Body: { userId, plan, cycle }
 // ---------------------------------------------------------------------------
-router.post('/create-subscription-checkout', async (req, res) => {
+router.post('/create-subscription-checkout', requirePbAuth, async (req, res) => {
   try {
-    const { userId, plan, cycle } = req.body;
-    if (!userId || !plan || !cycle) {
-      return res.status(400).json({ error: 'userId, plan, and cycle are required' });
+    const { plan, cycle } = req.body;
+    const userId = req.pbUser.id;
+    if (!plan || !cycle) {
+      return res.status(400).json({ error: 'plan and cycle are required' });
     }
 
     const pb = await adminPb();
@@ -345,10 +346,9 @@ router.post('/create-subscription-checkout', async (req, res) => {
 // POST /stripe/cancel-subscription
 // Body: { userId }
 // ---------------------------------------------------------------------------
-router.post('/cancel-subscription', async (req, res) => {
+router.post('/cancel-subscription', requirePbAuth, async (req, res) => {
   try {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    const userId = req.pbUser.id;
 
     const pb = await adminPb();
     const user = await pb.collection('users').getOne(userId);
@@ -372,10 +372,9 @@ router.post('/cancel-subscription', async (req, res) => {
 // ---------------------------------------------------------------------------
 // GET /stripe/subscription-status?userId=...
 // ---------------------------------------------------------------------------
-router.get('/subscription-status', async (req, res) => {
+router.get('/subscription-status', requirePbAuth, async (req, res) => {
   try {
-    const { userId } = req.query;
-    if (!userId) return res.status(400).json({ error: 'userId is required' });
+    const userId = req.pbUser.id;
 
     const pb = await adminPb();
     const user = await pb.collection('users').getOne(userId);

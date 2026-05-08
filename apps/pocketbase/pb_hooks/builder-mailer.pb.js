@@ -5,6 +5,17 @@ onMailerSend((e) => {
         return e.next()
     }
 
+    // Replace localhost URLs in email links with the configured frontend URL
+    const appFrontendUrl = $os.getenv("APP_FRONTEND_URL");
+    if (appFrontendUrl) {
+        if (e.message.html) {
+            e.message.html = e.message.html.replace(/http:\/\/localhost:[0-9]+/g, appFrontendUrl);
+        }
+        if (e.message.text) {
+            e.message.text = e.message.text.replace(/http:\/\/localhost:[0-9]+/g, appFrontendUrl);
+        }
+    }
+
     const senderAddress = $os.getenv("BUILDER_MAILER_SENDER_ADDRESS");
 
     const payload = {
