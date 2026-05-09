@@ -54,6 +54,19 @@ export const AuthProvider = ({ children }) => {
     return authData;
   };
 
+  const loginWithGitHub = async (userType = 'client') => {
+    const authData = await pb.collection('users').authWithOAuth2({
+      provider: 'github',
+      createData: { userType },
+    });
+    setCurrentUser(authData.record);
+    const record = authData.record;
+    identify(record.id, { $email: record.email, user_type: record.userType });
+    const isNew = !authData.meta?.isNew === false || authData.meta?.isNew;
+    track(isNew ? 'sign_up_completed' : 'login', { sign_up_method: 'github', user_type: record.userType });
+    return authData;
+  };
+
   const logout = () => {
     pb.authStore.clear();
     setCurrentUser(null);
@@ -72,6 +85,7 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     signup,
     login,
+    loginWithGitHub,
     logout,
     requestPasswordReset,
     resendVerification,
