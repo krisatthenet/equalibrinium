@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Briefcase, Loader2, Megaphone, MailCheck } from 'lucide-react';
+import { User, Briefcase, Loader2, Megaphone, MailCheck, Gift } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
@@ -26,6 +26,7 @@ const RegistrationPage = () => {
   const { toast } = useToast();
   
   const [userType, setUserType] = useState(searchParams.get('type') || '');
+  const refCode = searchParams.get('ref') || '';
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -79,7 +80,8 @@ const RegistrationPage = () => {
       const extraData = {
         name: formData.name,
         phone: formData.phone,
-        location: formData.location
+        location: formData.location,
+        ...(refCode ? { referredByCode: refCode } : {}),
       };
       
       if (userType === 'contractor') {
@@ -239,6 +241,12 @@ const RegistrationPage = () => {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  {refCode && (
+                    <div className="flex items-center gap-2 px-4 py-3 bg-primary/10 border border-primary/20 rounded-xl text-sm">
+                      <Gift className="h-4 w-4 text-primary shrink-0" />
+                      <span className="text-foreground">You were referred by a friend — you'll get <strong>1 free month</strong> on your first plan upgrade.</span>
+                    </div>
+                  )}
                   {error && (
                     <Alert variant="destructive" className="rounded-xl">
                       <AlertDescription>{error}</AlertDescription>

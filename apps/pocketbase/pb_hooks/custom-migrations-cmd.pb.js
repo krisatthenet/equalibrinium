@@ -4,6 +4,9 @@
     - Usage: ./pocketbase horizons migrations:up - runs migrations up and exits with code 1 if any migration fails
 */
 
+// Wrapped in try-catch: $app.rootCmd is optional and may be undefined during serve mode
+try {
+
 // Create a new "horizons" command group with "migrations:revert" and "migrations:up" subcommands
 const horizonsCmd = new Command({
     use: "horizons",
@@ -148,3 +151,5 @@ horizonsCmd.addCommand(new Command({
 }))
 
 $app.rootCmd.addCommand(horizonsCmd)
+
+} catch(_) {} // $app.rootCmd unavailable in serve mode — commands only work via CLI

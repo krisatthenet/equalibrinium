@@ -18,7 +18,7 @@ jobs:
         working-directory: apps/api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service workbee-api --environment staging --detach
+        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-api --environment staging --detach
 
   deploy-pocketbase:
     name: Deploy PocketBase → Railway
@@ -33,4 +33,4 @@ jobs:
         working-directory: apps/pocketbase
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service workbee-pocketbase --environment staging --detach
+        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-pocketbase --environment staging --detach

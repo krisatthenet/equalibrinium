@@ -33,19 +33,26 @@ onMailerSend((e) => {
         "to": e.message.to[0].address,
     }
 
+    const apiUrl = $os.getenv("BUILDER_MAILER_API_URL");
+    const apiKey = $os.getenv("BUILDER_MAILER_API_KEY");
+
+    if (!apiUrl || !apiKey) {
+        $app.logger().warn("BUILDER_MAILER not configured — email skipped", "to", e.message.to[0].address, "subject", e.message.subject);
+        return;
+    }
+
     const response = $http.send({
-        url: `${$os.getenv("BUILDER_MAILER_API_URL")}/api/v2/email`,
+        url: `${apiUrl}/api/v2/email`,
         method: "POST",
         headers: {
-            "Authorization": `Bearer ${$os.getenv("BUILDER_MAILER_API_KEY")}`,
+            "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
     });
-    
+
     if (response.statusCode !== 200) {
         $app.logger().error("Failed to send email", "error", response.json);
-
         throw new ApiError(500, response.json?.message || 'Failed to send email');
     }
 })

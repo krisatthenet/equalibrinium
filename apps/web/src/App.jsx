@@ -66,7 +66,7 @@ const PageLoader = () => (
     display: 'flex', flexDirection: 'column', alignItems: 'center',
     justifyContent: 'center', zIndex: 9999, gap: '24px',
   }}>
-    <img src="/logo-192.png" alt="WorkBee" style={{ width: 72, height: 72, animation: 'sp-pulse 1.8s ease-in-out infinite' }} />
+    <span style={{ fontSize: 72, animation: 'sp-pulse 1.8s ease-in-out infinite', display: 'block', lineHeight: 1 }}>🐝</span>
     <div style={{ width: 160, height: 3, background: '#1f1f1f', borderRadius: 9999, overflow: 'hidden', position: 'relative' }}>
       <div style={{ position: 'absolute', top: 0, height: '100%', background: '#facc15', borderRadius: 9999, animation: 'sp-slide 1.5s ease-in-out infinite' }} />
     </div>

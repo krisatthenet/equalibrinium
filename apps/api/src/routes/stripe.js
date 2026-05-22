@@ -506,12 +506,24 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       }
       const user = results.items[0];
 
-      await pb.collection('users').update(user.id, {
+      let planExpiresAt = new Date(sub.current_period_end * 1000);
+
+      // Apply referral free month (one-time, consumed here)
+      const freeMonths = Number(user.referralFreeMonths) || 0;
+      if (freeMonths > 0) {
+        planExpiresAt.setDate(planExpiresAt.getDate() + 30 * freeMonths);
+        logger.info(`Referral free month applied: user=${user.id} freeMonths=${freeMonths}`);
+      }
+
+      const updateData = {
         plan:                 mapped.plan,
         planCycle:            mapped.cycle,
-        planExpiresAt:        new Date(sub.current_period_end * 1000).toISOString(),
+        planExpiresAt:        planExpiresAt.toISOString(),
         stripeSubscriptionId: sub.id,
-      });
+      };
+      if (freeMonths > 0) updateData.referralFreeMonths = 0;
+
+      await pb.collection('users').update(user.id, updateData);
       logger.info(`Plan updated: user=${user.id} plan=${mapped.plan} cycle=${mapped.cycle}`);
     } catch (err) {
       logger.error('Subscription create/update webhook error:', err);

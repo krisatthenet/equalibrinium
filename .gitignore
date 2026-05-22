@@ -6,8 +6,10 @@ build/
 .env.local
 .env.*.local
 
-# PocketBase binary
+# PocketBase binaries
 apps/pocketbase/pocketbase
+apps/pocketbase/pocketbase.exe
+apps/pocketbase/pb_windows.zip
 
 # PocketBase runtime data (databases, uploads)
 apps/pocketbase/pb_data/

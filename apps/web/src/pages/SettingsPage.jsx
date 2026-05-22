@@ -8,7 +8,7 @@ import apiServerClient from '@/lib/apiServerClient.js';
 import { useToast } from '@/hooks/use-toast';
 import {
   User, CreditCard, Shield, Camera, Loader2, CheckCircle2, ExternalLink,
-  UploadCloud, X, FileText, Zap, Check, Minus
+  UploadCloud, X, FileText, Zap, Check, Minus, Gift, Copy, CheckCheck
 } from 'lucide-react';
 import PlanBadge from '@/components/PlanBadge.jsx';
 import { PLANS, PLAN_ORDER, formatLimit } from '@/lib/plans';
@@ -75,6 +75,10 @@ const SettingsPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Referral State
+  const [referralStats, setReferralStats] = useState(null);
+  const [referralCopied, setReferralCopied] = useState(false);
+
   const loadAvatar = () => {
     if (currentUser?.avatar) {
       setAvatarPreview(pb.files.getUrl(currentUser, currentUser.avatar));
@@ -85,6 +89,11 @@ const SettingsPage = () => {
     const sub = searchParams.get('subscription');
     if (sub === 'success') toast({ title: 'Subscription activated!', description: 'Your plan has been upgraded.' });
     if (sub === 'cancel')  toast({ title: 'Checkout cancelled', description: 'No changes were made.' });
+
+    apiServerClient.fetch('/referrals/stats')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data) setReferralStats(data); })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -428,6 +437,9 @@ const SettingsPage = () => {
                 </TabsTrigger>
                 <TabsTrigger value="account" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                   <Shield className="w-4 h-4 mr-2" /> {t('settings.tab_account')}
+                </TabsTrigger>
+                <TabsTrigger value="referrals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
+                  <Gift className="w-4 h-4 mr-2" /> Referrals
                 </TabsTrigger>
               </TabsList>
 
@@ -892,6 +904,97 @@ const SettingsPage = () => {
                     <Button variant="destructive" onClick={() => setIsDeleteModalOpen(true)} className="rounded-xl">
                       {t('settings.delete_btn')}
                     </Button>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* REFERRALS TAB */}
+              <TabsContent value="referrals" className="space-y-6">
+                {/* How it works */}
+                <Card className="bg-card border-border rounded-2xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Gift className="h-5 w-5 text-primary" /> Referral Program
+                    </CardTitle>
+                    <CardDescription>Share your link and earn rewards when friends join WorkBee</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
+                        <p className="text-xs text-muted-foreground mb-1">You earn (per signup)</p>
+                        <p className="text-xl font-bold text-primary">€10 credit</p>
+                        <p className="text-xs text-muted-foreground mt-1">+ 1 free month on your plan</p>
+                      </div>
+                      <div className="p-4 bg-muted/40 border border-border rounded-xl">
+                        <p className="text-xs text-muted-foreground mb-1">Your friend gets</p>
+                        <p className="text-xl font-bold text-foreground">1 free month</p>
+                        <p className="text-xs text-muted-foreground mt-1">on their first paid plan</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Referral link */}
+                <Card className="bg-card border-border rounded-2xl">
+                  <CardHeader>
+                    <CardTitle>Your Referral Link</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {referralStats ? (
+                      <>
+                        <div className="flex gap-2">
+                          <Input
+                            readOnly
+                            value={referralStats.referralLink}
+                            className="bg-input border-border text-foreground rounded-lg font-mono text-sm"
+                          />
+                          <Button
+                            variant="outline"
+                            className="shrink-0 rounded-lg"
+                            onClick={() => {
+                              navigator.clipboard.writeText(referralStats.referralLink);
+                              setReferralCopied(true);
+                              setTimeout(() => setReferralCopied(false), 2000);
+                            }}
+                          >
+                            {referralCopied ? <CheckCheck className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
+                          </Button>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Your code: <span className="font-mono font-bold text-foreground">{referralStats.referralCode}</span>
+                        </p>
+                      </>
+                    ) : (
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Loading your referral link…
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Stats */}
+                <Card className="bg-card border-border rounded-2xl">
+                  <CardHeader>
+                    <CardTitle>Your Referrals</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {referralStats ? (
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-3xl font-bold text-primary">{referralStats.totalReferrals}</p>
+                          <p className="text-xs text-muted-foreground mt-1">People referred</p>
+                        </div>
+                        <div className="h-12 w-px bg-border" />
+                        <div className="text-center">
+                          <p className="text-3xl font-bold text-foreground">€{referralStats.totalReferrals * 10}</p>
+                          <p className="text-xs text-muted-foreground mt-1">Credits earned</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Loading stats…
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </TabsContent>
