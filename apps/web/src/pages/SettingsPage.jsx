@@ -77,6 +77,7 @@ const SettingsPage = () => {
 
   // Referral State
   const [referralStats, setReferralStats] = useState(null);
+  const [referralStatsLoading, setReferralStatsLoading] = useState(true);
   const [referralCopied, setReferralCopied] = useState(false);
 
   const loadAvatar = () => {
@@ -93,7 +94,8 @@ const SettingsPage = () => {
     apiServerClient.fetch('/referrals/stats')
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data) setReferralStats(data); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setReferralStatsLoading(false));
   }, []);
 
   useEffect(() => {
@@ -954,7 +956,11 @@ const SettingsPage = () => {
                     <CardTitle>Your Referral Link</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {referralStats ? (
+                    {referralStatsLoading ? (
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Loading your referral link…
+                      </div>
+                    ) : referralStats ? (
                       <>
                         <div className="flex gap-2">
                           <Input
@@ -979,9 +985,7 @@ const SettingsPage = () => {
                         </p>
                       </>
                     ) : (
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Loading your referral link…
-                      </div>
+                      <p className="text-sm text-muted-foreground">Could not load referral link. Please refresh the page.</p>
                     )}
                   </CardContent>
                 </Card>
@@ -992,7 +996,11 @@ const SettingsPage = () => {
                     <CardTitle>Your Referrals</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {referralStats ? (
+                    {referralStatsLoading ? (
+                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                        <Loader2 className="h-4 w-4 animate-spin" /> Loading stats…
+                      </div>
+                    ) : referralStats ? (
                       <div className="flex items-center gap-6">
                         <div className="text-center">
                           <p className="text-3xl font-bold text-primary">{referralStats.totalReferrals}</p>
@@ -1005,9 +1013,7 @@ const SettingsPage = () => {
                         </div>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Loading stats…
-                      </div>
+                      <p className="text-sm text-muted-foreground">Could not load stats. Please refresh the page.</p>
                     )}
                   </CardContent>
                 </Card>
