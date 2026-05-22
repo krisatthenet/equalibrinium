@@ -5,6 +5,7 @@ import contactsRouter from './contacts.js';
 import stripeRouter from './stripe.js';
 import pushRouter from './push.js';
 import referralsRouter from './referrals.js';
+import recaptchaRouter from './recaptcha.js';
 
 const router = Router();
 
@@ -15,6 +16,7 @@ export default () => {
   router.use('/stripe', stripeRouter);
   router.use('/push', pushRouter);
   router.use('/referrals', referralsRouter);
+  router.use('/recaptcha', recaptchaRouter);
 
   return router;
 };

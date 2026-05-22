@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
-import { getRecaptchaToken } from '@/lib/recaptcha.js';
+import { verifyRecaptcha } from '@/lib/recaptcha.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,7 +34,12 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
 
-    await getRecaptchaToken('LOGIN');
+    const captchaOk = await verifyRecaptcha('LOGIN');
+    if (!captchaOk) {
+      setError('Security check failed. Please try again.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const authData = await login(formData.email, formData.password);
