@@ -316,8 +316,9 @@ const SettingsPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.id, plan, cycle }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to start checkout');
+      let data = {};
+      try { data = await res.json(); } catch { /* non-JSON response (e.g. 502) */ }
+      if (!res.ok) throw new Error(data.error || 'Payment service unavailable. Please try again.');
       window.location.href = data.url;
     } catch (err) {
       toast({ title: 'Upgrade failed', description: err.message, variant: 'destructive' });
@@ -350,9 +351,10 @@ const SettingsPage = () => {
     setClientPortalLoading(true);
     try {
       const res = await apiServerClient.fetch('/stripe/client-portal');
-      if (!res.ok) throw new Error('Could not open payment portal');
-      const { url } = await res.json();
-      window.location.href = url;
+      let data = {};
+      try { data = await res.json(); } catch { /* non-JSON */ }
+      if (!res.ok) throw new Error(data.error || 'Could not open payment portal');
+      window.location.href = data.url;
     } catch (err) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
       setClientPortalLoading(false);

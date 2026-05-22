@@ -39,7 +39,7 @@ async function getOrCreateStripeCustomer(pb, user) {
   if (existing.data.length > 0) {
     customerId = existing.data[0].id;
   } else {
-    const customer = await stripe.customers.create({ email: user.email, name: user.name || undefined });
+    const customer = await stripe.customers.create({ email: user.email, name: user.name || undefined, metadata: { userId: user.id } });
     customerId = customer.id;
   }
   await pb.collection('users').update(user.id, { stripeCustomerId: customerId }).catch(() => {});
@@ -367,16 +367,7 @@ router.post('/create-subscription-checkout', requirePbAuth, async (req, res) => 
     }
 
     // Reuse or create Stripe customer
-    let customerId = user.stripeCustomerId;
-    if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: user.email,
-        name: user.name || undefined,
-        metadata: { userId },
-      });
-      customerId = customer.id;
-      await pb.collection('users').update(userId, { stripeCustomerId: customerId });
-    }
+    const customerId = await getOrCreateStripeCustomer(pb, user);
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
