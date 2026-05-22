@@ -1,9 +1,8 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-const BID_EXPIRY_HOURS = 72;
-
 // Set expiresAt when a bid is created
 onRecordAfterCreateSuccess((e) => {
+    const BID_EXPIRY_HOURS = 72;
     const bid = e.record;
     try {
         const expires = new Date(Date.now() + BID_EXPIRY_HOURS * 60 * 60 * 1000);
