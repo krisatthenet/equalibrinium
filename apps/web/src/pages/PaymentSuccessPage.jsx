@@ -32,29 +32,34 @@ const PaymentSuccessPage = () => {
           throw new Error('Missing payment information or user session.');
         }
         if (!sessionId) {
-          throw new Error('No Stripe session ID found.');
+          throw new Error('No session ID found.');
         }
 
-        // Verify session with backend — pass userId so endpoint can verify ownership
-        const res = await apiServerClient.fetch(`/stripe/session/${sessionId}?userId=${currentUser.id}`);
-        if (!res.ok) throw new Error('Failed to verify payment session.');
-        const sessionData = await res.json();
+        let verifiedTicketId = ticketId;
+        let amount = 0;
 
-        if (sessionData.status !== 'paid') {
-          throw new Error(`Payment not confirmed (status: ${sessionData.status}). Please contact support.`);
+        if (sessionId === 'free_trial') {
+          // Free trial — ticket already marked completed by the payment page
+        } else {
+          // Verify real Stripe session with backend
+          const res = await apiServerClient.fetch(`/stripe/session/${sessionId}?userId=${currentUser.id}`);
+          if (!res.ok) throw new Error('Failed to verify payment session.');
+          const sessionData = await res.json();
+
+          if (sessionData.status !== 'paid') {
+            throw new Error(`Payment not confirmed (status: ${sessionData.status}). Please contact support.`);
+          }
+
+          verifiedTicketId = sessionData.ticketId;
+          if (!verifiedTicketId) {
+            throw new Error('Session metadata incomplete. Please contact support.');
+          }
+
+          amount = (sessionData.amountTotal || 0) / 100;
+
+          // Mark ticket as Completed (webhook does this too, but may not reach localhost in dev)
+          await pb.collection('auction_tickets').update(verifiedTicketId, { status: 'Completed' }, { $autoCancel: false }).catch(() => {});
         }
-
-        // Use the ticketId from Stripe session metadata as the canonical value —
-        // never trust the URL param for any write operations
-        const verifiedTicketId = sessionData.ticketId;
-        if (!verifiedTicketId) {
-          throw new Error('Session metadata incomplete. Please contact support.');
-        }
-
-        const amount = (sessionData.amountTotal || 0) / 100;
-
-        // Mark ticket as Completed (webhook does this too, but may not reach localhost in dev)
-        await pb.collection('auction_tickets').update(verifiedTicketId, { status: 'Completed' }, { $autoCancel: false }).catch(() => {});
 
         // Fetch ticket for display
         const ticket = await pb.collection('auction_tickets').getOne(verifiedTicketId, {

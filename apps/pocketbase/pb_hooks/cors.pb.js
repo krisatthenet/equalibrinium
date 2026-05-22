@@ -7,6 +7,9 @@ routerUse(function(e) {
     if (origin) {
         var allowed = (
             origin === "https://workbee.space" ||
+            origin === "https://www.workbee.space" ||
+            origin === "https://workbee.lt" ||
+            origin === "https://www.workbee.lt" ||
             origin === "http://localhost:3000" ||
             origin === "http://localhost:3001" ||
             origin === "http://localhost:3002" ||
