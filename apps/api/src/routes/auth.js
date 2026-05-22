@@ -1,6 +1,32 @@
 import express from 'express';
+import PocketBase from 'pocketbase';
 import { authenticateUser } from '../utils/pocketbase.js';
 import logger from '../utils/logger.js';
+
+const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
+const SITE_KEY   = '6LdAefcsAAAAAFYK74a9iG6gRxH3YGI6p32DqW12';
+const PROJECT_ID = 'workbee-497116';
+const RECAPTCHA_API_KEY = process.env.RECAPTCHA_API_KEY;
+
+async function verifyCaptchaToken(token, action) {
+  if (!RECAPTCHA_API_KEY) return true;
+  try {
+    const r = await fetch(
+      `https://recaptchaenterprise.googleapis.com/v1/projects/${PROJECT_ID}/assessments?key=${RECAPTCHA_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event: { token, expectedAction: action, siteKey: SITE_KEY } }),
+      }
+    );
+    const data = await r.json();
+    const score = data?.riskAnalysis?.score ?? data?.score ?? 0;
+    const valid = data?.tokenProperties?.valid ?? false;
+    return valid && score >= 0.5;
+  } catch {
+    return true; // fail open
+  }
+}
 
 const router = express.Router();
 
@@ -50,6 +76,53 @@ router.post('/login', async (req, res) => {
     token: result.token,
     user: result.user,
   });
+});
+
+/**
+ * POST /auth/reset-password
+ * Verify reCAPTCHA then update user password directly (no email required).
+ * Body: { email, newPassword, captchaToken }
+ */
+router.post('/reset-password', async (req, res) => {
+  const { email, newPassword, captchaToken } = req.body;
+
+  if (!email || !newPassword || !captchaToken) {
+    return res.status(400).json({ error: 'email, newPassword, and captchaToken are required' });
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: 'Password must be at least 8 characters' });
+  }
+
+  const captchaOk = await verifyCaptchaToken(captchaToken, 'RESET_PASSWORD');
+  if (!captchaOk) {
+    return res.status(403).json({ error: 'Security check failed. Please try again.' });
+  }
+
+  try {
+    const pb = new PocketBase(PB_URL);
+    await pb.collection('_superusers').authWithPassword(
+      process.env.POCKETBASE_ADMIN_EMAIL,
+      process.env.POCKETBASE_ADMIN_PASSWORD
+    );
+
+    const results = await pb.collection('users').getList(1, 1, { filter: `email = "${email}"` });
+    if (!results.items.length) {
+      // Return success even if user not found to avoid email enumeration
+      return res.json({ ok: true });
+    }
+
+    const user = results.items[0];
+    await pb.collection('users').update(user.id, {
+      password: newPassword,
+      passwordConfirm: newPassword,
+    });
+
+    logger.info(`Password reset via reCAPTCHA for user: ${email}`);
+    res.json({ ok: true });
+  } catch (err) {
+    logger.error('reset-password error:', err);
+    res.status(500).json({ error: 'Failed to reset password. Please try again.' });
+  }
 });
 
 export default router;
