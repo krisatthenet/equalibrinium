@@ -17,7 +17,7 @@ onRecordAfterCreateSuccess((e) => {
     const contractor = $app.findRecordById("users", contractorId);
     contractor.set("rating", parseFloat(avg.toFixed(2)));
     contractor.set("reviewCount", count);
-    $app.save(contractor);
+    $app.saveNoValidate(contractor);
   } catch (err) {
     console.error("Failed to update contractor rating:", err);
   }

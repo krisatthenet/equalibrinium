@@ -1,6 +1,10 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 migrate((app) => {
+  if ($os.getenv("RAILWAY_PROJECT_ID")) {
+    console.log("Seed skipped: Railway environment detected");
+    return;
+  }
   try {
   const users = app.findCollectionByNameOrId("users");
   const tickets = app.findCollectionByNameOrId("auction_tickets");
