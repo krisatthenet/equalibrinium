@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
+import { getRecaptchaToken } from '@/lib/recaptcha.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +33,8 @@ const LoginPage = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    await getRecaptchaToken('LOGIN');
 
     try {
       const authData = await login(formData.email, formData.password);

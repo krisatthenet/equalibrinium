@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
+import { getRecaptchaToken } from '@/lib/recaptcha.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -75,6 +76,8 @@ const RegistrationPage = () => {
     }
 
     setLoading(true);
+
+    await getRecaptchaToken('REGISTER');
 
     try {
       const extraData = {
