@@ -12,7 +12,7 @@ migrate((app) => {
 
   collection.fields.add(new SelectField({
     name: "userType",
-    values: ["client", "master"]
+    values: ["client", "contractor", "master", "influencer"]
   }));
 
   return app.save(collection);
