@@ -11,7 +11,6 @@ const ALLOWED_ORIGINS = [
 routerUse((e) => {
     const origin = e.request.header.get("Origin");
 
-    // Skip custom CORS in dev mode — PocketBase --dev handles it automatically
     if (!origin || $app.isDev()) {
         e.next();
         return;
@@ -32,10 +31,10 @@ routerUse((e) => {
         return;
     }
 
-    e.next();
-
     if (allowed) {
         e.response.header().set("Access-Control-Allow-Origin", origin);
         e.response.header().set("Access-Control-Allow-Credentials", "true");
     }
+
+    e.next();
 });
