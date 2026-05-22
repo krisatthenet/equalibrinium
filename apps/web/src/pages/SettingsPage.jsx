@@ -247,6 +247,12 @@ const SettingsPage = () => {
       toast({ title: "Profile Updated", description: "Your profile has been saved successfully." });
     } catch (error) {
       console.error('Profile update error:', error);
+      if (error?.status === 404) {
+        toast({ title: "Session expired", description: "Your account was not found. Please log in again.", variant: "destructive" });
+        logout();
+        navigate('/login');
+        return;
+      }
       toast({ title: "Update Failed", description: "Could not save profile changes.", variant: "destructive" });
     } finally {
       setProfileLoading(false);

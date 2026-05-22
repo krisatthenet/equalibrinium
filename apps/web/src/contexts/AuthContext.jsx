@@ -17,12 +17,21 @@ export const AuthProvider = ({ children }) => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    if (pb.authStore.isValid) {
-      const model = pb.authStore.model;
-      setCurrentUser(model);
-      identify(model.id, { $email: model.email, user_type: model.userType });
-    }
-    setInitialLoading(false);
+    const init = async () => {
+      if (pb.authStore.isValid) {
+        const model = pb.authStore.model;
+        try {
+          const fresh = await pb.collection('users').getOne(model.id, { $autoCancel: false });
+          setCurrentUser(fresh);
+          identify(fresh.id, { $email: fresh.email, user_type: fresh.userType });
+        } catch {
+          // Record no longer exists — clear stale session
+          pb.authStore.clear();
+        }
+      }
+      setInitialLoading(false);
+    };
+    init();
 
     const unsubscribe = pb.authStore.onChange((token, model) => {
       setCurrentUser(model);
