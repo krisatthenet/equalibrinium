@@ -85,7 +85,6 @@ router.post('/create-checkout', requirePbAuth, async (req, res) => {
     }
 
     const sessionParams = {
-      payment_method_types: ['card'],
       line_items: [{
         price_data: {
           currency: 'eur',
