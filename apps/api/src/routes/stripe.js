@@ -8,6 +8,15 @@ import { requirePbAuth } from '../middleware/pbAuth.js';
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+router.get('/health', async (req, res) => {
+  try {
+    await stripe.balance.retrieve();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(503).json({ ok: false, error: e.message });
+  }
+});
+
 const PLATFORM_FEE_PCT = 0.05; // 5%
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';

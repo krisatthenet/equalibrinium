@@ -2,8 +2,10 @@ import React, { Suspense, useEffect, useState, useTransition, Component } from '
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { initMixpanel, trackPageView } from '@/lib/mixpanel';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
+import { AdminAuthProvider } from '@/contexts/AdminAuthContext.jsx';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute.jsx';
+import AdminRoute from '@/components/AdminRoute.jsx';
 import ScrollToTop from '@/components/ScrollToTop.jsx';
 import CookieConsent from '@/components/CookieConsent.jsx';
 import SparklesIntro from '@/components/SparklesIntro.jsx';
@@ -36,6 +38,17 @@ const CookiePolicy = React.lazy(() => import('@/pages/CookiePolicy.jsx'));
 const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 const PricingPage = React.lazy(() => import('@/pages/PricingPage.jsx'));
+
+// Admin pages
+const AdminLoginPage = React.lazy(() => import('@/pages/admin/AdminLoginPage.jsx'));
+const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard.jsx'));
+const AdminAnalyticsPage = React.lazy(() => import('@/pages/admin/AdminAnalyticsPage.jsx'));
+const AdminUsersPage = React.lazy(() => import('@/pages/admin/AdminUsersPage.jsx'));
+const AdminTicketsPage = React.lazy(() => import('@/pages/admin/AdminTicketsPage.jsx'));
+const AdminReviewsPage = React.lazy(() => import('@/pages/admin/AdminReviewsPage.jsx'));
+const AdminDevPage = React.lazy(() => import('@/pages/admin/AdminDevPage.jsx'));
+const AdminMarketingPage = React.lazy(() => import('@/pages/admin/AdminMarketingPage.jsx'));
+const AdminSupportPage = React.lazy(() => import('@/pages/admin/AdminSupportPage.jsx'));
 
 class ErrorBoundary extends Component {
   state = { hasError: false };
@@ -169,6 +182,18 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } />
 
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
+          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/admin/analytics" element={<AdminRoute><AdminAnalyticsPage /></AdminRoute>} />
+          <Route path="/admin/users" element={<AdminRoute><AdminUsersPage /></AdminRoute>} />
+          <Route path="/admin/tickets" element={<AdminRoute><AdminTicketsPage /></AdminRoute>} />
+          <Route path="/admin/reviews" element={<AdminRoute><AdminReviewsPage /></AdminRoute>} />
+          <Route path="/admin/dev" element={<AdminRoute><AdminDevPage /></AdminRoute>} />
+          <Route path="/admin/marketing" element={<AdminRoute><AdminMarketingPage /></AdminRoute>} />
+          <Route path="/admin/support" element={<AdminRoute><AdminSupportPage /></AdminRoute>} />
+
           {/* Catch-all 404 */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -186,7 +211,9 @@ const App = () => {
       <ScrollToTop />
       <SparklesIntro />
       <AuthProvider>
+        <AdminAuthProvider>
           <AppRoutes />
+        </AdminAuthProvider>
       </AuthProvider>
       <Toaster />
       <CookieConsent />
