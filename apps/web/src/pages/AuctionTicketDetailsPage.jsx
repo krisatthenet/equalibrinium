@@ -7,7 +7,7 @@ import { getUserImageUrl } from '@/lib/userImage';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil } from 'lucide-react';
+import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import BidForm from '@/components/BidForm.jsx';
 import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
+import ChatPanel from '@/components/ChatPanel.jsx';
 
 const AuctionTicketDetailsPage = () => {
   const { id } = useParams();
@@ -426,70 +427,79 @@ const AuctionTicketDetailsPage = () => {
                   </Card>
                 )}
 
-                {/* Contact card — shown after bid acceptance */}
+                {/* Chat panel — client sees it always; contractor sees it when they have a bid */}
+                {(isClient || myBid) && (
+                  <Card className="bg-card border-border rounded-2xl overflow-hidden">
+                    <CardHeader className="pb-3 border-b border-border">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        <MessageCircle className="h-5 w-5 text-primary" />
+                        {isClient && acceptedBid && bidders[acceptedBid.masterId]
+                          ? `Chat with ${bidders[acceptedBid.masterId].name}`
+                          : isClient
+                            ? 'Job Chat'
+                            : `Chat with ${ticket.expand?.clientId?.name || 'Client'}`}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <ChatPanel ticketId={ticket.id} />
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Contact details — shown after acceptance, alongside chat */}
                 {ticket.status === 'In Progress' && acceptedBid && isClient && bidders[acceptedBid.masterId] && (() => {
                   const contractor = bidders[acceptedBid.masterId];
                   return (
-                  <Card className="bg-card border-primary/40 border rounded-2xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                        {t('auction.contractor_contact')}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                          {getUserImageUrl(contractor) ? (
-                            <img src={getUserImageUrl(contractor, { thumb: '100x100' })} alt="Avatar" className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="h-5 w-5 text-muted-foreground" />
+                    <Card className="bg-card border-primary/30 border rounded-2xl">
+                      <CardContent className="pt-4 space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                            {getUserImageUrl(contractor) ? (
+                              <img src={getUserImageUrl(contractor, { thumb: '100x100' })} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                              <User className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-sm text-foreground">{contractor.name}</p>
+                            <p className="text-xs text-primary font-medium">{t('auction.rate_agreed', { rate: acceptedBid.proposedRate })}</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          {(contractorContact?.email || contractor.email) && (
+                            <a href={`mailto:${contractorContact?.email || contractor.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
+                              <Mail className="h-3.5 w-3.5 text-primary" />
+                              {contractorContact?.email || contractor.email}
+                            </a>
+                          )}
+                          {(contractorContact?.phone || contractor.phone) && (
+                            <a href={`tel:${contractorContact?.phone || contractor.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
+                              <Phone className="h-3.5 w-3.5 text-primary" />
+                              {contractorContact?.phone || contractor.phone}
+                            </a>
                           )}
                         </div>
-                        <div>
-                          <p className="font-semibold text-sm text-foreground">{contractor.name}</p>
-                          <p className="text-xs text-primary font-medium">{t('auction.rate_agreed', { rate: acceptedBid.proposedRate })}</p>
-                        </div>
-                      </div>
-                      {(contractorContact?.email || contractor.email) && (
-                        <a href={`mailto:${contractorContact?.email || contractor.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
-                          <Mail className="h-4 w-4 text-primary shrink-0" />
-                          <span className="truncate text-foreground">{contractorContact?.email || contractor.email}</span>
-                        </a>
-                      )}
-                      {(contractorContact?.phone || contractor.phone) && (
-                        <a href={`tel:${contractorContact?.phone || contractor.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
-                          <Phone className="h-4 w-4 text-primary shrink-0" />
-                          <span className="text-foreground">{contractorContact?.phone || contractor.phone}</span>
-                        </a>
-                      )}
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
                   );
                 })()}
 
-                {/* Contact card for contractor — shown when their bid is accepted */}
                 {ticket.status === 'In Progress' && myBid?.status === 'accepted' && ticket.expand?.clientId && (
-                  <Card className="bg-card border-green-500/40 border rounded-2xl">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-base flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                        {t('auction.client_contact')}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <p className="text-sm text-muted-foreground">{t('auction.bid_accepted_reach_out')}</p>
-                      <div className="font-semibold text-sm text-foreground">{ticket.expand.clientId.name}</div>
-                      <a href={`mailto:${ticket.expand.clientId.email}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
-                        <Mail className="h-4 w-4 text-green-500 shrink-0" />
-                        <span className="truncate text-foreground">{ticket.expand.clientId.email}</span>
-                      </a>
-                      {ticket.expand.clientId.phone && (
-                        <a href={`tel:${ticket.expand.clientId.phone}`} className="flex items-center gap-2 p-2.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-sm">
-                          <Phone className="h-4 w-4 text-green-500 shrink-0" />
-                          <span className="text-foreground">{ticket.expand.clientId.phone}</span>
+                  <Card className="bg-card border-green-500/30 border rounded-2xl">
+                    <CardContent className="pt-4 space-y-2">
+                      <p className="text-xs text-muted-foreground">{t('auction.bid_accepted_reach_out')}</p>
+                      <div className="flex gap-2 flex-wrap">
+                        <a href={`mailto:${ticket.expand.clientId.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
+                          <Mail className="h-3.5 w-3.5 text-green-500" />
+                          {ticket.expand.clientId.email}
                         </a>
-                      )}
+                        {ticket.expand.clientId.phone && (
+                          <a href={`tel:${ticket.expand.clientId.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
+                            <Phone className="h-3.5 w-3.5 text-green-500" />
+                            {ticket.expand.clientId.phone}
+                          </a>
+                        )}
+                      </div>
                     </CardContent>
                   </Card>
                 )}
