@@ -50,7 +50,7 @@ const ContractorDashboard = () => {
     try {
       const [ticketsData, bidsData, reviewsData] = await Promise.all([
         pb.collection('auction_tickets').getList(1, 50, {
-          filter: `status = "Open" && (isDirect = false || isDirect = null || assignedContractorId = "")`,
+          filter: `status = "Open" && isDirect != true`,
           sort: '-created',
           expand: 'categoryId',
           $autoCancel: false
