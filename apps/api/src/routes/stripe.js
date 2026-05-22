@@ -45,7 +45,7 @@ router.post('/create-checkout', requirePbAuth, async (req, res) => {
     } catch {
       return res.status(404).json({ error: 'Ticket not found' });
     }
-    if (ticket.userId !== userId) {
+    if (ticket.clientId !== userId) {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
