@@ -92,13 +92,9 @@ export const AuthProvider = ({ children }) => {
     return (
       <div style={{
         position: 'fixed', inset: 0, background: '#0a0a0a',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        justifyContent: 'center', zIndex: 9999, gap: '24px',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999,
       }}>
-        <img src="/logo-192.png" alt="WorkBee" style={{ width: 72, height: 72, animation: 'sp-fly 1.6s ease-in-out infinite' }} />
-        <div style={{ width: 160, height: 3, background: '#1f1f1f', borderRadius: 9999, overflow: 'hidden', position: 'relative' }}>
-          <div style={{ position: 'absolute', top: 0, height: '100%', background: '#facc15', borderRadius: 9999, animation: 'sp-slide 1.5s ease-in-out infinite' }} />
-        </div>
+        <span style={{ fontSize: 56, animation: 'sp-fly 1.6s ease-in-out infinite' }}>🐝</span>
       </div>
     );
   }
