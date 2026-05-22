@@ -50,7 +50,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const record = await pb.collection('users').create(data);
-    pb.collection('users').requestVerification(email).catch(() => {});
+    const authData = await pb.collection('users').authWithPassword(email, password);
+    setCurrentUser(authData.record);
     identify(record.id, { $email: email, user_type: userType });
     track('sign_up_completed', { user_type: userType, sign_up_method: 'email' });
     return record;
