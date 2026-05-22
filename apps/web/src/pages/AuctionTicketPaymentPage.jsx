@@ -4,7 +4,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import pb from '@/lib/pocketbaseClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, AlertCircle, Loader2, Gift, ArrowRight } from 'lucide-react';
+import apiServerClient from '@/lib/apiServerClient.js';
+import { MapPin, Clock, AlertCircle, Loader2, CreditCard } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ const AuctionTicketPaymentPage = () => {
   const [ticket, setTicket] = useState(null);
   const [acceptedBid, setAcceptedBid] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [completing, setCompleting] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -42,16 +43,26 @@ const AuctionTicketPaymentPage = () => {
   }, [ticketId, currentUser]);
 
   const amount = Number(acceptedBid?.proposedRate || ticket?.budget || 0);
+  const contractorUserId = acceptedBid?.masterId || null;
 
-  const handleContinueFree = async () => {
-    setCompleting(true);
+  const handlePay = async () => {
+    if (!contractorUserId) {
+      toast({ title: 'No accepted bid', description: 'A bid must be accepted before payment.', variant: 'destructive' });
+      return;
+    }
+    setPaying(true);
     try {
-      await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' }, { $autoCancel: false });
-      toast({ title: 'Job marked as completed!', description: 'Thank you for using WorkBee.' });
-      navigate(`/payment-success?session_id=free_trial&ticketId=${ticketId}`);
+      const res = await apiServerClient.fetch('/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId, contractorUserId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to start checkout');
+      window.location.href = data.url;
     } catch (err) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-      setCompleting(false);
+      toast({ title: 'Payment error', description: err.message, variant: 'destructive' });
+      setPaying(false);
     }
   };
 
@@ -83,7 +94,7 @@ const AuctionTicketPaymentPage = () => {
 
   return (
     <>
-      <Helmet><title>Complete Job — WorkBee</title></Helmet>
+      <Helmet><title>Pay for Service — WorkBee</title></Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
         <Header />
@@ -91,23 +102,13 @@ const AuctionTicketPaymentPage = () => {
         <div className="flex-1 py-16 flex items-start justify-center">
           <div className="w-full max-w-lg px-4">
 
-            {/* Free trial banner */}
-            <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-2xl px-5 py-4 mb-6">
-              <Gift className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <p className="text-sm font-semibold text-foreground">Free trial — no payment needed</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Payments are coming soon. Complete your job for free during the trial period.</p>
-              </div>
-            </div>
-
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-foreground mb-2">Complete Your Job</h1>
-              <p className="text-muted-foreground">Confirm the job is done and close the ticket.</p>
+              <h1 className="text-3xl font-bold text-foreground mb-2">Complete Payment</h1>
+              <p className="text-muted-foreground">Secure checkout via Stripe.</p>
             </div>
 
-            {/* Order summary */}
             <Card className="bg-card border-border rounded-2xl mb-6">
-              <CardHeader><CardTitle className="text-lg">Job Summary</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-lg">Order Summary</CardTitle></CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Service</span>
@@ -125,33 +126,33 @@ const AuctionTicketPaymentPage = () => {
                     <span className="text-foreground">{ticket.durationEstimate}</span>
                   </div>
                 )}
-                {amount > 0 && (
-                  <div className="pt-3 border-t border-border flex justify-between items-center">
-                    <span className="text-muted-foreground text-sm">Agreed rate</span>
-                    <span className="text-xl font-bold text-foreground line-through opacity-40">€{amount.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-foreground">You pay now</span>
-                  <span className="text-2xl font-bold text-primary">€0.00</span>
+                <div className="pt-3 border-t border-border flex justify-between items-center">
+                  <span className="font-semibold text-foreground">Total due</span>
+                  <span className="text-2xl font-bold text-foreground">€{amount.toFixed(2)}</span>
                 </div>
               </CardContent>
             </Card>
 
             <Button
-              onClick={handleContinueFree}
-              disabled={completing}
+              onClick={handlePay}
+              disabled={paying || !contractorUserId}
               className="w-full h-14 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
             >
-              {completing ? (
-                <><Loader2 className="h-5 w-5 animate-spin mr-2" />Completing...</>
+              {paying ? (
+                <><Loader2 className="h-5 w-5 animate-spin mr-2" />Redirecting to Stripe...</>
               ) : (
-                <>Complete for Free <ArrowRight className="h-5 w-5 ml-2" /></>
+                <><CreditCard className="h-5 w-5 mr-2" />Pay €{amount.toFixed(2)} securely</>
               )}
             </Button>
 
+            {!contractorUserId && (
+              <p className="text-center text-sm text-muted-foreground mt-3">
+                No accepted bid yet. Accept a contractor bid before proceeding to payment.
+              </p>
+            )}
+
             <p className="text-center text-xs text-muted-foreground mt-4">
-              Payments will be enabled in a future update. Your agreed rate is saved on the ticket.
+              Payments are processed securely by Stripe. WorkBee never stores your card details.
             </p>
           </div>
         </div>
