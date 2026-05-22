@@ -217,20 +217,28 @@ const SettingsPage = () => {
         if (profileData.location && window.google?.maps?.Geocoder) {
           try {
             const geocoder = new window.google.maps.Geocoder();
-            await new Promise((resolve) => {
-              geocoder.geocode({ address: profileData.location }, (results, status) => {
-                if (status === 'OK' && results[0]) {
-                  formData.append('latitude', results[0].geometry.location.lat());
-                  formData.append('longitude', results[0].geometry.location.lng());
-                }
-                resolve();
-              });
-            });
+            await Promise.race([
+              new Promise((resolve) => {
+                geocoder.geocode({ address: profileData.location }, (results, status) => {
+                  if (status === 'OK' && results[0]) {
+                    formData.append('latitude', results[0].geometry.location.lat());
+                    formData.append('longitude', results[0].geometry.location.lng());
+                  }
+                  resolve();
+                });
+              }),
+              new Promise((resolve) => setTimeout(resolve, 5000)),
+            ]);
           } catch (_) {}
         }
       }
 
-      const updated = await pb.collection('users').update(currentUser.id, formData, { $autoCancel: false });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 20000);
+      const updated = await pb.collection('users').update(currentUser.id, formData, {
+        $autoCancel: false,
+        fetch: (url, opts) => fetch(url, { ...opts, signal: controller.signal }),
+      }).finally(() => clearTimeout(timeout));
 
       setExistingWorkExamples(updated.workExamples || []);
       setWorkExampleFiles([]);
