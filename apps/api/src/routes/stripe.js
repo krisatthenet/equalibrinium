@@ -31,6 +31,21 @@ async function adminPb() {
   return pb;
 }
 
+/** Find or create a Stripe Customer for a user and persist the ID back to PocketBase */
+async function getOrCreateStripeCustomer(pb, user) {
+  if (user.stripeCustomerId) return user.stripeCustomerId;
+  const existing = await stripe.customers.list({ email: user.email, limit: 1 });
+  let customerId;
+  if (existing.data.length > 0) {
+    customerId = existing.data[0].id;
+  } else {
+    const customer = await stripe.customers.create({ email: user.email, name: user.name || undefined });
+    customerId = customer.id;
+  }
+  await pb.collection('users').update(user.id, { stripeCustomerId: customerId }).catch(() => {});
+  return customerId;
+}
+
 // ---------------------------------------------------------------------------
 // POST /stripe/create-checkout
 // Body: { ticketId, contractorUserId }
@@ -93,6 +108,13 @@ router.post('/create-checkout', requirePbAuth, async (req, res) => {
       }
     }
 
+    // Attach/create a Stripe Customer so the client can use the portal later
+    const clientUser = await pb.collection('users').getOne(userId).catch(() => null);
+    let customerId;
+    if (clientUser) {
+      customerId = await getOrCreateStripeCustomer(pb, clientUser).catch(() => null);
+    }
+
     const sessionParams = {
       line_items: [{
         price_data: {
@@ -107,6 +129,7 @@ router.post('/create-checkout', requirePbAuth, async (req, res) => {
       cancel_url: `${FRONTEND_URL}/payment-error`,
       metadata: { ticketId, userId, contractorUserId: contractorUserId || '' },
     };
+    if (customerId) sessionParams.customer = customerId;
 
     if (transferData) {
       sessionParams.payment_intent_data = {
@@ -236,6 +259,28 @@ router.get('/contractor-dashboard', async (req, res) => {
     res.json({ url: loginLink.url });
   } catch (err) {
     logger.error('contractor-dashboard error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /stripe/client-portal — create a Stripe Customer Portal session for a client
+// ---------------------------------------------------------------------------
+router.get('/client-portal', requirePbAuth, async (req, res) => {
+  try {
+    const userId = req.pbUser.id;
+    const pb = await adminPb();
+    const user = await pb.collection('users').getOne(userId);
+
+    let customerId = await getOrCreateStripeCustomer(pb, user);
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${FRONTEND_URL}/settings`,
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    logger.error('client-portal error:', err);
     res.status(500).json({ error: err.message });
   }
 });

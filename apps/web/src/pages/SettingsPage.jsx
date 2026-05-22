@@ -344,6 +344,21 @@ const SettingsPage = () => {
     }
   };
 
+  // --- Client Stripe Portal ---
+  const [clientPortalLoading, setClientPortalLoading] = useState(false);
+  const handleClientPortal = async () => {
+    setClientPortalLoading(true);
+    try {
+      const res = await apiServerClient.fetch('/stripe/client-portal');
+      if (!res.ok) throw new Error('Could not open payment portal');
+      const { url } = await res.json();
+      window.location.href = url;
+    } catch (err) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+      setClientPortalLoading(false);
+    }
+  };
+
   // --- Stripe Connect Handlers ---
   const handleStripeConnect = async () => {
     setStripeConnectLoading(true);
@@ -690,6 +705,37 @@ const SettingsPage = () => {
 
               {/* PAYMENT TAB */}
               <TabsContent value="payment" className="space-y-6">
+                {currentUser?.userType === 'client' && (
+                  <Card className="bg-card border-border rounded-2xl">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <CreditCard className="w-5 h-5 text-primary" />
+                        Payment Methods
+                      </CardTitle>
+                      <CardDescription>
+                        Manage your saved cards, view payment history, and download invoices via Stripe.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="rounded-xl border border-border p-4 space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                          All payments are processed securely by Stripe. You can manage your saved payment methods and view receipts for past jobs directly in the Stripe portal.
+                        </p>
+                        <Button
+                          className="bg-[#635BFF] hover:bg-[#5750e8] text-white rounded-lg w-full"
+                          onClick={handleClientPortal}
+                          disabled={clientPortalLoading}
+                        >
+                          {clientPortalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ExternalLink className="h-4 w-4 mr-2" />}
+                          Open Payment Portal
+                        </Button>
+                        <p className="text-xs text-muted-foreground text-center">
+                          You'll be redirected to Stripe to manage your payment details.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 {currentUser?.userType === 'contractor' && (
                   <Card className="bg-card border-border rounded-2xl">
                     <CardHeader>
