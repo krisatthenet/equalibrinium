@@ -30,20 +30,20 @@ export const AdminAuthProvider = ({ children }) => {
     }
   }, []);
 
+  const isSuperuser = (model) => model && (model.collectionName === '_superusers' || model.collectionId === '_pbc_2990389277');
+
   const resetSessionTimeout = useCallback(() => {
     clearSessionTimeout();
-    if (pb.authStore.isValid && pb.authStore.model?.role === 'admin') {
+    if (pb.authStore.isValid && isSuperuser(pb.authStore.model)) {
       timeoutRef.current = setTimeout(() => {
         logout();
-        // Hard redirect so the full app state is reset and the timeout param is preserved
         window.location.href = '/admin/login?timeout=true';
       }, 30 * 60 * 1000);
     }
   }, [logout, clearSessionTimeout]);
 
   useEffect(() => {
-    // Restore session on mount
-    if (pb.authStore.isValid && pb.authStore.model?.role === 'admin') {
+    if (pb.authStore.isValid && isSuperuser(pb.authStore.model)) {
       setAdminUser(pb.authStore.model);
     } else {
       setAdminUser(null);
@@ -51,7 +51,7 @@ export const AdminAuthProvider = ({ children }) => {
     setIsLoading(false);
 
     const unsubscribe = pb.authStore.onChange((token, model) => {
-      if (model?.role === 'admin') {
+      if (model && isSuperuser(model)) {
         setAdminUser(model);
       } else {
         setAdminUser(null);
@@ -76,30 +76,17 @@ export const AdminAuthProvider = ({ children }) => {
   const login = async (email, password) => {
     setError(null);
     try {
-      const authData = await pb.collection('users').authWithPassword(email, password);
-
-      if (authData.record.role !== 'admin') {
-        pb.authStore.clear();
-        throw new Error('Unauthorized: Admin access required.');
-      }
-
+      const authData = await pb.collection('_superusers').authWithPassword(email, password);
       setAdminUser(authData.record);
       resetSessionTimeout();
       return authData;
     } catch (err) {
       pb.authStore.clear();
-
-      let errorMessage = 'An unexpected error occurred.';
-      if (err.message === 'Unauthorized: Admin access required.') {
-        errorMessage = err.message;
-      } else if (err.status === 400) {
-        errorMessage = 'Invalid credentials. Please check your email and password.';
-      } else if (err.isAbort) {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else {
-        errorMessage = err.message || 'Failed to authenticate.';
-      }
-
+      const errorMessage = err.status === 400
+        ? 'Invalid credentials. Please check your email and password.'
+        : err.isAbort
+          ? 'Network error. Please check your connection and try again.'
+          : err.message || 'Failed to authenticate.';
       setError(errorMessage);
       throw new Error(errorMessage);
     }
