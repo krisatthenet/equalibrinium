@@ -1,0 +1,349 @@
+import React, { useState, useEffect } from 'react';
+import { Helmet } from 'react-helmet';
+import pb from '@/lib/pocketbaseClient';
+import AdminLayout from '@/components/AdminLayout.jsx';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Search, ShieldBan, ShieldCheck, Mail, Eye, Loader2, UserCircle, Ticket, AlertTriangle
+} from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+
+const statusColor = {
+  Open: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+  'In Progress': 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20',
+  Completed: 'bg-green-500/15 text-green-400 border-green-500/20',
+  Cancelled: 'bg-red-500/15 text-red-400 border-red-500/20',
+};
+
+const AdminSupportPage = () => {
+  const { toast } = useToast();
+  const [users, setUsers] = useState([]);
+  const [openTickets, setOpenTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+
+  // User detail modal
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userTickets, setUserTickets] = useState([]);
+  const [userModalOpen, setUserModalOpen] = useState(false);
+  const [loadingUserTickets, setLoadingUserTickets] = useState(false);
+
+  // Ban modal
+  const [banModalOpen, setBanModalOpen] = useState(false);
+  const [banTarget, setBanTarget] = useState(null);
+  const [banReason, setBanReason] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [usersRes, ticketsRes] = await Promise.all([
+          pb.collection('users').getFullList({ sort: '-created', $autoCancel: false }),
+          pb.collection('auction_tickets').getFullList({
+            filter: 'status = "Open" || status = "In Progress"',
+            sort: '-created',
+            expand: 'clientId,categoryId',
+            $autoCancel: false,
+          }),
+        ]);
+        setUsers(usersRes);
+        setOpenTickets(ticketsRes);
+      } catch (e) {
+        toast({ title: 'Error', description: 'Failed to load data.', variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const openUserModal = async (user) => {
+    setSelectedUser(user);
+    setUserModalOpen(true);
+    setLoadingUserTickets(true);
+    try {
+      const tickets = await pb.collection('auction_tickets').getFullList({
+        filter: `clientId = "${user.id}"`,
+        sort: '-created',
+        expand: 'categoryId',
+        $autoCancel: false,
+      });
+      setUserTickets(tickets);
+    } catch (_) {
+      setUserTickets([]);
+    } finally {
+      setLoadingUserTickets(false);
+    }
+  };
+
+  const handleBan = async () => {
+    if (!banTarget) return;
+    setActionLoading(true);
+    try {
+      await pb.collection('users').update(banTarget.id, { banned: !banTarget.banned });
+      setUsers(prev => prev.map(u => u.id === banTarget.id ? { ...u, banned: !banTarget.banned } : u));
+      toast({
+        title: banTarget.banned ? 'User unbanned' : 'User banned',
+        description: `${banTarget.name || banTarget.email} has been ${banTarget.banned ? 'unbanned' : 'banned'}.`,
+      });
+      setBanModalOpen(false);
+      setBanReason('');
+    } catch (e) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const filteredUsers = users.filter(u =>
+    !searchTerm ||
+    u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <>
+      <Helmet><title>Support — Admin</title></Helmet>
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Customer Support</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">Search users, view activity, manage accounts</p>
+        </div>
+
+        {/* Summary cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="admin-card p-5">
+            <p className="text-xs text-muted-foreground mb-1">Total Users</p>
+            {loading ? <Skeleton className="h-8 w-16 bg-[hsl(var(--admin-border))]" /> : (
+              <p className="text-3xl font-bold text-white">{users.length}</p>
+            )}
+          </div>
+          <div className="admin-card p-5">
+            <p className="text-xs text-muted-foreground mb-1">Open / In-Progress Tickets</p>
+            {loading ? <Skeleton className="h-8 w-16 bg-[hsl(var(--admin-border))]" /> : (
+              <p className="text-3xl font-bold text-white">{openTickets.length}</p>
+            )}
+          </div>
+          <div className="admin-card p-5">
+            <p className="text-xs text-muted-foreground mb-1">Banned Users</p>
+            {loading ? <Skeleton className="h-8 w-16 bg-[hsl(var(--admin-border))]" /> : (
+              <p className="text-3xl font-bold text-red-400">{users.filter(u => u.banned).length}</p>
+            )}
+          </div>
+        </div>
+
+        {/* User search */}
+        <div className="admin-card p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <UserCircle className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
+            <h2 className="font-semibold text-white">User Lookup</h2>
+          </div>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email…"
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-9 bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-white placeholder:text-muted-foreground"
+            />
+          </div>
+
+          {loading ? (
+            <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full bg-[hsl(var(--admin-border))]" />)}</div>
+          ) : (
+            <div className="space-y-1 max-h-80 overflow-y-auto">
+              {filteredUsers.slice(0, 50).map(user => (
+                <div
+                  key={user.id}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[hsl(var(--admin-border))] transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-8 w-8 rounded-full bg-[hsl(var(--admin-border))] flex items-center justify-center text-sm font-bold text-white shrink-0">
+                      {(user.name || user.email || '?').charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{user.name || '—'}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                    </div>
+                    <Badge variant="outline" className="text-xs capitalize shrink-0 border-[hsl(var(--admin-border))] text-muted-foreground">
+                      {user.userType || 'unknown'}
+                    </Badge>
+                    {user.banned && (
+                      <Badge variant="outline" className="text-xs shrink-0 border-red-500/30 text-red-400">banned</Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 ml-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
+                      onClick={() => openUserModal(user)}
+                      title="View details"
+                    >
+                      <Eye className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className={`h-8 w-8 p-0 ${user.banned ? 'text-green-400 hover:text-green-300' : 'text-red-400 hover:text-red-300'}`}
+                      onClick={() => { setBanTarget(user); setBanModalOpen(true); }}
+                      title={user.banned ? 'Unban user' : 'Ban user'}
+                    >
+                      {user.banned ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldBan className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {filteredUsers.length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">No users found.</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Open tickets needing attention */}
+        <div className="admin-card p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Ticket className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
+            <h2 className="font-semibold text-white">Open Tickets</h2>
+            {!loading && openTickets.length > 0 && (
+              <span className="ml-auto text-xs text-muted-foreground">{openTickets.length} active</span>
+            )}
+          </div>
+          {loading ? (
+            <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full bg-[hsl(var(--admin-border))]" />)}</div>
+          ) : openTickets.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No open tickets — all clear!</p>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto">
+              {openTickets.map(ticket => (
+                <div
+                  key={ticket.id}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-[hsl(var(--admin-border))]"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-white truncate">
+                      {ticket.expand?.categoryId?.name || 'Service request'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {ticket.expand?.clientId?.email || ticket.clientId} · {new Date(ticket.created).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Badge variant="outline" className={`text-xs shrink-0 ml-2 ${statusColor[ticket.status] || ''}`}>
+                    {ticket.status}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* User detail modal */}
+      <Dialog open={userModalOpen} onOpenChange={setUserModalOpen}>
+        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle>User Details</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-[hsl(var(--admin-border))] flex items-center justify-center text-lg font-bold">
+                  {(selectedUser.name || selectedUser.email || '?').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold">{selectedUser.name || '—'}</p>
+                  <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {[
+                  ['Type', selectedUser.userType || '—'],
+                  ['Plan', selectedUser.plan || 'free'],
+                  ['Joined', new Date(selectedUser.created).toLocaleDateString()],
+                  ['Status', selectedUser.banned ? '🚫 Banned' : '✅ Active'],
+                  ['Phone', selectedUser.phone || '—'],
+                  ['Location', selectedUser.location || '—'],
+                ].map(([k, v]) => (
+                  <div key={k} className="bg-[hsl(var(--admin-border))]/40 rounded-lg px-3 py-2">
+                    <p className="text-xs text-muted-foreground">{k}</p>
+                    <p className="font-medium mt-0.5">{v}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Recent Tickets ({userTickets.length})</p>
+                {loadingUserTickets ? (
+                  <Skeleton className="h-10 w-full bg-[hsl(var(--admin-border))]" />
+                ) : userTickets.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No tickets.</p>
+                ) : (
+                  <div className="space-y-1 max-h-36 overflow-y-auto">
+                    {userTickets.slice(0, 5).map(t => (
+                      <div key={t.id} className="flex items-center justify-between text-xs px-2 py-1.5 rounded bg-[hsl(var(--admin-border))]/40">
+                        <span className="truncate">{t.expand?.categoryId?.name || 'Ticket'}</span>
+                        <Badge variant="outline" className={`ml-2 shrink-0 text-[10px] ${statusColor[t.status] || ''}`}>{t.status}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Ban modal */}
+      <Dialog open={banModalOpen} onOpenChange={setBanModalOpen}>
+        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-white max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              {banTarget?.banned ? 'Unban User' : 'Ban User'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {banTarget?.banned
+                ? `Restore access for ${banTarget?.name || banTarget?.email}?`
+                : `Restrict access for ${banTarget?.name || banTarget?.email}?`}
+            </DialogDescription>
+          </DialogHeader>
+          {!banTarget?.banned && (
+            <div className="space-y-2">
+              <Label className="text-white text-sm">Reason (internal)</Label>
+              <Textarea
+                value={banReason}
+                onChange={e => setBanReason(e.target.value)}
+                placeholder="Optional note for the team…"
+                className="bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-white placeholder:text-muted-foreground resize-none"
+                rows={3}
+              />
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => setBanModalOpen(false)} className="text-muted-foreground">Cancel</Button>
+            <Button
+              onClick={handleBan}
+              disabled={actionLoading}
+              className={banTarget?.banned
+                ? 'bg-green-600 hover:bg-green-700 text-white'
+                : 'bg-red-600 hover:bg-red-700 text-white'}
+            >
+              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {banTarget?.banned ? 'Unban' : 'Ban User'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+export default AdminSupportPage;
