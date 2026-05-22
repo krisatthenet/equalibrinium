@@ -6,7 +6,7 @@ migrate((app) => {
     settings.smtp.host = "smtp.hostinger.com"
     settings.smtp.port = 465
     settings.smtp.username = "kasparas@workbee.space"
-    settings.smtp.password = "Frenkis123!"
+    settings.smtp.password = "~QFrF96fG"
     settings.smtp.authMethod = "LOGIN"
     settings.smtp.tls = true
 
