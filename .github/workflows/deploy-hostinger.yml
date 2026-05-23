@@ -38,8 +38,10 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "lt-bnk-web508.main-hosting.eu ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZsl0v5Fo0qpqohH6E+puRY4jI6MSrrteKcvfwP/jCdg/aCRIhMMYANMopnomi1sojLxcw2tds2LsAclhrmgeFulKAVHawsNQcMCMx+X39XeSnCHnWWrH8Lbpje/jv+9o71hNvWJXP5x1oKmmHP5KQbyPEswHERziXk7HBAdglX76oTKacQhwua37vkQpj8nBRQLN1bjk16h5a4AIX9jT0YTOCccLyxy0UgzmPTJxPVBnU8uS9jyCHObf6HGMIv5FRlSmW0p1OGRDDeOgDEtls2Okg5QobhnWsX3brBDy3MTi/FaZBQuQVBBBN2cIfFmgmSwO/ygc4myN5Aj8CyQyUYo2kPzhbuBF7dLVuel80Aw3KFRl6EOFS/VDSiT2af4iN5ytme5dzCBXR8eeR2YNvOvoyApMp4W7vdhsrT5ygZMqW/CFFinJYZMGodJkvVK6uU4RM3Yh6wsHJ5kMjHemtvGqmGKtIyEBingnPEUO75fuNX2mOphXNGpVY2yA7Ou0=" >> ~/.ssh/known_hosts
+          echo "[lt-bnk-web508.main-hosting.eu]:65002 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDdASVQ1tEnRHT4tkvbu8X9hpKCiOXieRpwBhLZCY0wVFyTRkIdeh0Ti8kJMMFxDykWx/PdkxrgKkLbFmjsAtVxeC+6zabQ7Hu+iRKj9VGuMh0PRQB7il1Xsaw1rsBZu2GRE/M8vaaRCNqsJAiosgT6AjVzlJ0WQKujNb2ChhyJi7wIpSPJlkBDsfEUaHojoHUxSeNdu0n4T2ZM1gC6x0fqxnfZckNowP+1muH0KrzWtj8Wr6ICDoosY4u4E7IZf4+Sc7pBc1kCg+JOearqMYQQ7aawYL5q+3uu6G1h+UWRlJp80NaUQwR0YEwxcueUnYR2gRKB77Eyr6R6axihBhaE9Kbgo/6hGgEZO1HKE3cRMJrt3fQilo1vPOQAzGNAmx3MxwpnCWHclwKJoF5aMOQI9oZ6iJinWuy2X5qJZAvwG0TOg1jsc95U7YIl2/rXvl9vpuSl62AYEqFLWYJFVbaHOAMECAxZOq2s9U/yfK41Cmp9zuuy4NBvd7pD3pf+AJk=" >> ~/.ssh/known_hosts
+          echo "[lt-bnk-web508.main-hosting.eu]:65002 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBC5Y9tMvRzz6O1o9bNtt9N1lDYb6+Ot3EMwpgrURnkBjG+NiFsHgXHuw7Dn2GmuQpI2r+Hk6pnabsaijF8qpWto=" >> ~/.ssh/known_hosts
+          echo "[lt-bnk-web508.main-hosting.eu]:65002 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIONYfb7JPK4L4YyL8t8QSQb72Tfs+bj4KkUpc3CB4goX" >> ~/.ssh/known_hosts
           rsync -avz --delete \
-            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes" \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes -p 65002" \
             dist/apps/web/ \
             u168231407@lt-bnk-web508.main-hosting.eu:/home/u168231407/domains/workbee.space/public_html/
