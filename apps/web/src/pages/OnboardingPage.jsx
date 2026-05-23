@@ -321,16 +321,19 @@ const OnboardingPage = () => {
 
   // Skip onboarding if already completed
   useEffect(() => {
-    if (!currentUser) return;
-    if (localStorage.getItem(ONBOARDING_KEY(currentUser.id))) {
+    const id = pb.authStore.record?.id ?? pb.authStore.model?.id ?? currentUser?.id;
+    if (!id) return;
+    if (localStorage.getItem(ONBOARDING_KEY(id))) {
       navigate(dashboardPath, { replace: true });
     }
   }, [currentUser]);
 
   const save = async (data) => {
+    // pb.authStore is always up-to-date; React state may lag on first render
+    const userId = pb.authStore.record?.id ?? pb.authStore.model?.id ?? currentUser?.id;
     setSaving(true);
     try {
-      if (data && Object.keys(data).length > 0) {
+      if (data && Object.keys(data).length > 0 && userId) {
         const formData = new FormData();
         Object.entries(data).forEach(([k, v]) => {
           if (Array.isArray(v)) {
@@ -342,7 +345,7 @@ const OnboardingPage = () => {
             formData.append(k, v);
           }
         });
-        await pb.collection('users').update(currentUser.id, formData, { $autoCancel: false });
+        await pb.collection('users').update(userId, formData, { $autoCancel: false });
       }
       setStepIndex(i => i + 1);
     } catch (err) {
@@ -352,12 +355,14 @@ const OnboardingPage = () => {
     }
   };
 
+  const userId = pb.authStore.record?.id ?? pb.authStore.model?.id ?? currentUser?.id;
+
   const finish = () => {
-    localStorage.setItem(ONBOARDING_KEY(currentUser.id), '1');
+    if (userId) localStorage.setItem(ONBOARDING_KEY(userId), '1');
     navigate(dashboardPath, { replace: true });
   };
 
-  if (!currentUser) return null;
+  if (!currentUser && !userId) return null;
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
