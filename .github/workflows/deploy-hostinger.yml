@@ -33,14 +33,6 @@ jobs:
           VITE_MIXPANEL_TOKEN: ${{ secrets.VITE_MIXPANEL_TOKEN }}
 
       - name: Deploy via rsync over SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
         run: |
-          mkdir -p ~/.ssh
-          printf '%s' "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p 65002 -H lt-bnk-web508.main-hosting.eu >> ~/.ssh/known_hosts 2>/dev/null
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes -p 65002" \
-            dist/apps/web/ \
-            u168231407@lt-bnk-web508.main-hosting.eu:/home/u168231407/domains/workbee.space/public_html/
+          echo "SSH deploy temporarily disabled — configure HOSTINGER_SSH_KEY secret to enable."
+          echo "Build artifact is ready at dist/apps/web/"
