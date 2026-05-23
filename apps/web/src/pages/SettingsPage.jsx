@@ -91,11 +91,34 @@ const SettingsPage = () => {
     if (sub === 'success') toast({ title: 'Subscription activated!', description: 'Your plan has been upgraded.' });
     if (sub === 'cancel')  toast({ title: 'Checkout cancelled', description: 'No changes were made.' });
 
-    apiServerClient.fetch('/referrals/stats')
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data) setReferralStats(data); })
-      .catch(() => {})
-      .finally(() => setReferralStatsLoading(false));
+    // Fetch referral stats directly from PocketBase — no Railway API needed
+    if (currentUser?.id) {
+      const code = currentUser.referralCode || '';
+      pb.collection('referrals').getList(1, 1, {
+        filter: `referrerId = "${currentUser.id}"`,
+        $autoCancel: false,
+      })
+        .then(result => {
+          setReferralStats({
+            referralCode: code,
+            referralLink: `https://workbee.space/register?ref=${code}`,
+            totalReferrals: result.totalItems,
+          });
+        })
+        .catch(() => {
+          // Fallback: show the code even if the count fails
+          if (code) {
+            setReferralStats({
+              referralCode: code,
+              referralLink: `https://workbee.space/register?ref=${code}`,
+              totalReferrals: 0,
+            });
+          }
+        })
+        .finally(() => setReferralStatsLoading(false));
+    } else {
+      setReferralStatsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
