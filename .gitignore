@@ -5,6 +5,10 @@ build/
 .env
 .env.local
 .env.*.local
+.env.production
+apps/web/.env.production
+apps/api/.env
+apps/pocketbase/.env
 
 # PocketBase binaries
 apps/pocketbase/pocketbase
