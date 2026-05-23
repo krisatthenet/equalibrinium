@@ -26,7 +26,6 @@ jobs:
         run: npm run build --prefix apps/web
         env:
           VITE_POCKETBASE_URL: ${{ secrets.VITE_POCKETBASE_URL }}
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_MIXPANEL_TOKEN: ${{ secrets.VITE_MIXPANEL_TOKEN }}
