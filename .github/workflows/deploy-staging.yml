@@ -1,12 +1,16 @@
-name: Deploy Staging
+name: Deploy Backend to Railway (Production)
 
 on:
   push:
-    branches: [dev]
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'apps/pocketbase/**'
+      - '.github/workflows/deploy-staging.yml'
 
 jobs:
   deploy-api:
-    name: Deploy API → Railway
+    name: Deploy API → Railway Production
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
@@ -18,10 +22,10 @@ jobs:
         working-directory: apps/api
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-api --environment staging --detach
+        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-api --environment production --detach
 
   deploy-pocketbase:
-    name: Deploy PocketBase → Railway
+    name: Deploy PocketBase → Railway Production
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
@@ -33,4 +37,4 @@ jobs:
         working-directory: apps/pocketbase
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-pocketbase --environment staging --detach
+        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-pocketbase --environment production --detach
