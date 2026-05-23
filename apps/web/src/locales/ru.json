@@ -34,7 +34,19 @@
       "Baldų surinkimas": "Сборка мебели",
       "Grindų klojimas": "Укладка полов",
       "Elektrika": "Электромонтажные работы",
-      "Santechnika": "Сантехника"
+      "Santechnika": "Сантехника",
+      "Painter": "Маляр",
+      "Artist": "Художник",
+      "Digital Creator": "Диджитал-креатор",
+      "Graffiti Artist": "Граффити-художник",
+      "Nurse": "Медсестра / медбрат",
+      "Doctor": "Врач",
+      "Mentor": "Ментор",
+      "Correpetitor": "Концертмейстер",
+      "Teacher": "Учитель",
+      "Coach": "Тренер",
+      "coach_sport_placeholder": "Какой вид спорта?",
+      "Nanny": "Няня"
     },
     "location": {
       "picker_title": "Выберите место работы",

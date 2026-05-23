@@ -34,7 +34,19 @@
       "Baldų surinkimas": "Furniture assembly",
       "Grindų klojimas": "Floor laying",
       "Elektrika": "Electrical work",
-      "Santechnika": "Plumbing"
+      "Santechnika": "Plumbing",
+      "Painter": "Painter",
+      "Artist": "Artist",
+      "Digital Creator": "Digital Creator",
+      "Graffiti Artist": "Graffiti Artist",
+      "Nurse": "Nurse",
+      "Doctor": "Doctor",
+      "Mentor": "Mentor",
+      "Correpetitor": "Correpetitor",
+      "Teacher": "Teacher",
+      "Coach": "Coach",
+      "coach_sport_placeholder": "Which sport?",
+      "Nanny": "Nanny"
     },
     "location": {
       "picker_title": "Select Work Location",
