@@ -6,6 +6,7 @@ import stripeRouter from './stripe.js';
 import pushRouter from './push.js';
 import referralsRouter from './referrals.js';
 import recaptchaRouter from './recaptcha.js';
+import twilioRouter from './twilio.js';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ export default () => {
   router.use('/push', pushRouter);
   router.use('/referrals', referralsRouter);
   router.use('/recaptcha', recaptchaRouter);
+  router.use('/twilio', twilioRouter);
 
   return router;
 };
