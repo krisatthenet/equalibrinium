@@ -16,9 +16,9 @@ migrate((app) => {
   trialEnd.setDate(trialEnd.getDate() + 7);
   const trialEndStr = trialEnd.toISOString().replace('T', ' ').replace(/\.\d{3}Z$/, '.000Z');
 
-  const users = app.findAllRecords("users");
+  const users = app.findAllRecords("users", $dbx.exp("id != ''"));
   for (const user of users) {
-    if (!user.get("trialEndsAt")) {
+    if (!user.getString("trialEndsAt")) {
       user.set("trialEndsAt", trialEndStr);
       app.save(user);
     }

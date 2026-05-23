@@ -26,6 +26,7 @@ jobs:
         run: npm run build --prefix apps/web
         env:
           VITE_POCKETBASE_URL: ${{ secrets.VITE_POCKETBASE_URL }}
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
           VITE_STRIPE_PUBLISHABLE_KEY: ${{ secrets.VITE_STRIPE_PUBLISHABLE_KEY }}
           VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
           VITE_MIXPANEL_TOKEN: ${{ secrets.VITE_MIXPANEL_TOKEN }}
@@ -37,9 +38,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          echo "[lt-bnk-web508.main-hosting.eu]:65002 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDdASVQ1tEnRHT4tkvbu8X9hpKCiOXieRpwBhLZCY0wVFyTRkIdeh0Ti8kJMMFxDykWx/PdkxrgKkLbFmjsAtVxeC+6zabQ7Hu+iRKj9VGuMh0PRQB7il1Xsaw1rsBZu2GRE/M8vaaRCNqsJAiosgT6AjVzlJ0WQKujNb2ChhyJi7wIpSPJlkBDsfEUaHojoHUxSeNdu0n4T2ZM1gC6x0fqxnfZckNowP+1muH0KrzWtj8Wr6ICDoosY4u4E7IZf4+Sc7pBc1kCg+JOearqMYQQ7aawYL5q+3uu6G1h+UWRlJp80NaUQwR0YEwxcueUnYR2gRKB77Eyr6R6axihBhaE9Kbgo/6hGgEZO1HKE3cRMJrt3fQilo1vPOQAzGNAmx3MxwpnCWHclwKJoF5aMOQI9oZ6iJinWuy2X5qJZAvwG0TOg1jsc95U7YIl2/rXvl9vpuSl62AYEqFLWYJFVbaHOAMECAxZOq2s9U/yfK41Cmp9zuuy4NBvd7pD3pf+AJk=" >> ~/.ssh/known_hosts
-          echo "[lt-bnk-web508.main-hosting.eu]:65002 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBC5Y9tMvRzz6O1o9bNtt9N1lDYb6+Ot3EMwpgrURnkBjG+NiFsHgXHuw7Dn2GmuQpI2r+Hk6pnabsaijF8qpWto=" >> ~/.ssh/known_hosts
-          echo "[lt-bnk-web508.main-hosting.eu]:65002 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIONYfb7JPK4L4YyL8t8QSQb72Tfs+bj4KkUpc3CB4goX" >> ~/.ssh/known_hosts
+          ssh-keyscan -p 65002 -H lt-bnk-web508.main-hosting.eu >> ~/.ssh/known_hosts 2>/dev/null
           rsync -avz --delete \
             -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=yes -p 65002" \
             dist/apps/web/ \
