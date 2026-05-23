@@ -1,5 +1,10 @@
 name: Deploy Backend to Railway (Production)
 
+# Railway deploys API and PocketBase automatically via its native GitHub
+# integration whenever main is pushed — no CLI upload needed.
+# This workflow exists to surface those deployments in the GitHub
+# Environments tab under "Production".
+
 on:
   push:
     branches: [main]
@@ -9,34 +14,13 @@ on:
       - '.github/workflows/deploy-staging.yml'
 
 jobs:
-  deploy-api:
-    name: Deploy API → Railway Production
+  railway-deploy:
+    name: Railway auto-deploy (API + PocketBase)
     runs-on: ubuntu-latest
     environment: Production
     steps:
-      - uses: actions/checkout@v4.2.2
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy API service
-        working-directory: apps/api
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-api --environment production --detach
-
-  deploy-pocketbase:
-    name: Deploy PocketBase → Railway Production
-    runs-on: ubuntu-latest
-    environment: Production
-    steps:
-      - uses: actions/checkout@v4.2.2
-
-      - name: Install Railway CLI
-        run: npm install -g @railway/cli
-
-      - name: Deploy PocketBase service
-        working-directory: apps/pocketbase
-        env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --project fa829754-67fe-4917-a7e3-be7159a326e0 --service workbee-pocketbase --environment production --detach
+      - name: Confirm Railway GitHub integration is active
+        run: |
+          echo "Railway deploys workbee-api and workbee-pocketbase"
+          echo "automatically from the main branch via GitHub integration."
+          echo "No CLI action required — Railway picked up this push."
