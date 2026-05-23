@@ -93,29 +93,36 @@ const SettingsPage = () => {
 
     // Fetch referral stats directly from PocketBase — no Railway API needed
     if (currentUser?.id) {
-      const code = currentUser.referralCode || '';
-      pb.collection('referrals').getList(1, 1, {
-        filter: `referrerId = "${currentUser.id}"`,
-        $autoCancel: false,
-      })
-        .then(result => {
-          setReferralStats({
-            referralCode: code,
-            referralLink: `https://workbee.space/register?ref=${code}`,
-            totalReferrals: result.totalItems,
-          });
+      const ensureCode = async () => {
+        let code = currentUser.referralCode;
+        if (!code) {
+          code = 'WB' + currentUser.id.slice(0, 6).toUpperCase();
+          await pb.collection('users').update(currentUser.id, { referralCode: code }).catch(() => {});
+        }
+        return code;
+      };
+
+      ensureCode().then(code => {
+        pb.collection('referrals').getList(1, 1, {
+          filter: `referrerId = "${currentUser.id}"`,
+          $autoCancel: false,
         })
-        .catch(() => {
-          // Fallback: show the code even if the count fails
-          if (code) {
+          .then(result => {
+            setReferralStats({
+              referralCode: code,
+              referralLink: `https://workbee.space/register?ref=${code}`,
+              totalReferrals: result.totalItems,
+            });
+          })
+          .catch(() => {
             setReferralStats({
               referralCode: code,
               referralLink: `https://workbee.space/register?ref=${code}`,
               totalReferrals: 0,
             });
-          }
-        })
-        .finally(() => setReferralStatsLoading(false));
+          })
+          .finally(() => setReferralStatsLoading(false));
+      });
     } else {
       setReferralStatsLoading(false);
     }
