@@ -24,6 +24,13 @@ async function fetchImageBlob(url) {
 }
 
 async function createUser(data, avatarUrl, portfolioUrls = []) {
+  // Skip if already exists
+  try {
+    const existing = await pb.collection('users').getFirstListItem(`email = "${data.email}"`);
+    console.log(`  ↩ ${data.userType.padEnd(12)} ${data.name} already exists (${existing.id})`);
+    return existing;
+  } catch (_) {}
+
   const fd = new FormData();
   for (const [k, v] of Object.entries(data)) {
     if (Array.isArray(v)) {
@@ -71,17 +78,17 @@ async function acceptBid(ticket, bid) {
   console.log(`  ✓ Bid ${bid.id} accepted → ticket now "In Progress"`);
 }
 
-async function createReview({ masterId, clientId, ticketId, rating, comment }) {
+async function createReview({ contractorId, clientId, ticketId, rating, comment }) {
   const record = await pb.collection('reviews').create({
-    masterId, clientId, ticketId, rating, comment,
+    contractorId, clientId, ticketId, rating, comment,
   });
-  console.log(`  ✓ Review ${rating}★ from ${clientId} → contractor ${masterId}`);
+  console.log(`  ✓ Review ${rating}★ from ${clientId} → contractor ${contractorId}`);
   return record;
 }
 
 async function updateRating(contractorId) {
   const reviews = await pb.collection('reviews').getFullList({
-    filter: `masterId = "${contractorId}"`,
+    filter: `contractorId = "${contractorId}"`,
   });
   if (!reviews.length) return;
   const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
@@ -499,26 +506,26 @@ async function main() {
   let ri = 0;
   const reviewPairs = [
     // tomas (electrician) — t1 completed
-    { masterId: tomas.id,   clientId: laura.id,    ticketId: t1.id },
-    { masterId: tomas.id,   clientId: julius.id,   ticketId: null  },
-    { masterId: tomas.id,   clientId: mindaugas.id,ticketId: null  },
+    { contractorId: tomas.id,   clientId: laura.id,    ticketId: t1.id },
+    { contractorId: tomas.id,   clientId: julius.id,   ticketId: null  },
+    { contractorId: tomas.id,   clientId: mindaugas.id,ticketId: null  },
 
     // andrius (plumber) — t6 completed
-    { masterId: andrius.id, clientId: laura.id,    ticketId: t6.id },
-    { masterId: andrius.id, clientId: egle.id,     ticketId: null  },
+    { contractorId: andrius.id, clientId: laura.id,    ticketId: t6.id },
+    { contractorId: andrius.id, clientId: egle.id,     ticketId: null  },
 
     // vaidas (finishing)
-    { masterId: vaidas.id,  clientId: egle.id,     ticketId: null  },
-    { masterId: vaidas.id,  clientId: inga.id,     ticketId: null  },
-    { masterId: vaidas.id,  clientId: julius.id,   ticketId: null  },
+    { contractorId: vaidas.id,  clientId: egle.id,     ticketId: null  },
+    { contractorId: vaidas.id,  clientId: inga.id,     ticketId: null  },
+    { contractorId: vaidas.id,  clientId: julius.id,   ticketId: null  },
 
     // rimas (roofing)
-    { masterId: rimas.id,   clientId: mindaugas.id,ticketId: null  },
-    { masterId: rimas.id,   clientId: julius.id,   ticketId: null  },
+    { contractorId: rimas.id,   clientId: mindaugas.id,ticketId: null  },
+    { contractorId: rimas.id,   clientId: julius.id,   ticketId: null  },
 
     // darius (flooring)
-    { masterId: darius.id,  clientId: inga.id,     ticketId: null  },
-    { masterId: darius.id,  clientId: laura.id,    ticketId: null  },
+    { contractorId: darius.id,  clientId: inga.id,     ticketId: null  },
+    { contractorId: darius.id,  clientId: laura.id,    ticketId: null  },
   ];
 
   for (const pair of reviewPairs) {
