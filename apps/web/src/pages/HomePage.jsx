@@ -173,51 +173,6 @@ const DndRollToast = ({ roll }) => {
   );
 };
 
-const REACH_FORM_SESSION_KEY = 'wb_reach_form_shown';
-const REACH_FORM_URL = 'https://forms.reach.hostinger.com/form/fc0e72ea-35ae-4ecd-80e7-6f6a25205017';
-
-const ReachFormPopup = () => {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (sessionStorage.getItem(REACH_FORM_SESSION_KEY)) return;
-    const t = setTimeout(() => {
-      setVisible(true);
-      sessionStorage.setItem(REACH_FORM_SESSION_KEY, '1');
-    }, 3500);
-    return () => clearTimeout(t);
-  }, []);
-
-  if (!visible) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      onClick={() => setVisible(false)}
-    >
-      <div
-        className="relative w-full max-w-lg mx-4 bg-background rounded-2xl overflow-hidden shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={() => setVisible(false)}
-          className="absolute top-3 right-3 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground text-lg font-bold transition-colors"
-          aria-label="Close"
-        >
-          ×
-        </button>
-        <iframe
-          src={REACH_FORM_URL}
-          title="WorkBee feedback form"
-          className="w-full border-0"
-          style={{ height: 520 }}
-          loading="lazy"
-        />
-      </div>
-    </div>
-  );
-};
-
 const categoryIcons = {
   'Apdailos darbai': Wrench,
   'Tapetavimas': Paintbrush,
@@ -284,7 +239,6 @@ const HomePage = () => {
         <script type="application/ld+json">{JSON.stringify(HOME_JSON_LD)}</script>
       </Helmet>
       
-      <ReachFormPopup />
       <div className="min-h-screen flex flex-col bg-background">
         <FireworksIntro roll={dndRoll} />
         <DndRollToast roll={dndRoll} />
