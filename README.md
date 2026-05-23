@@ -66,3 +66,4 @@ Frontend runs on `http://localhost:5173`, PocketBase on `http://localhost:8090`,
 | **Tadas** | Co-founder |
 | **Kristupas** | Co-founder |
 | **Olek Suchodolski** | Mentor |
+| **Brigita Suchodolska** | Mentor |
