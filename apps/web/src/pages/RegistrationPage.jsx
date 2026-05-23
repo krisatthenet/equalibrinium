@@ -103,11 +103,7 @@ const RegistrationPage = () => {
       }
 
       await signup(formData.email, formData.password, userType, extraData);
-
-      const redirectPath = userType === 'contractor' ? '/dashboard/contractor'
-        : userType === 'influencer' ? '/dashboard/influencer'
-        : '/dashboard/client';
-      navigate(redirectPath);
+      navigate('/onboarding', { replace: true });
 
     } catch (err) {
       console.error('Registration error:', err);

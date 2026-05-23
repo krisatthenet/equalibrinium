@@ -36,6 +36,7 @@ const TermsOfServicePage = React.lazy(() => import('@/pages/TermsOfServicePage.j
 const CookiePolicy = React.lazy(() => import('@/pages/CookiePolicy.jsx'));
 const GdprPage = React.lazy(() => import('@/pages/GdprPage.jsx'));
 
+const OnboardingPage = React.lazy(() => import('@/pages/OnboardingPage.jsx'));
 const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 const PricingPage = React.lazy(() => import('@/pages/PricingPage.jsx'));
@@ -116,6 +117,11 @@ const AppRoutes = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegistrationPage />} />
+          <Route path="/onboarding" element={
+            <ProtectedRoute>
+              <OnboardingPage />
+            </ProtectedRoute>
+          } />
           <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
           <Route path="/auth/confirm-verification/:token" element={<VerifyEmailPage />} />
           <Route path="/masters" element={<MastersSearchPage />} />
