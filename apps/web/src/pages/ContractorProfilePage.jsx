@@ -18,6 +18,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
 import PlanBadge from '@/components/PlanBadge.jsx';
+import { getEffectivePlan, isInTrial } from '@/lib/plans';
 
 const ContractorProfilePage = () => {
   const { t } = useTranslation();
@@ -195,10 +196,10 @@ const ContractorProfilePage = () => {
 
                     <h1 className="text-2xl font-bold mb-2">{contractor.name}</h1>
 
-                    {(contractor.title || contractor.plan) && (
+                    {(contractor.title || contractor.plan || isInTrial(contractor)) && (
                       <div className="flex items-center gap-2 mb-2">
                         {contractor.title && <Badge variant="secondary">{contractor.title}</Badge>}
-                        <PlanBadge plan={contractor.plan} />
+                        <PlanBadge plan={getEffectivePlan(contractor)} isTrial={isInTrial(contractor)} />
                       </div>
                     )}
 

@@ -11,7 +11,7 @@ import {
   UploadCloud, X, FileText, Zap, Check, Minus, Gift, Copy, CheckCheck
 } from 'lucide-react';
 import PlanBadge from '@/components/PlanBadge.jsx';
-import { PLANS, PLAN_ORDER, formatLimit } from '@/lib/plans';
+import { PLANS, PLAN_ORDER, formatLimit, getEffectivePlan, isInTrial } from '@/lib/plans';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -815,20 +815,34 @@ const SettingsPage = () => {
               {/* PLAN TAB */}
               <TabsContent value="plan" className="space-y-6">
                 {(() => {
-                  const currentPlan = currentUser?.plan || 'standard';
+                  const currentPlan = getEffectivePlan(currentUser);
+                  const inTrial = isInTrial(currentUser);
                   const uType = currentUser?.userType === 'client' ? 'client' : 'contractor';
                   const limits = PLANS[currentPlan]?.[uType] ?? PLANS.standard[uType];
                   return (
                     <>
+                      {inTrial && (
+                        <Card className="bg-primary/5 border-primary/30 rounded-2xl">
+                          <CardContent className="py-4 flex items-center gap-3">
+                            <Gift className="w-5 h-5 text-primary shrink-0" />
+                            <p className="text-sm text-foreground">
+                              <span className="font-semibold">Launch bonus active!</span> You have full Premium access free until{' '}
+                              {new Date(currentUser.trialEndsAt).toLocaleDateString()}.
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
                       <Card className="bg-card border-border rounded-2xl">
                         <CardHeader>
                           <CardTitle className="flex items-center gap-3">
                             <Zap className="w-5 h-5 text-primary" />
                             Current plan
-                            <PlanBadge plan={currentPlan} />
+                            <PlanBadge plan={currentPlan} isTrial={inTrial} />
                           </CardTitle>
                           <CardDescription>
-                            {currentUser?.planExpiresAt
+                            {inTrial
+                              ? `Trial ends ${new Date(currentUser.trialEndsAt).toLocaleDateString()}`
+                              : currentUser?.planExpiresAt
                               ? `Renews ${new Date(currentUser.planExpiresAt).toLocaleDateString()}`
                               : currentPlan === 'standard' ? 'Free forever' : 'No active subscription'}
                           </CardDescription>

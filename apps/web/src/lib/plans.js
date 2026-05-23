@@ -41,3 +41,14 @@ export const PLANS = {
 export const getPlan = (key) => PLANS[key] ?? PLANS.standard;
 
 export const formatLimit = (n) => (n === Infinity ? 'Unlimited' : n);
+
+export const TRIAL_PLAN = 'premium';
+
+export const isInTrial = (user) =>
+  !!(user?.trialEndsAt && new Date(user.trialEndsAt) > new Date());
+
+export const getEffectivePlan = (user) => {
+  if (!user) return 'standard';
+  if (isInTrial(user)) return TRIAL_PLAN;
+  return user.plan || 'standard';
+};
