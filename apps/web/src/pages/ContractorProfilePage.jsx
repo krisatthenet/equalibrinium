@@ -37,7 +37,6 @@ const ContractorProfilePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // id is now the user ID directly
         const [userData, reviewsData] = await Promise.all([
           pb.collection('users').getOne(id, {
             expand: 'categories',
@@ -51,6 +50,11 @@ const ContractorProfilePage = () => {
         ]);
         setContractor(userData);
         setReviews(reviewsData.items);
+
+        // Track profile view — skip if the viewer is the profile owner
+        if (!currentUser || currentUser.id !== id) {
+          pb.collection('users').update(id, { 'profileViews+': 1 }, { $autoCancel: false }).catch(() => {});
+        }
       } catch (error) {
         console.error('Error fetching contractor profile:', error);
       } finally {
