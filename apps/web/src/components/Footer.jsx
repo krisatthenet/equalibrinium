@@ -22,6 +22,7 @@ const Footer = () => {
                 { src: '/team-tadas.jpeg', name: 'Tadas', role: 'Co-founder' },
                 { src: '/team-kristupas.jpg', name: 'Kristupas', role: 'Co-founder' },
                 { src: '/team-olek.jpeg', name: 'Olek Suchodolski', role: 'Mentor' },
+                { src: '/team-brigita.jpeg', name: 'Brigita Suchodolska', role: 'Mentor' },
               ].map(({ src, name, role }) => (
                 <div key={name} className="flex items-center gap-2">
                   <img src={src} alt={name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
