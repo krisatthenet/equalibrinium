@@ -304,6 +304,15 @@ const DoneStep = ({ userType, onGo }) => (
 );
 
 // ── Main Onboarding Page ─────────────────────────────────────────────────────
+const getDashboardPath = () => {
+  const authRecord = pb.authStore.record ?? pb.authStore.model;
+  const type = authRecord?.userType ?? '';
+  if (type === 'contractor') return '/dashboard/contractor';
+  if (type === 'influencer') return '/dashboard/influencer';
+  if (type === 'client') return '/dashboard/client';
+  return '/dashboard/client';
+};
+
 const OnboardingPage = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -311,25 +320,23 @@ const OnboardingPage = () => {
   const [stepIndex, setStepIndex] = useState(0);
   const [saving, setSaving] = useState(false);
 
-  const userType = currentUser?.userType || 'client';
+  const authRecord = pb.authStore.record ?? pb.authStore.model;
+  const userType = authRecord?.userType ?? currentUser?.userType ?? 'client';
   const steps = STEPS[userType] || STEPS.client;
   const currentStep = steps[stepIndex];
 
-  const dashboardPath = userType === 'contractor' ? '/dashboard/contractor'
-    : userType === 'influencer' ? '/dashboard/influencer'
-    : '/dashboard/client';
-
-  // Skip onboarding if already completed
+  // Skip onboarding if already completed — run once on mount only.
+  // [currentUser] would re-run after every PB save (authStore.onChange → setCurrentUser),
+  // which can cause a second navigate() call with a stale dashboardPath after finish().
   useEffect(() => {
     const id = pb.authStore.record?.id ?? pb.authStore.model?.id ?? currentUser?.id;
     if (!id) return;
     if (localStorage.getItem(ONBOARDING_KEY(id))) {
-      navigate(dashboardPath, { replace: true });
+      navigate(getDashboardPath(), { replace: true });
     }
-  }, [currentUser]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = async (data) => {
-    // pb.authStore is always up-to-date; React state may lag on first render
     const userId = pb.authStore.record?.id ?? pb.authStore.model?.id ?? currentUser?.id;
     setSaving(true);
     try {
@@ -359,7 +366,9 @@ const OnboardingPage = () => {
 
   const finish = () => {
     if (userId) localStorage.setItem(ONBOARDING_KEY(userId), '1');
-    navigate(dashboardPath, { replace: true });
+    // Read userType from pb.authStore — React state (currentUser) may not reflect
+    // the latest authStore update by the time this callback fires.
+    navigate(getDashboardPath(), { replace: true });
   };
 
   if (!currentUser && !userId) return null;
