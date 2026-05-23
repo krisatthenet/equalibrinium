@@ -17,7 +17,7 @@ migrate((app) => {
     ],
     listRule:   "@request.auth.id != ''",
     viewRule:   "@request.auth.id != ''",
-    createRule: "@request.auth.id != '' && @request.data.senderId = @request.auth.id",
+    createRule: "@request.auth.id != '' && @request.body.senderId = @request.auth.id",
     updateRule: null,
     deleteRule: null,
     indexes: ["CREATE INDEX idx_messages_ticket ON messages (ticketId)"],
