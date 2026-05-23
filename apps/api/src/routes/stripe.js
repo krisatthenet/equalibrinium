@@ -177,13 +177,11 @@ router.get('/session/:sessionId', async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // POST /stripe/onboard-contractor
-// Body: { userId }  — initiates Stripe Connect Express onboarding
+// Initiates Stripe Connect Express onboarding for the authenticated contractor
 // ---------------------------------------------------------------------------
-router.post('/onboard-contractor', async (req, res) => {
+router.post('/onboard-contractor', requirePbAuth, async (req, res) => {
   try {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: 'userId is required' });
-
+    const userId = req.pbUser.id;
     const pb = await adminPb();
     const user = await pb.collection('users').getOne(userId);
 
@@ -207,7 +205,7 @@ router.post('/onboard-contractor', async (req, res) => {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: `${FRONTEND_URL}/settings?stripe_refresh=1`,
-      return_url: `${FRONTEND_URL}/settings?stripe_return=1&userId=${userId}`,
+      return_url: `${FRONTEND_URL}/settings?stripe_return=1`,
       type: 'account_onboarding',
     });
 
@@ -220,13 +218,11 @@ router.post('/onboard-contractor', async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // POST /stripe/finalize-onboarding
-// Body: { userId }  — call after redirect back, marks account as onboarded
+// Call after redirect back — marks the authenticated contractor's account as onboarded
 // ---------------------------------------------------------------------------
-router.post('/finalize-onboarding', async (req, res) => {
+router.post('/finalize-onboarding', requirePbAuth, async (req, res) => {
   try {
-    const { userId } = req.body;
-    if (!userId) return res.status(400).json({ error: 'userId is required' });
-
+    const userId = req.pbUser.id;
     const pb = await adminPb();
     const user = await pb.collection('users').getOne(userId);
     if (!user.stripeAccountId) return res.status(400).json({ error: 'No Stripe account found' });
@@ -302,12 +298,13 @@ router.get('/user-email', async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // POST /stripe/request-payout
-// Body: { userId, amount }  — transfer platform balance to contractor's Stripe account
+// Body: { amount }  — transfer platform balance to the authenticated contractor's Stripe account
 // ---------------------------------------------------------------------------
-router.post('/request-payout', async (req, res) => {
+router.post('/request-payout', requirePbAuth, async (req, res) => {
   try {
-    const { userId, amount } = req.body;
-    if (!userId || !amount) return res.status(400).json({ error: 'userId and amount are required' });
+    const { amount } = req.body;
+    const userId = req.pbUser.id;
+    if (!amount) return res.status(400).json({ error: 'amount is required' });
     if (typeof amount !== 'number' || amount <= 0) {
       return res.status(400).json({ error: 'amount must be a positive number' });
     }
@@ -333,12 +330,11 @@ router.post('/request-payout', async (req, res) => {
     });
 
     // Deduct from PocketBase balance
-    await pb.collection('users').update(userId, {
-      balance: parseFloat((currentBalance - amount).toFixed(2)),
-    });
+    const newBalance = parseFloat((currentBalance - amount).toFixed(2));
+    await pb.collection('users').update(userId, { balance: newBalance });
 
     logger.info(`Payout of €${amount} to ${user.stripeAccountId} (transfer ${transfer.id})`);
-    res.json({ success: true, transferId: transfer.id, remaining: currentBalance - amount });
+    res.json({ success: true, transferId: transfer.id, remaining: newBalance });
   } catch (err) {
     logger.error('request-payout error:', err);
     res.status(500).json({ error: err.message });
@@ -367,7 +363,13 @@ router.post('/create-subscription-checkout', requirePbAuth, async (req, res) => 
     }
 
     // Reuse or create Stripe customer
-    const customerId = await getOrCreateStripeCustomer(pb, user);
+    let customerId;
+    try {
+      customerId = await getOrCreateStripeCustomer(pb, user);
+    } catch (err) {
+      logger.error('create-subscription-checkout: customer creation failed:', err);
+      return res.status(502).json({ error: 'Could not create or retrieve Stripe customer. Please try again.' });
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',

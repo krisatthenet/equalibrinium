@@ -294,7 +294,7 @@ const SettingsPage = () => {
       const res = await apiServerClient.fetch('/stripe/request-payout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id, amount: contractorBalance }),
+        body: JSON.stringify({ amount: contractorBalance }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Payout failed');
@@ -368,7 +368,7 @@ const SettingsPage = () => {
       const res = await apiServerClient.fetch('/stripe/onboard-contractor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id }),
+        body: JSON.stringify({}),
       });
       if (!res.ok) throw new Error('Failed to start Stripe onboarding');
       const { url } = await res.json();
@@ -400,7 +400,7 @@ const SettingsPage = () => {
       apiServerClient.fetch('/stripe/finalize-onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.id }),
+        body: JSON.stringify({}),
       }).then(r => r.json()).then(data => {
         setStripeConnectStatus({ accountId: data.accountId, onboarded: data.onboarded });
         if (data.onboarded) {

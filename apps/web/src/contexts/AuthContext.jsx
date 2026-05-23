@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const record = await pb.collection('users').create(data);
+    await pb.collection('users').requestVerification(email);
     const authData = await pb.collection('users').authWithPassword(email, password);
     setCurrentUser(authData.record);
     identify(record.id, { $email: email, user_type: userType });

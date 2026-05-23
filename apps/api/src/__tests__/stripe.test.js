@@ -13,6 +13,7 @@ const {
   stripeAccountsLogin,
   stripeAccountLinksCreate,
   stripeCustomersCreate,
+  stripeCustomersList,
   stripeSubsRetrieve,
   stripeSubsUpdate,
   stripeTransfersCreate,
@@ -25,6 +26,7 @@ const {
   stripeAccountsLogin:      vi.fn(),
   stripeAccountLinksCreate: vi.fn(),
   stripeCustomersCreate:    vi.fn(),
+  stripeCustomersList:      vi.fn(),
   stripeSubsRetrieve:       vi.fn(),
   stripeSubsUpdate:         vi.fn(),
   stripeTransfersCreate:    vi.fn(),
@@ -37,7 +39,7 @@ vi.mock('stripe', () => ({
       checkout:      { sessions:   { create: stripeCheckoutCreate,   retrieve: stripeCheckoutRetrieve } },
       accounts:      { create: stripeAccountsCreate, retrieve: stripeAccountsRetrieve, createLoginLink: stripeAccountsLogin },
       accountLinks:  { create: stripeAccountLinksCreate },
-      customers:     { create: stripeCustomersCreate },
+      customers:     { create: stripeCustomersCreate, list: stripeCustomersList },
       subscriptions: { retrieve: stripeSubsRetrieve, update: stripeSubsUpdate },
       transfers:     { create: stripeTransfersCreate },
       webhooks:      { constructEvent: stripeWebhooksConstruct },
@@ -93,7 +95,7 @@ vi.mock('../middleware/pbAuth.js', () => ({
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
-const TICKET              = { id: 'ticket-1', userId: 'user-1', budget: 100, acceptedBidId: null, status: 'Open' };
+const TICKET              = { id: 'ticket-1', clientId: 'user-1', budget: 100, acceptedBidId: null, status: 'Open' };
 const BID                 = { id: 'bid-1', proposedRate: 80, masterId: 'contractor-1' };
 const CONTRACTOR_NO_STRIPE = { id: 'contractor-1', stripeAccountId: null,    stripeOnboarded: false, balance: 0   };
 const CONTRACTOR_STRIPE    = { id: 'contractor-1', stripeAccountId: 'acct_123', stripeOnboarded: true,  balance: 50  };
@@ -103,6 +105,7 @@ function resetPbDefaults() {
   pbCol.authWithPassword.mockResolvedValue({});
   pbCol.update.mockResolvedValue({});
   pbCol.create.mockResolvedValue({});
+  pbCol.getOne.mockResolvedValue(null);
 }
 
 // ===========================================================================
@@ -128,7 +131,7 @@ describe('POST /stripe/create-checkout', () => {
   });
 
   it('returns 403 when ticket belongs to a different user', async () => {
-    pbCol.getOne.mockResolvedValueOnce({ ...TICKET, userId: 'other' });
+    pbCol.getOne.mockResolvedValueOnce({ ...TICKET, clientId: 'other' });
     const res = await request(app)
       .post('/stripe/create-checkout')
       .set('Authorization', 'Bearer tok')
@@ -287,6 +290,7 @@ describe('POST /stripe/create-subscription-checkout', () => {
   it('creates a new Stripe customer when none exists and persists it', async () => {
     mockGetPriceId.mockReturnValueOnce('price_vip_m');
     pbCol.getOne.mockResolvedValueOnce({ id: 'u1', userType: 'contractor', email: 'a@b.com', stripeCustomerId: null });
+    stripeCustomersList.mockResolvedValueOnce({ data: [] });
     stripeCustomersCreate.mockResolvedValueOnce({ id: 'cus_new' });
     stripeCheckoutCreate.mockResolvedValueOnce({ url: 'https://stripe.com/sub' });
 
@@ -336,11 +340,6 @@ describe('POST /stripe/cancel-subscription', () => {
   const app = createApp();
   beforeEach(resetPbDefaults);
 
-  it('returns 400 when userId is missing', async () => {
-    const res = await request(app).post('/stripe/cancel-subscription').send({});
-    expect(res.status).toBe(400);
-  });
-
   it('returns 400 when user has no active subscription', async () => {
     pbCol.getOne.mockResolvedValueOnce({ id: 'u1', stripeSubscriptionId: null });
     const res = await request(app).post('/stripe/cancel-subscription').send({ userId: 'u1' });
@@ -366,11 +365,6 @@ describe('POST /stripe/cancel-subscription', () => {
 describe('GET /stripe/subscription-status', () => {
   const app = createApp();
   beforeEach(resetPbDefaults);
-
-  it('returns 400 when userId is missing', async () => {
-    const res = await request(app).get('/stripe/subscription-status');
-    expect(res.status).toBe(400);
-  });
 
   it('returns standard/none when user has no subscription', async () => {
     pbCol.getOne.mockResolvedValueOnce({ id: 'u1', stripeSubscriptionId: null });
@@ -400,11 +394,6 @@ describe('POST /stripe/onboard-contractor', () => {
   const app = createApp();
   beforeEach(resetPbDefaults);
 
-  it('returns 400 when userId is missing', async () => {
-    const res = await request(app).post('/stripe/onboard-contractor').send({});
-    expect(res.status).toBe(400);
-  });
-
   it('creates a new Stripe Express account and returns onboarding URL', async () => {
     pbCol.getOne.mockResolvedValueOnce({ id: 'u1', email: 'a@b.com', stripeAccountId: null });
     stripeAccountsCreate.mockResolvedValueOnce({ id: 'acct_new' });
@@ -414,7 +403,7 @@ describe('POST /stripe/onboard-contractor', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.url).toBe('https://connect.stripe.com/onboard');
-    expect(pbCol.update).toHaveBeenCalledWith('u1', { stripeAccountId: 'acct_new' });
+    expect(pbCol.update).toHaveBeenCalledWith('user-1', { stripeAccountId: 'acct_new' });
   });
 
   it('reuses existing Stripe account without creating a new one', async () => {
@@ -435,11 +424,6 @@ describe('POST /stripe/finalize-onboarding', () => {
   const app = createApp();
   beforeEach(resetPbDefaults);
 
-  it('returns 400 when userId is missing', async () => {
-    const res = await request(app).post('/stripe/finalize-onboarding').send({});
-    expect(res.status).toBe(400);
-  });
-
   it('returns 400 when user has no Stripe account', async () => {
     pbCol.getOne.mockResolvedValueOnce({ id: 'u1', stripeAccountId: null });
     const res = await request(app).post('/stripe/finalize-onboarding').send({ userId: 'u1' });
@@ -454,7 +438,7 @@ describe('POST /stripe/finalize-onboarding', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.onboarded).toBe(true);
-    expect(pbCol.update).toHaveBeenCalledWith('u1', { stripeOnboarded: true });
+    expect(pbCol.update).toHaveBeenCalledWith('user-1', { stripeOnboarded: true });
   });
 
   it('marks user as not onboarded when account setup is incomplete', async () => {
@@ -474,11 +458,6 @@ describe('POST /stripe/finalize-onboarding', () => {
 describe('POST /stripe/request-payout', () => {
   const app = createApp();
   beforeEach(resetPbDefaults);
-
-  it('returns 400 when userId is missing', async () => {
-    const res = await request(app).post('/stripe/request-payout').send({ amount: 50 });
-    expect(res.status).toBe(400);
-  });
 
   it('returns 400 when amount is missing', async () => {
     const res = await request(app).post('/stripe/request-payout').send({ userId: 'u1' });
@@ -515,7 +494,7 @@ describe('POST /stripe/request-payout', () => {
     expect(stripeTransfersCreate).toHaveBeenCalledWith(
       expect.objectContaining({ amount: 4000, currency: 'eur', destination: 'acct_123' }),
     );
-    expect(pbCol.update).toHaveBeenCalledWith('u1', { balance: 60 });
+    expect(pbCol.update).toHaveBeenCalledWith('user-1', { balance: 60 });
   });
 });
 
