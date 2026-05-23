@@ -12,7 +12,7 @@ jobs:
   deploy-api:
     name: Deploy API → Railway Production
     runs-on: ubuntu-latest
-    environment: production
+    environment: Production
     steps:
       - uses: actions/checkout@v4.2.2
 
@@ -28,7 +28,7 @@ jobs:
   deploy-pocketbase:
     name: Deploy PocketBase → Railway Production
     runs-on: ubuntu-latest
-    environment: production
+    environment: Production
     steps:
       - uses: actions/checkout@v4.2.2
 
