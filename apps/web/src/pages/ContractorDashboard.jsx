@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PlanBadge from '@/components/PlanBadge.jsx';
@@ -39,6 +39,8 @@ const ContractorDashboard = () => {
   const [finishingId, setFinishingId] = useState(null);
   const [acceptingId, setAcceptingId] = useState(null);
   const [now, setNow] = useState(Date.now());
+  const [searchRank, setSearchRank] = useState(null);
+  const [totalContractors, setTotalContractors] = useState(null);
   const { permission, requestPermission } = usePushNotifications(currentUser?.id);
 
   useEffect(() => {
@@ -67,7 +69,6 @@ const ContractorDashboard = () => {
         }).catch(() => [])
       ]);
 
-      setContractorProfile(currentUser);
       setOpenTickets(ticketsData.items);
       setMyBids(bidsData.items);
       setReviews(reviewsData);
@@ -95,9 +96,26 @@ const ContractorDashboard = () => {
       }).catch(() => ({ items: [] }));
       setDirectRequests(directData.items);
 
-      // Fetch fresh balance from user record
+      // Fetch fresh balance and profile views
       const userRecord = await pb.collection('users').getOne(currentUser.id, { $autoCancel: false });
       setBalance(Number(userRecord.balance) || 0);
+      setContractorProfile(userRecord);
+
+      // Compute search rank among all contractors
+      const allContractors = await pb.collection('users').getFullList({
+        filter: `userType = "contractor" || userType = "master"`,
+        fields: 'id,rating,reviewCount',
+        $autoCancel: false,
+      }).catch(() => []);
+
+      const sorted = [...allContractors].sort((a, b) => {
+        const ratingDiff = (b.rating || 0) - (a.rating || 0);
+        if (ratingDiff !== 0) return ratingDiff;
+        return (b.reviewCount || 0) - (a.reviewCount || 0);
+      });
+      const rank = sorted.findIndex(c => c.id === currentUser.id) + 1;
+      setSearchRank(rank || null);
+      setTotalContractors(allContractors.length);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -526,6 +544,72 @@ const ContractorDashboard = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Insights section */}
+            <Card className="bg-card border-border rounded-2xl mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Profile Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Profile views */}
+                  <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl">
+                    <div className="p-3 bg-blue-500/10 rounded-xl">
+                      <Eye className="h-6 w-6 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">
+                        {loading ? '—' : (contractorProfile?.profileViews || 0)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Profile Views</p>
+                    </div>
+                  </div>
+
+                  {/* Bid win rate */}
+                  <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl">
+                    <div className="p-3 bg-green-500/10 rounded-xl">
+                      <CheckCircle className="h-6 w-6 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">
+                        {loading ? '—' : myBids.length === 0 ? '0%' : `${Math.round((myBids.filter(b => b.status === 'accepted').length / myBids.length) * 100)}%`}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Bid Win Rate</p>
+                    </div>
+                  </div>
+
+                  {/* Search rank */}
+                  <div className="flex items-center gap-4 p-4 bg-muted/30 rounded-xl">
+                    <div className="p-3 bg-yellow-500/10 rounded-xl">
+                      <Trophy className="h-6 w-6 text-yellow-500" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-foreground">
+                        {loading || searchRank === null ? '—' : `#${searchRank}`}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {totalContractors ? `Search Rank of ${totalContractors}` : 'Search Rank'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Upgrade nudge for lower-ranked contractors */}
+                {searchRank && totalContractors && searchRank > Math.ceil(totalContractors * 0.3) && (
+                  <div className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+                    <p className="text-sm text-muted-foreground">
+                      Upgrade to a paid plan to boost your ranking and appear higher in search results.
+                    </p>
+                    <Button size="sm" asChild className="shrink-0">
+                      <a href="/settings?tab=payment">Upgrade</a>
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Reviews & Rating section */}
             <Card className="bg-card border-border rounded-2xl">
