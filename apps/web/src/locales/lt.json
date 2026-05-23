@@ -34,7 +34,19 @@
       "Baldų surinkimas": "Baldų surinkimas",
       "Grindų klojimas": "Grindų klojimas",
       "Elektrika": "Elektrika",
-      "Santechnika": "Santechnika"
+      "Santechnika": "Santechnika",
+      "Painter": "Dažytojas",
+      "Artist": "Menininkas",
+      "Digital Creator": "Skaitmeninis kūrėjas",
+      "Graffiti Artist": "Grafičio menininkas",
+      "Nurse": "Slaugytojas",
+      "Doctor": "Gydytojas",
+      "Mentor": "Mentorius",
+      "Correpetitor": "Korrepetitorius",
+      "Teacher": "Mokytojas",
+      "Coach": "Treneris",
+      "coach_sport_placeholder": "Kokia sporto šaka?",
+      "Nanny": "Auklė"
     },
     "location": {
       "picker_title": "Pasirinkite darbo vietą",

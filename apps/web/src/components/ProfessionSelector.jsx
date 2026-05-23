@@ -5,12 +5,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 
 const CUSTOM_SENTINEL = '__custom__';
+const COACH_SENTINEL = 'Coach';
 
 const ProfessionSelector = ({ value, onChange, required }) => {
   const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [customMode, setCustomMode] = useState(false);
   const [customText, setCustomText] = useState('');
+  const [coachMode, setCoachMode] = useState(false);
+  const [coachSport, setCoachSport] = useState('');
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -24,9 +27,14 @@ const ProfessionSelector = ({ value, onChange, required }) => {
     fetchCategories();
   }, []);
 
-  // When categories load or value changes from outside, detect if value is custom
+  // When categories load or value changes from outside, detect custom / coach
   useEffect(() => {
     if (!value || categories.length === 0) return;
+    if (value.startsWith('Coach - ')) {
+      setCoachMode(true);
+      setCoachSport(value.slice('Coach - '.length));
+      return;
+    }
     const isKnown = categories.some(c => c.name === value);
     if (!isKnown && value !== CUSTOM_SENTINEL) {
       setCustomMode(true);
@@ -36,12 +44,20 @@ const ProfessionSelector = ({ value, onChange, required }) => {
 
   const handleSelectChange = (val) => {
     if (val === CUSTOM_SENTINEL) {
+      setCoachMode(false);
       setCustomMode(true);
       setCustomText('');
       onChange('');
+    } else if (val === COACH_SENTINEL) {
+      setCustomMode(false);
+      setCoachMode(true);
+      setCoachSport('');
+      onChange('Coach');
     } else {
       setCustomMode(false);
+      setCoachMode(false);
       setCustomText('');
+      setCoachSport('');
       onChange(val);
     }
   };
@@ -52,12 +68,17 @@ const ProfessionSelector = ({ value, onChange, required }) => {
     onChange(text);
   };
 
-  // Determine what value to show in the Select trigger
-  const selectValue = customMode ? CUSTOM_SENTINEL : (value || '');
+  const handleCoachSport = (e) => {
+    const sport = e.target.value;
+    setCoachSport(sport);
+    onChange(sport ? `Coach - ${sport}` : 'Coach');
+  };
+
+  const selectValue = customMode ? CUSTOM_SENTINEL : coachMode ? COACH_SENTINEL : (value || '');
 
   return (
     <div className="space-y-2">
-      <Select value={selectValue} onValueChange={handleSelectChange} required={required && !customMode}>
+      <Select value={selectValue} onValueChange={handleSelectChange} required={required && !customMode && !coachMode}>
         <SelectTrigger className="bg-input border-border text-foreground">
           <SelectValue placeholder={t('professions.select')} />
         </SelectTrigger>
@@ -72,6 +93,17 @@ const ProfessionSelector = ({ value, onChange, required }) => {
           </SelectItem>
         </SelectContent>
       </Select>
+
+      {coachMode && (
+        <Input
+          value={coachSport}
+          onChange={handleCoachSport}
+          placeholder={t('professions.coach_sport_placeholder', { defaultValue: 'Which sport?' })}
+          required={required}
+          className="bg-input border-border text-foreground"
+          autoFocus
+        />
+      )}
 
       {customMode && (
         <Input
