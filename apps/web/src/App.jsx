@@ -34,6 +34,7 @@ const FavouritesPage = React.lazy(() => import('@/pages/FavouritesPage.jsx'));
 const PrivacyPolicyPage = React.lazy(() => import('@/pages/PrivacyPolicyPage.jsx'));
 const TermsOfServicePage = React.lazy(() => import('@/pages/TermsOfServicePage.jsx'));
 const CookiePolicy = React.lazy(() => import('@/pages/CookiePolicy.jsx'));
+const GdprPage = React.lazy(() => import('@/pages/GdprPage.jsx'));
 
 const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
@@ -128,6 +129,7 @@ const AppRoutes = () => {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/terms-of-service" element={<TermsOfServicePage />} />
           <Route path="/cookie-policy" element={<CookiePolicy />} />
+          <Route path="/gdpr" element={<GdprPage />} />
           <Route path="/pricing" element={<PricingPage />} />
 
           {/* Protected User Routes */}

@@ -61,6 +61,9 @@ const Footer = () => {
               <Link to="/cookie-policy" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
                 Cookie Policy
               </Link>
+              <Link to="/gdpr" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
+                GDPR Policy
+              </Link>
               <Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors duration-200 text-sm">
                 {t('footer.contact')}
               </Link>

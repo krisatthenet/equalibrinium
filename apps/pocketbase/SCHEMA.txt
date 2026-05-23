@@ -1,0 +1,532 @@
+================================================================================
+  POCKETBASE SCHEMA — WorkBee (workbee.space)
+  Generated: 2026-05-23
+================================================================================
+
+13 collections  |  1 auth  |  12 base
+--------------------------------------------------------------------------------
+
+LEGEND
+  [PK]   Primary key        [REQ]  Required field
+  [AI]   Auto-generated     [UNQ]  Unique constraint
+  [IDX]  Indexed            [SYS]  System field (PocketBase-managed)
+  ~      Optional field
+
+
+================================================================================
+  COLLECTION: _superusers                              TYPE: auth  (system)
+================================================================================
+  PocketBase built-in superuser collection.
+  Managed via pb_migrations/1778270000_create_superuser.js
+
+  listRule   → null  (superusers only)
+  viewRule   → null
+  createRule → null
+  updateRule → null
+  deleteRule → null
+
+
+================================================================================
+  COLLECTION: users                                    TYPE: auth
+================================================================================
+  Central user table. All user types (client / contractor / master /
+  influencer) share this single collection.
+
+  listRule   → userType != 'client' || id = @request.auth.id
+  viewRule   → userType != 'client' || id = @request.auth.id
+  createRule → ""  (open registration)
+  updateRule → id = @request.auth.id
+  deleteRule → id = @request.auth.id
+
+  ┌──────────────────────────┬─────────────┬──────────────────────────────────┐
+  │ Field                    │ Type        │ Notes                            │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │ id              [PK][AI] │ text(15)    │ [a-z0-9]{15}  [SYS]             │
+  │ email                    │ email       │ [SYS]                            │
+  │ emailVisibility          │ bool        │ [SYS]                            │
+  │ verified                 │ bool        │ [SYS]                            │
+  │ tokenKey                 │ password    │ [SYS] hidden                     │
+  │ password                 │ password    │ [SYS] hidden                     │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │ name                   ~ │ text        │ display name                     │
+  │ avatar                 ~ │ file        │ profile picture  thumb: 100x100  │
+  │ userType               ~ │ select(1)   │ client | master |                │
+  │                          │             │ contractor | influencer           │
+  │ phone                  ~ │ text        │                                  │
+  │ location               ~ │ text        │ human-readable address           │
+  │ latitude               ~ │ number      │                                  │
+  │ longitude              ~ │ number      │                                  │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │  — CONTRACTOR / MASTER fields —                                           │
+  │ bio                    ~ │ text        │                                  │
+  │ profession             ~ │ text        │                                  │
+  │ categories             ~ │ relation(→) │ → categories  maxSelect: 10      │
+  │ rating                 ~ │ number      │ 0–5  auto-updated by hook        │
+  │ reviewCount            ~ │ number      │ 0+   auto-updated by hook        │
+  │ hourlyRate             ~ │ number      │ 0+                               │
+  │ isPromoted             ~ │ bool        │                                  │
+  │ workExamples           ~ │ file(multi) │ portfolio images / files         │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │  — INFLUENCER fields —                                                    │
+  │ instagramHandle        ~ │ text        │                                  │
+  │ youtubeChannel         ~ │ text        │                                  │
+  │ tiktokHandle           ~ │ text        │                                  │
+  │ instagramFollowers     ~ │ number      │                                  │
+  │ youtubeFollowers       ~ │ number      │                                  │
+  │ tiktokFollowers        ~ │ number      │                                  │
+  │ contentNiche           ~ │ text        │                                  │
+  │ influencerBio          ~ │ text        │                                  │
+  │ generatedImagePrompt   ~ │ text        │                                  │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │  — ADMIN / MODERATION fields —                                            │
+  │ role                   ~ │ select(1)   │ user | admin                     │
+  │ banned                 ~ │ bool        │                                  │
+  │ banReason              ~ │ text        │                                  │
+  │ banDate                ~ │ date        │                                  │
+  │ title                  ~ │ text        │ e.g. CEO, CTO                    │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │  — SUBSCRIPTION / STRIPE fields —                                         │
+  │ plan                   ~ │ text(20)    │ "standard" | "vip"               │
+  │ planCycle              ~ │ text(10)    │ "monthly" | "yearly"             │
+  │ planExpiresAt          ~ │ date        │                                  │
+  │ primerSubscriptionId   ~ │ text(100)   │ legacy — not in active use       │
+  │ stripeCustomerId       ~ │ text(100)   │ Stripe customer ID (cus_…)       │
+  │ stripeSubscriptionId   ~ │ text(100)   │ Stripe subscription ID (sub_…)   │
+  │ stripeAccountId        ~ │ text(100)   │ Stripe Connect account (acct_…)  │
+  │ stripeOnboarded        ~ │ bool        │ Connect onboarding complete      │
+  │ balance                ~ │ number      │ platform payout balance (€)      │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │  — REFERRAL fields —                                                      │
+  │ referralCode           ~ │ text(12)    │ user's own referral code         │
+  │ referredByCode         ~ │ text(12)    │ code used at signup              │
+  │ referralFreeMonths     ~ │ number      │ free months earned               │
+  ├──────────────────────────┼─────────────┼──────────────────────────────────┤
+  │ created      [AI]        │ autodate    │ set on create                    │
+  │ updated      [AI]        │ autodate    │ set on create & update           │
+  └──────────────────────────┴─────────────┴──────────────────────────────────┘
+
+  Hooks (pb_hooks/):
+    update_contractor_rating.pb.js  — recalculates rating + reviewCount
+                                      after review create
+    referrals.pb.js                 — generates referralCode on user create
+    ensure_usertype_values.pb.js    — normalises userType on save
+    bid-expiry.pb.js                — cron: expires stale bids
+    sms-notifications.pb.js         — sends SMS on bid/ticket events
+    completion-notification.pb.js  — emails on payment webhook
+
+
+================================================================================
+  COLLECTION: categories                               TYPE: base
+================================================================================
+  Static lookup table for service categories (Plumbing, Electrician, etc.)
+
+  listRule   → ""   (public read)
+  viewRule   → ""   (public read)
+  createRule → null (admin only)
+  updateRule → null
+  deleteRule → null
+
+  ┌─────────────────┬──────────┬──────────────────────────────────────────────┐
+  │ Field           │ Type     │ Notes                                        │
+  ├─────────────────┼──────────┼──────────────────────────────────────────────┤
+  │ id     [PK][AI] │ text(15) │ [a-z0-9]{15}                                 │
+  │ name    [REQ]   │ text     │                                              │
+  │ description   ~ │ text     │                                              │
+  │ icon          ~ │ text     │ emoji or icon identifier                     │
+  │ created  [AI]   │ autodate │                                              │
+  │ updated  [AI]   │ autodate │                                              │
+  └─────────────────┴──────────┴──────────────────────────────────────────────┘
+
+
+================================================================================
+  COLLECTION: auction_tickets                          TYPE: base
+================================================================================
+  Job requests posted by clients, open to contractor bids.
+
+  listRule   → @request.auth.id != ''  (auth required)
+  viewRule   → @request.auth.id != ''
+  createRule → @request.auth.id != '' && @request.auth.userType = 'client'
+  updateRule → @request.auth.id != '' && clientId = @request.auth.id
+  deleteRule → @request.auth.id != '' && clientId = @request.auth.id
+
+  ┌─────────────────────┬───────────┬─────────────────────────────────────────┐
+  │ Field               │ Type      │ Notes                                   │
+  ├─────────────────────┼───────────┼─────────────────────────────────────────┤
+  │ id       [PK][AI]   │ text(15)  │ [a-z0-9]{15}                            │
+  │ clientId [REQ]      │ text      │ → users.id  (client owner)              │
+  │ categoryId [REQ]    │ text      │ → categories.id                         │
+  │ description       ~ │ text      │                                         │
+  │ budget            ~ │ number    │ client's budget (€)                     │
+  │ location          ~ │ text      │ human-readable address                  │
+  │ latitude          ~ │ number    │                                         │
+  │ longitude         ~ │ number    │                                         │
+  │ durationEstimate  ~ │ text      │ e.g. "2 hours", "1 day"                 │
+  │ status            ~ │ select(1) │ Open | In Progress | Completed |        │
+  │                     │           │ Cancelled                               │
+  │ acceptedBidId     ~ │ text      │ → bids.id  (set when bid accepted)      │
+  │ created  [AI]       │ autodate  │                                         │
+  │ updated  [AI]       │ autodate  │                                         │
+  └─────────────────────┴───────────┴─────────────────────────────────────────┘
+
+  Note: files field exists in disabled migrations; not active in production.
+
+
+================================================================================
+  COLLECTION: bids                                     TYPE: base
+================================================================================
+  Contractor bids on auction_tickets.
+
+  listRule   → @request.auth.id != ''  (auth required)
+  viewRule   → @request.auth.id != ''
+  createRule → @request.auth.id != '' && @request.auth.userType = 'contractor'
+  updateRule → @request.auth.id != '' && masterId = @request.auth.id
+  deleteRule → @request.auth.id != '' && masterId = @request.auth.id
+
+  ┌───────────────────┬───────────┬───────────────────────────────────────────┐
+  │ Field             │ Type      │ Notes                                     │
+  ├───────────────────┼───────────┼───────────────────────────────────────────┤
+  │ id     [PK][AI]   │ text(15)  │ [a-z0-9]{15}                              │
+  │ ticketId [REQ]    │ text      │ → auction_tickets.id                      │
+  │ masterId [REQ]    │ text      │ → users.id  (the bidding contractor)      │
+  │ proposedRate[REQ] │ number    │ quoted price (€)                          │
+  │ message         ~ │ text      │ bid message / pitch                       │
+  │ status          ~ │ select(1) │ pending | accepted | rejected             │
+  │ created  [AI]     │ autodate  │                                           │
+  │ updated  [AI]     │ autodate  │                                           │
+  └───────────────────┴───────────┴───────────────────────────────────────────┘
+
+  Note: field name is "masterId" (historic), but stores contractor user IDs.
+
+
+================================================================================
+  COLLECTION: reviews                                  TYPE: base
+================================================================================
+  Client reviews of contractors after job completion.
+
+  listRule   → ""   (public)
+  viewRule   → ""   (public)
+  createRule → @request.auth.id != ''
+  updateRule → null  (immutable after create)
+  deleteRule → null
+
+  ┌───────────────────┬───────────┬───────────────────────────────────────────┐
+  │ Field             │ Type      │ Notes                                     │
+  ├───────────────────┼───────────┼───────────────────────────────────────────┤
+  │ id     [PK][AI]   │ text(15)  │ [a-z0-9]{15}                              │
+  │ masterId [REQ]    │ text      │ → users.id  (contractor being reviewed)   │
+  │ clientId [REQ]    │ text      │ → users.id  (reviewer)                    │
+  │ ticketId        ~ │ text      │ → auction_tickets.id  (optional link)     │
+  │ rating   [REQ]    │ number    │ 1–5                                       │
+  │ comment         ~ │ text      │                                           │
+  │ createdAt [AI]    │ autodate  │ legacy duplicate of created               │
+  │ created  [AI]     │ autodate  │                                           │
+  │ updated  [AI]     │ autodate  │                                           │
+  └───────────────────┴───────────┴───────────────────────────────────────────┘
+
+  Hook: update_contractor_rating.pb.js recalculates users.rating and
+        users.reviewCount whenever a review is created.
+
+
+================================================================================
+  COLLECTION: favourites                               TYPE: base
+================================================================================
+  Client bookmarks of contractor profiles.
+
+  listRule   → userId = @request.auth.id
+  viewRule   → userId = @request.auth.id
+  createRule → @request.auth.id != ''
+  updateRule → null
+  deleteRule → userId = @request.auth.id
+
+  ┌───────────────────────┬──────────┬─────────────────────────────────────────┐
+  │ Field                 │ Type     │ Notes                                   │
+  ├───────────────────────┼──────────┼─────────────────────────────────────────┤
+  │ id       [PK][AI]     │ text(15) │ [a-z0-9]{15}                            │
+  │ userId   [REQ]        │ text     │ → users.id  (the client)                │
+  │ contractorId [REQ]    │ text     │ → users.id  (the bookmarked contractor) │
+  │ created  [AI]         │ autodate │                                         │
+  └───────────────────────┴──────────┴─────────────────────────────────────────┘
+
+  Indexes:
+    UNIQUE (userId, contractorId)
+
+
+================================================================================
+  COLLECTION: messages                                 TYPE: base
+================================================================================
+  Real-time in-app chat between client and contractor on a ticket.
+
+  listRule   → @request.auth.id != ''
+  viewRule   → @request.auth.id != ''
+  createRule → @request.auth.id != '' && @request.data.senderId = @request.auth.id
+  updateRule → null  (immutable)
+  deleteRule → null
+
+  ┌──────────────────┬──────────┬──────────────────────────────────────────────┐
+  │ Field            │ Type     │ Notes                                        │
+  ├──────────────────┼──────────┼──────────────────────────────────────────────┤
+  │ id    [PK][AI]   │ text(15) │ [a-z0-9]{15}                                 │
+  │ ticketId [REQ]   │ text     │ → auction_tickets.id  [IDX]                  │
+  │ senderId [REQ]   │ text     │ → users.id                                   │
+  │ senderName     ~ │ text     │ denormalised display name                    │
+  │ text     [REQ]   │ text     │ message body                                 │
+  │ created  [AI]    │ autodate │                                              │
+  │ updated  [AI]    │ autodate │                                              │
+  └──────────────────┴──────────┴──────────────────────────────────────────────┘
+
+  Indexes:
+    CREATE INDEX idx_messages_ticket ON messages (ticketId)
+
+
+================================================================================
+  COLLECTION: payments                                 TYPE: base
+================================================================================
+  Stripe payment records written by the API server on webhook receipt.
+
+  listRule   → @request.auth.id = userId
+  viewRule   → @request.auth.id = userId
+  createRule → ""  (server-side write)
+  updateRule → ""  (server-side write)
+  deleteRule → ""
+
+  ┌─────────────────────┬─────────────┬─────────────────────────────────────────┐
+  │ Field               │ Type        │ Notes                                   │
+  ├─────────────────────┼─────────────┼─────────────────────────────────────────┤
+  │ id       [PK][AI]   │ text(15)    │ [a-z0-9]{15}                            │
+  │ ticketId [REQ]      │ text(15)    │ → auction_tickets.id                    │
+  │ userId   [REQ]      │ text(15)    │ → users.id  (the paying client)         │
+  │ amount   [REQ]      │ number      │ amount paid (€)                         │
+  │ paymentMethod     ~ │ text(50)    │ e.g. "card"                             │
+  │ paymentOption     ~ │ text(50)    │ e.g. "stripe"                           │
+  │ status            ~ │ text(50)    │ e.g. "paid"                             │
+  │ transactionId[REQ]  │ text(200)   │ Stripe session / payment intent ID      │
+  │ created  [AI]       │ autodate    │                                         │
+  │ updated  [AI]       │ autodate    │                                         │
+  └─────────────────────┴─────────────┴─────────────────────────────────────────┘
+
+
+================================================================================
+  COLLECTION: push_subscriptions                       TYPE: base
+================================================================================
+  Web Push (VAPID) subscription tokens, one per browser session per user.
+
+  listRule   → @request.auth.id != ''
+  viewRule   → @request.auth.id != ''
+  createRule → @request.auth.id != ''
+  updateRule → @request.auth.id != ''
+  deleteRule → @request.auth.id != ''
+
+  ┌──────────────┬──────────┬────────────────────────────────────────────────┐
+  │ Field        │ Type     │ Notes                                          │
+  ├──────────────┼──────────┼────────────────────────────────────────────────┤
+  │ id  [PK][AI] │ text(15) │ [a-z0-9]{15}                                   │
+  │ userId [REQ] │ text     │ → users.id                                     │
+  │ endpoint[REQ]│ text     │ push service URL                               │
+  │ p256dh [REQ] │ text     │ client public key (base64url)                  │
+  │ auth   [REQ] │ text     │ auth secret (base64url)                        │
+  │ created [AI] │ autodate │                                                │
+  │ updated [AI] │ autodate │                                                │
+  └──────────────┴──────────┴────────────────────────────────────────────────┘
+
+
+================================================================================
+  COLLECTION: contacts                                 TYPE: base
+================================================================================
+  Contact form submissions from the public /contact page.
+
+  listRule   → null  (admin only)
+  viewRule   → null
+  createRule → ""    (anyone, including unauthenticated)
+  updateRule → null
+  deleteRule → null
+
+  ┌──────────────────┬──────────┬──────────────────────────────────────────────┐
+  │ Field            │ Type     │ Notes                                        │
+  ├──────────────────┼──────────┼──────────────────────────────────────────────┤
+  │ id    [PK][AI]   │ text(15) │ [a-z0-9]{15}                                 │
+  │ name     [REQ]   │ text     │                                              │
+  │ email    [REQ]   │ email    │                                              │
+  │ subject  [REQ]   │ text     │                                              │
+  │ category       ~ │ text     │                                              │
+  │ message  [REQ]   │ text     │                                              │
+  │ created  [AI]    │ autodate │                                              │
+  │ updated  [AI]    │ autodate │                                              │
+  └──────────────────┴──────────┴──────────────────────────────────────────────┘
+
+
+================================================================================
+  COLLECTION: client_locations                         TYPE: base
+================================================================================
+  Last-known location for clients (used for job proximity matching).
+
+  listRule   → clientId = @request.auth.id
+  viewRule   → clientId = @request.auth.id
+  createRule → @request.auth.id != ''
+  updateRule → clientId = @request.auth.id
+  deleteRule → clientId = @request.auth.id
+
+  ┌──────────────────┬──────────┬──────────────────────────────────────────────┐
+  │ Field            │ Type     │ Notes                                        │
+  ├──────────────────┼──────────┼──────────────────────────────────────────────┤
+  │ id    [PK][AI]   │ text(15) │ [a-z0-9]{15}                                 │
+  │ clientId [REQ]   │ text     │ → users.id                                   │
+  │ latitude       ~ │ number   │                                              │
+  │ longitude      ~ │ number   │                                              │
+  │ address        ~ │ text     │                                              │
+  │ lastUpdated[AI]  │ autodate │ set on create & update                       │
+  │ created  [AI]    │ autodate │                                              │
+  │ updated  [AI]    │ autodate │                                              │
+  └──────────────────┴──────────┴──────────────────────────────────────────────┘
+
+
+================================================================================
+  COLLECTION: referrals                                TYPE: base
+================================================================================
+  Tracks who referred whom. One row per successful referral sign-up.
+
+  listRule   → null  (server-side read via admin SDK)
+  viewRule   → null
+  createRule → null
+  updateRule → null
+  deleteRule → null
+
+  ┌──────────────────┬──────────┬──────────────────────────────────────────────┐
+  │ Field            │ Type     │ Notes                                        │
+  ├──────────────────┼──────────┼──────────────────────────────────────────────┤
+  │ id    [PK][AI]   │ text(15) │ [a-z0-9]{15}                                 │
+  │ referrerId[REQ]  │ text     │ → users.id  (who shared the code)            │
+  │ referredId[REQ]  │ text     │ → users.id  (new user who used the code)     │
+  │ rewardedAt     ~ │ date     │ set when free month credited                 │
+  │ created  [AI]    │ autodate │                                              │
+  │ updated  [AI]    │ autodate │                                              │
+  └──────────────────┴──────────┴──────────────────────────────────────────────┘
+
+
+================================================================================
+  ENTITY RELATIONSHIPS
+================================================================================
+
+  users ──────────────────────────────────────────────────────────────────────┐
+    │  [categories]  → categories                                             │
+    │                                                                         │
+    │  auction_tickets.clientId ──────────────────────────────────────────┐  │
+    │  auction_tickets.acceptedBidId ──────────────────────────────────┐  │  │
+    │                                                                  │  │  │
+    │  bids.masterId (contractor) ─────────────────────────────────┐  │  │  │
+    │  bids.ticketId ──────────────────────────────────────────────┼──┘  │  │
+    │                                                              │      │  │
+    │  reviews.masterId (contractor being reviewed) ───────────────┼──────┼──┘
+    │  reviews.clientId (the client reviewer) ──────────────────────┼──────┘
+    │  reviews.ticketId ────────────────────────────────────────────┘
+    │
+    │  favourites.userId ────────────────────────────────────────────── users
+    │  favourites.contractorId ─────────────────────────────────────── users
+    │
+    │  messages.senderId ────────────────────────────────────────────── users
+    │  messages.ticketId ──────────────────────────────── auction_tickets
+    │
+    │  payments.userId ──────────────────────────────────────────────── users
+    │  payments.ticketId ─────────────────────────────── auction_tickets
+    │
+    │  push_subscriptions.userId ────────────────────────────────────── users
+    │  client_locations.clientId ────────────────────────────────────── users
+    │
+    │  referrals.referrerId ─────────────────────────────────────────── users
+    │  referrals.referredId ─────────────────────────────────────────── users
+    │
+    │  users.referralCode  ──────────────── referrals (soft, via hook)
+    └───────────────────────────────────────────────────────────────────────────
+
+
+================================================================================
+  PB_HOOKS SUMMARY
+================================================================================
+
+  bid-expiry.pb.js              Cron — marks bids older than N days as
+                                "rejected" if still "pending".
+
+  bid-notification.pb.js        On bid create → notify ticket owner (push +
+                                email via builder-mailer).
+
+  builder-mailer.pb.js          Shared email-sending helper used by other
+                                hooks. Sends via PocketBase SMTP.
+
+  completion-notification.pb.js On Stripe payment webhook → marks ticket
+                                "Completed", credits contractor balance,
+                                sends notification email (up to 3× risk —
+                                BUG-12, not yet fixed).
+
+  cors.pb.js                    Global CORS middleware for pb_hooks routes.
+
+  custom-migrations-cmd.pb.js   Adds `pb migrations up` CLI helper.
+
+  ensure_usertype_values.pb.js  Before save on users → normalises userType
+                                to valid enum value.
+
+  external-dashboard.pb.js      Admin-only route for external ops tooling.
+
+  payment-balance.pb.js         On payment create → credits contractor
+                                platform balance (users.balance).
+
+  referrals.pb.js               On user create → generates referralCode;
+                                processes referredByCode if present.
+
+  sms-notifications.pb.js       On bid / ticket events → sends SMS via
+                                external SMS gateway.
+
+  update_contractor_rating.pb.js  On review create → recalculates
+                                   users.rating and users.reviewCount for
+                                   the reviewed contractor.
+
+
+================================================================================
+  MIGRATIONS ORDER (active — pb_migrations/)
+================================================================================
+
+  1743800000  configure_smtp
+  1743838000  create_favourites
+  1743840000  migrate_contractors_to_users      ← major schema consolidation
+  1743841000  update_userType_values
+  1773525739  created_categories
+  1773525740  created_reviews
+  1773525745  add_userType_to_users
+  1773525746  add_phone_to_users
+  1773525748  add_location_to_users
+  1773525764  seed_categories_6_records
+  1773550991  seed_categories_3_records
+  1773556376  created_auction_tickets
+  1773556377  created_bids
+  1773557993  created_client_locations
+  1773562255  rename_masterId_to_contractorId_in_reviews  (reviews only — bids
+                                                           field still masterId)
+  1773570998  add_role_to_users
+  1773570999  add_banned_to_users
+  1773571001  add_ban_reason_to_users
+  1773571003  add_ban_date_to_users
+  1773700001  add_workExamples_to_users
+  1773700005  public_reviews_list_rule
+  1773900000  create_push_subscriptions
+  1773910001  add_title_to_users
+  1773910002  seed_team_titles
+  1773920001  add_plan_to_users
+  1773920002  add_stripe_subscription_fields
+  1773930001  fix_bids_create_rule              ← changed to userType=contractor
+  1773940001  create_contacts_collection
+  1778270000  create_superuser
+  1778310000  add_referral_fields + create_referrals
+  1778400000  upsert_admin_superuser
+  1778500000  seed_sample_data
+  1779444000  fix_userType_select_values
+  1779500000  ensure_userType_values
+  1779501000  ensure_userType_values_v2
+  1779600000  add_stripe_connect_fields         ← stripeAccountId, balance
+  1779700000  create_payments_collection
+  1779800000  fix_users_list_rule               ← contractor search made public
+  1779900000  fix_client_locations_rules
+  1780000000  force_userType_values
+  1780100000  add_stripe_customer_id
+  1780200000  create_messages                   ← real-time chat
+
+================================================================================
+  END OF SCHEMA
+================================================================================
