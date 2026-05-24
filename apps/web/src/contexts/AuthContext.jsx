@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import pb from '@/lib/pocketbaseClient.js';
-import { identify, track, reset as mixpanelReset } from '@/lib/mixpanel';
+
 
 const AuthContext = createContext(null);
 
@@ -61,14 +61,12 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const authData = await pb.collection('users').authWithPassword(email, password);
     setCurrentUser(authData.record);
-    identify(authData.record.id, { $email: email, user_type: authData.record.userType });
     return authData;
   };
 
   const logout = () => {
     pb.authStore.clear();
     setCurrentUser(null);
-    mixpanelReset();
   };
 
   const requestPasswordReset = async (email) => {
