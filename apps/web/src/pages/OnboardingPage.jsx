@@ -452,7 +452,7 @@ const OnboardingPage = () => {
       });
       const text = await res.text();
       let data;
-      try { data = JSON.parse(text); } catch { throw new Error(`Server error (${res.status})`); }
+      try { data = JSON.parse(text); } catch { throw new Error(`Non-JSON response (${res.status}): ${text.slice(0, 120)}`); }
       if (data.url) {
         window.location.href = data.url;
       } else {
