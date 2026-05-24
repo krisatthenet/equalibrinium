@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import pb from '@/lib/pocketbaseClient.js';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Loader2, CalendarDays, Check, X, Trash2 } from 'lucide-react';
+import { Loader2, CalendarDays, Check, X, Trash2, Keyboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const toDateKey = (d) => {
@@ -14,6 +14,19 @@ const toDateKey = (d) => {
     String(dt.getMonth() + 1).padStart(2, '0'),
     String(dt.getDate()).padStart(2, '0'),
   ].join('-');
+};
+
+const getDatesInRange = (from, to) => {
+  const keys = [];
+  const cur = new Date(from);
+  const end = new Date(to);
+  cur.setHours(12, 0, 0, 0);
+  end.setHours(12, 0, 0, 0);
+  while (cur <= end) {
+    keys.push(toDateKey(cur));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return keys;
 };
 
 const TYPES = {
@@ -32,15 +45,24 @@ const PRESETS = {
 
 const ContractorAvailability = ({ contractorId }) => {
   const { toast } = useToast();
-  const [records, setRecords]         = useState([]);
-  const [recordMap, setRecordMap]     = useState({});  // dateKey → record
-  const [slotRequests, setSlotRequests] = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [editingDay, setEditingDay]   = useState(null); // { key, record | null }
-  const [editType, setEditType]       = useState('available');
-  const [editNote, setEditNote]       = useState('');
-  const [saving, setSaving]           = useState(false);
-  const [actioning, setActioning]     = useState(null);
+  const kbToRef = useRef(null);
+
+  const [records, setRecords]               = useState([]);
+  const [recordMap, setRecordMap]           = useState({});
+  const [slotRequests, setSlotRequests]     = useState([]);
+  const [loading, setLoading]               = useState(true);
+
+  const [selMode, setSelMode]               = useState('single'); // 'single' | 'range'
+  const [rangeSelection, setRangeSelection] = useState(undefined);
+
+  const [kbFrom, setKbFrom]                 = useState('');
+  const [kbTo, setKbTo]                     = useState('');
+
+  const [editingDay, setEditingDay]         = useState(null); // { keys: string[], record: Record|null }
+  const [editType, setEditType]             = useState('available');
+  const [editNote, setEditNote]             = useState('');
+  const [saving, setSaving]                 = useState(false);
+  const [actioning, setActioning]           = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -73,32 +95,53 @@ const ContractorAvailability = ({ contractorId }) => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const openEditor = (date) => {
-    const key = toDateKey(date);
-    const existing = recordMap[key] ?? null;
-    setEditingDay({ key, record: existing });
-    setEditType(existing?.type || 'available');
-    setEditNote(existing?.note || '');
+  const openEditorForKeys = (keys) => {
+    const record = keys.length === 1 ? (recordMap[keys[0]] ?? null) : null;
+    setEditingDay({ keys, record });
+    setEditType(record?.type || 'available');
+    setEditNote(record?.note || '');
+  };
+
+  const handleSingleDayClick = (date) => openEditorForKeys([toDateKey(date)]);
+
+  const handleRangeSelect = (range) => {
+    setRangeSelection(range);
+    if (range?.from && range?.to) {
+      openEditorForKeys(getDatesInRange(range.from, range.to));
+    } else {
+      setEditingDay(null);
+    }
+  };
+
+  const handleKeyboardApply = () => {
+    if (!kbFrom) return;
+    const useRange = selMode === 'range' && kbTo && kbTo >= kbFrom;
+    const keys = useRange
+      ? getDatesInRange(new Date(kbFrom + 'T12:00:00'), new Date(kbTo + 'T12:00:00'))
+      : [kbFrom];
+    openEditorForKeys(keys);
   };
 
   const handleSave = async () => {
     if (!editingDay) return;
     setSaving(true);
     try {
-      if (editingDay.record) {
-        await pb.collection('availability').update(editingDay.record.id, {
-          type: editType,
-          note: editNote.trim(),
-        }, { $autoCancel: false });
-      } else {
-        await pb.collection('availability').create({
-          contractorId,
-          date: editingDay.key,
-          type: editType,
-          note: editNote.trim(),
-        }, { $autoCancel: false });
-      }
-      setEditingDay(null);
+      await Promise.all(editingDay.keys.map(async (key) => {
+        const existing = recordMap[key];
+        if (existing) {
+          await pb.collection('availability').update(existing.id, {
+            type: editType, note: editNote.trim(),
+          }, { $autoCancel: false });
+        } else {
+          await pb.collection('availability').create({
+            contractorId, date: key, type: editType, note: editNote.trim(),
+          }, { $autoCancel: false });
+        }
+      }));
+      const n = editingDay.keys.length;
+      toast({ title: `${n} date${n > 1 ? 's' : ''} saved` });
+      setEditingDay(null); setRangeSelection(undefined);
+      setKbFrom(''); setKbTo('');
       await fetchData();
     } catch (err) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -108,11 +151,14 @@ const ContractorAvailability = ({ contractorId }) => {
   };
 
   const handleRemove = async () => {
-    if (!editingDay?.record) return;
+    if (!editingDay) return;
     setSaving(true);
     try {
-      await pb.collection('availability').delete(editingDay.record.id, { $autoCancel: false });
-      setEditingDay(null);
+      const toDelete = editingDay.keys.filter(k => recordMap[k]);
+      await Promise.all(toDelete.map(k =>
+        pb.collection('availability').delete(recordMap[k].id, { $autoCancel: false })
+      ));
+      setEditingDay(null); setRangeSelection(undefined);
       await fetchData();
     } catch (err) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
@@ -134,10 +180,16 @@ const ContractorAvailability = ({ contractorId }) => {
     }
   };
 
+  const switchMode = (mode) => {
+    setSelMode(mode);
+    setEditingDay(null); setRangeSelection(undefined);
+    setKbFrom(''); setKbTo('');
+  };
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const todayKey = toDateKey(today);
 
-  // Build per-type date arrays for the calendar
   const modifiers = {};
   const modifiersClassNames = {};
   for (const [type, cfg] of Object.entries(TYPES)) {
@@ -152,6 +204,8 @@ const ContractorAvailability = ({ contractorId }) => {
 
   const pendingRequests = slotRequests.filter(r => r.status === 'pending');
   const pastRequests    = slotRequests.filter(r => r.status !== 'pending');
+  const editingCount    = editingDay?.keys?.length ?? 0;
+  const editingHasExisting = editingDay?.keys?.some(k => recordMap[k]) ?? false;
 
   if (loading) return (
     <div className="flex items-center justify-center py-12">
@@ -162,43 +216,147 @@ const ContractorAvailability = ({ contractorId }) => {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        Click any future date to set its status. Clients see <strong className="text-green-400">available</strong> and{' '}
-        <strong className="text-orange-400">priority</strong> dates and can request a slot.
+        Mark days you're available so clients can book a slot — no more "when are you free?" ping-pong.
+        Use <strong className="text-foreground">Single day</strong> for one date or{' '}
+        <strong className="text-foreground">Date range</strong> to mark multiple at once.
       </p>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Calendar + editor */}
-        <div className="flex-1 min-w-0 space-y-4">
-          <Calendar
-            onDayClick={openEditor}
-            disabled={{ before: today }}
-            modifiers={modifiers}
-            modifiersClassNames={modifiersClassNames}
-            className="rounded-xl border border-border p-3 w-full"
-          />
+        {/* ── Calendar column ── */}
+        <div className="flex-1 min-w-0 space-y-3">
+
+          {/* Mode toggle */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex rounded-lg border border-border overflow-hidden text-xs font-medium">
+              <button
+                onClick={() => switchMode('single')}
+                className={`px-4 py-1.5 transition-colors ${selMode === 'single' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+              >
+                Single day
+              </button>
+              <button
+                onClick={() => switchMode('range')}
+                className={`px-4 py-1.5 transition-colors border-l border-border ${selMode === 'range' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+              >
+                Date range
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {selMode === 'single'
+                ? 'Click any future date to set its status'
+                : 'Click a start date, then click an end date to select the range'}
+            </p>
+          </div>
+
+          {/* Calendar */}
+          {selMode === 'single' ? (
+            <Calendar
+              onDayClick={handleSingleDayClick}
+              disabled={{ before: today }}
+              modifiers={modifiers}
+              modifiersClassNames={modifiersClassNames}
+              className="rounded-xl border border-border p-3 w-full"
+            />
+          ) : (
+            <Calendar
+              mode="range"
+              selected={rangeSelection}
+              onSelect={handleRangeSelect}
+              disabled={{ before: today }}
+              modifiers={modifiers}
+              modifiersClassNames={modifiersClassNames}
+              className="rounded-xl border border-border p-3 w-full"
+            />
+          )}
+
+          {/* Keyboard / no-mouse entry */}
+          <div className="rounded-xl border border-border bg-muted/10 p-3 space-y-2">
+            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <Keyboard className="h-3.5 w-3.5" />
+              No mouse? Type dates directly ·{' '}
+              <span className="font-normal">press Enter to confirm</span>
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <label htmlFor="kb-from" className="text-xs text-muted-foreground whitespace-nowrap">
+                  {selMode === 'range' ? 'From' : 'Date'}
+                </label>
+                <input
+                  id="kb-from"
+                  type="date"
+                  value={kbFrom}
+                  min={todayKey}
+                  onChange={e => setKbFrom(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      if (selMode === 'range' && !kbTo) kbToRef.current?.focus();
+                      else handleKeyboardApply();
+                    }
+                  }}
+                  className="text-xs bg-input border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary h-8 w-36"
+                  aria-label="Start date"
+                />
+              </div>
+
+              {selMode === 'range' && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">to</span>
+                  <input
+                    ref={kbToRef}
+                    id="kb-to"
+                    type="date"
+                    value={kbTo}
+                    min={kbFrom || todayKey}
+                    onChange={e => setKbTo(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleKeyboardApply()}
+                    className="text-xs bg-input border border-border rounded-lg px-2 py-1 text-foreground focus:outline-none focus:ring-1 focus:ring-primary h-8 w-36"
+                    aria-label="End date"
+                  />
+                </div>
+              )}
+
+              <Button
+                size="sm" variant="outline"
+                className="h-8 text-xs rounded-lg shrink-0"
+                onClick={handleKeyboardApply}
+                disabled={!kbFrom}
+              >
+                Mark {selMode === 'range' && kbTo ? 'range' : 'date'}
+              </Button>
+            </div>
+          </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
+          <div className="flex flex-wrap gap-x-4 gap-y-1 px-1">
             {Object.entries(TYPES).map(([type, cfg]) => (
               <span key={type} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span>{cfg.emoji}</span>{cfg.label}
+                {cfg.emoji} {cfg.label}
               </span>
             ))}
           </div>
 
-          {/* Date editor card — Google Calendar-style inline panel */}
+          {/* Editor card */}
           {editingDay && (
             <div className="border border-border rounded-xl p-4 space-y-3 bg-card shadow-sm">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground">{editingDay.key}</p>
-                {editingDay.record && (
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="text-sm font-semibold text-foreground leading-snug">
+                    {editingCount === 1
+                      ? editingDay.keys[0]
+                      : `${editingCount} dates  ·  ${editingDay.keys[0]} → ${editingDay.keys[editingCount - 1]}`}
+                  </p>
+                  {editingCount > 1 && (
+                    <p className="text-xs text-muted-foreground mt-0.5">All selected dates will get the same status</p>
+                  )}
+                </div>
+                {editingHasExisting && (
                   <Button
                     size="sm" variant="ghost"
-                    className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1"
-                    onClick={handleRemove}
-                    disabled={saving}
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1 shrink-0"
+                    onClick={handleRemove} disabled={saving}
                   >
-                    <Trash2 className="h-3 w-3" /> Remove
+                    <Trash2 className="h-3 w-3" />
+                    {editingCount > 1 ? 'Remove all' : 'Remove'}
                   </Button>
                 )}
               </div>
@@ -239,11 +397,11 @@ const ContractorAvailability = ({ contractorId }) => {
                 </div>
               )}
 
-              {/* Custom note */}
               <Input
                 value={editNote}
                 onChange={e => setEditNote(e.target.value)}
-                placeholder="Add a note… (optional)"
+                onKeyDown={e => e.key === 'Enter' && !saving && handleSave()}
+                placeholder="Add a note… (optional) · Enter to save"
                 className="text-sm bg-input border-border rounded-xl h-9"
               />
 
@@ -251,17 +409,16 @@ const ContractorAvailability = ({ contractorId }) => {
                 <Button
                   size="sm"
                   className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-8 text-xs"
-                  onClick={handleSave}
-                  disabled={saving}
+                  onClick={handleSave} disabled={saving}
                 >
                   {saving
                     ? <Loader2 className="h-3 w-3 animate-spin" />
-                    : <><Check className="h-3 w-3 mr-1" />Save</>}
+                    : <><Check className="h-3 w-3 mr-1" />
+                        Save{editingCount > 1 ? ` ${editingCount} dates` : ''}</>}
                 </Button>
                 <Button
-                  size="sm" variant="ghost"
-                  className="rounded-lg h-8 text-xs"
-                  onClick={() => setEditingDay(null)}
+                  size="sm" variant="ghost" className="rounded-lg h-8 text-xs"
+                  onClick={() => { setEditingDay(null); setRangeSelection(undefined); }}
                   disabled={saving}
                 >
                   Cancel
@@ -271,7 +428,7 @@ const ContractorAvailability = ({ contractorId }) => {
           )}
         </div>
 
-        {/* Requests sidebar */}
+        {/* ── Requests sidebar ── */}
         <div className="lg:w-72 space-y-4">
           {pendingRequests.length > 0 && (
             <div>
