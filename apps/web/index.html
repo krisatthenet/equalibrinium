@@ -28,11 +28,23 @@
 			#splash-bar{position:absolute;top:0;height:100%;background:#facc15;border-radius:9999px;animation:sp-slide 1.5s ease-in-out infinite}
 			@keyframes sp-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.7;transform:scale(.95)}}
 			@keyframes sp-slide{0%{left:-60%;width:60%}50%{left:30%;width:40%}100%{left:100%;width:60%}}
+			#sp-bee{position:fixed;font-size:28px;z-index:10000;pointer-events:none;animation:sp-bee-fly 3.2s ease-in-out infinite}
+			@keyframes sp-bee-fly{
+				0%  {top:20%;left:15%;transform:scaleX(1)   rotate(-8deg)}
+				15% {top:12%;left:55%;transform:scaleX(1)   rotate(5deg)}
+				30% {top:25%;left:80%;transform:scaleX(-1)  rotate(-5deg)}
+				45% {top:60%;left:70%;transform:scaleX(-1)  rotate(8deg)}
+				60% {top:72%;left:30%;transform:scaleX(1)   rotate(-6deg)}
+				75% {top:55%;left:10%;transform:scaleX(1)   rotate(6deg)}
+				90% {top:30%;left:25%;transform:scaleX(1)   rotate(-4deg)}
+				100%{top:20%;left:15%;transform:scaleX(1)   rotate(-8deg)}
+			}
 		</style>
 	</head>
 	<body>
 		<div id="root">
 			<div id="splash">
+				<div id="sp-bee">🐝</div>
 				<img id="splash-logo" src="/logo.svg" alt="WorkBee" />
 				<div id="splash-bar-wrap"><div id="splash-bar"></div></div>
 			</div>
