@@ -1,4 +1,7 @@
 Options -MultiViews
+
+Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://maps.googleapis.com https://cdn-reach.hostinger.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.railway.app https://*.workbee.space https://ipapi.co https://www.google.com https://maps.googleapis.com; frame-src https://www.google.com https://recaptcha.google.com; object-src 'none'; upgrade-insecure-requests"
+
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
