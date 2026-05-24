@@ -46,7 +46,8 @@
       "Teacher": "Teacher",
       "Coach": "Coach",
       "coach_sport_placeholder": "Which sport?",
-      "Nanny": "Nanny"
+      "Nanny": "Nanny",
+      "Culinary": "Culinary"
     },
     "location": {
       "picker_title": "Select Work Location",

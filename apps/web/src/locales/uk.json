@@ -46,7 +46,8 @@
       "Teacher": "Вчитель",
       "Coach": "Тренер",
       "coach_sport_placeholder": "Який вид спорту?",
-      "Nanny": "Няня"
+      "Nanny": "Няня",
+      "Culinary": "Кулінарія"
     },
     "location": {
       "picker_title": "Оберіть місце роботи",

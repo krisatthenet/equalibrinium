@@ -23,7 +23,7 @@ const HOME_JSON_LD = {
 };
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Star, MapPin, Wrench, Paintbrush, Package, Hammer, Zap, Droplet, Rocket } from 'lucide-react';
+import { Star, MapPin, Wrench, Paintbrush, Package, Hammer, Zap, Droplet, Rocket, ChefHat } from 'lucide-react';
 import { motion } from 'framer-motion';
 import pb from '@/lib/pocketbaseClient';
 import { getUserImageUrl } from '@/lib/userImage';
@@ -37,6 +37,7 @@ import Footer from '@/components/Footer.jsx';
 import ReviewsCarousel from '@/components/ReviewsCarousel.jsx';
 import FireworksIntro from '@/components/FireworksIntro.jsx';
 import LeadCapturePopup from '@/components/LeadCapturePopup.jsx';
+import BoilioBanner from '@/components/BoilioBanner.jsx';
 
 const CONFETTI_COLORS = [
   '#ff4444','#ff8800','#ffdd00','#44cc44','#44aaff','#cc44ff','#ff44cc','#fff','#ffd700',
@@ -180,7 +181,8 @@ const categoryIcons = {
   'Baldų surinkimas': Package,
   'Grindų klojimas': Hammer,
   'Elektrika': Zap,
-  'Santechnika': Droplet
+  'Santechnika': Droplet,
+  'Culinary': ChefHat,
 };
 
 const HomePage = () => {
@@ -293,6 +295,7 @@ const HomePage = () => {
 
         {/* Launch Party Section */}
         <LaunchPartyHero />
+        <BoilioBanner />
 
         <section className="py-12 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
