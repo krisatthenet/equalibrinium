@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
         try {
           const fresh = await pb.collection('users').getOne(model.id, { $autoCancel: false });
           setCurrentUser(fresh);
-          identify(fresh.id, { $email: fresh.email, user_type: fresh.userType });
         } catch {
           // Record no longer exists — clear stale session
           pb.authStore.clear();
@@ -53,8 +52,6 @@ export const AuthProvider = ({ children }) => {
     await pb.collection('users').requestVerification(email);
     const authData = await pb.collection('users').authWithPassword(email, password);
     setCurrentUser(authData.record);
-    identify(record.id, { $email: email, user_type: userType });
-    track('sign_up_completed', { user_type: userType, sign_up_method: 'email' });
     return record;
   };
 
