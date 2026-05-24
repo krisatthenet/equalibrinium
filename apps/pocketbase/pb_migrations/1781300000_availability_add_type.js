@@ -5,7 +5,7 @@ migrate((app) => {
     col = app.findCollectionByNameOrId("availability");
   } catch (_) { return; }
 
-  const already = col.fields.toSlice().some(f => f.name === "type");
+  const already = col.fields.getByName("type");
   if (already) return;
 
   col.fields.add(new SelectField({
@@ -18,10 +18,7 @@ migrate((app) => {
 }, (app) => {
   try {
     const col = app.findCollectionByNameOrId("availability");
-    const field = col.fields.toSlice().find(f => f.name === "type");
-    if (field) {
-      col.fields.remove(field);
-      app.save(col);
-    }
+    col.fields.removeByName("type");
+    app.save(col);
   } catch (_) {}
 });
