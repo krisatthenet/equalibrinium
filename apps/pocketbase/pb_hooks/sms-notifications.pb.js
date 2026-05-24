@@ -112,9 +112,9 @@ onRecordAfterCreateSuccess((e) => {
             return;
         }
 
-        // Open job — notify all matching contractors
+        // Open job — notify all matching contractors via SMS + push + email
         const contractors = $app.findAllRecords('users',
-            $dbx.exp(`(userType = 'contractor' OR userType = 'master') AND phone != ''`)
+            $dbx.exp(`(userType = 'contractor' OR userType = 'master')`)
         );
 
         let notified = 0;
@@ -127,12 +127,53 @@ onRecordAfterCreateSuccess((e) => {
             }
 
             const phone = c.get('phone');
-            const msg = `WorkBee: Naujas darbas — ${categoryName}${location ? ' (' + location + ')' : ''}. "${description}". Prisijunk ir pateik pasiūlymą: workbee.space`;
-            sendSms(phone, msg);
+            const email = c.get('email');
+            const name  = c.get('name') || 'Contractor';
+            const smsBody = `WorkBee: Naujas darbas — ${categoryName}${location ? ' (' + location + ')' : ''}. "${description}". Prisijunk ir pateik pasiūlymą: workbee.space`;
+
+            if (phone) sendSms(phone, smsBody);
+
+            sendPush(
+                c.id,
+                `New job: ${categoryName || 'Service Request'}`,
+                `${location ? location + ' · ' : ''}${description || 'A new ticket matches your profession.'}`,
+                '/dashboard/contractor'
+            );
+
+            if (email) {
+                try {
+                    const emailMsg = new MailerMessage({
+                        from:    { address: 'kasparas@workbee.space', name: 'WorkBee' },
+                        to:      [{ address: email }],
+                        subject: `New job opportunity: ${categoryName || 'Service Request'}`,
+                        html: `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:12px;">
+  <h2 style="color:#d97706;margin-bottom:8px;">New job matching your profession 🔔</h2>
+  <p style="color:#374151;">Hi <strong>${name}</strong>,</p>
+  <p style="color:#374151;">A client just posted a new service request that matches your profession:</p>
+  <div style="background:#fffbeb;border-left:4px solid #d97706;padding:12px 16px;border-radius:6px;margin:16px 0;">
+    <p style="margin:0;font-weight:700;color:#92400e;font-size:18px;">${categoryName || 'Service Request'}</p>
+    ${location ? `<p style="margin:6px 0 0;color:#78350f;font-size:14px;">📍 ${location}</p>` : ''}
+    ${description ? `<p style="margin:8px 0 0;color:#374151;font-size:14px;">"${description}"</p>` : ''}
+  </div>
+  <p style="color:#374151;">Be one of the first to submit a bid — early responses get more client attention.</p>
+  <div style="text-align:center;margin:24px 0;">
+    <a href="https://workbee.space/dashboard/contractor" style="display:inline-block;background:#d97706;color:#fff;font-weight:700;font-size:15px;padding:12px 28px;border-radius:10px;text-decoration:none;">View & Bid Now</a>
+  </div>
+  <p style="color:#6b7280;font-size:12px;margin-top:24px;">You're receiving this because your profession matches this request. Log in to manage notification preferences.</p>
+  <p style="color:#6b7280;font-size:12px;">— WorkBee Team</p>
+</div>`,
+                    });
+                    $app.newMailClient().send(emailMsg);
+                } catch (emailErr) {
+                    $app.logger().error('new ticket email failed', 'error', emailErr.message, 'contractorId', c.id);
+                }
+            }
+
             notified++;
         }
 
-        $app.logger().info('new ticket SMS notifications sent', 'ticketId', ticket.id, 'notified', notified);
+        $app.logger().info('new ticket notifications sent', 'ticketId', ticket.id, 'notified', notified);
     } catch (err) {
         $app.logger().error('new ticket SMS failed', 'error', err.message, 'ticketId', ticket.id);
     }
