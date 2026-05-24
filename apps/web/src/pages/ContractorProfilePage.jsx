@@ -115,6 +115,10 @@ const ContractorProfilePage = () => {
       navigate('/login');
       return;
     }
+    if (currentUser?.userType !== 'client') {
+      toast({ title: 'Clients only', description: 'Only client accounts can send service requests.', variant: 'destructive' });
+      return;
+    }
     setRequestOpen(true);
   };
 
