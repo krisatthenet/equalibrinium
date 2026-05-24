@@ -26,19 +26,11 @@ const ContractorAvailability = ({ contractorId }) => {
 
   const fetchData = useCallback(async () => {
     try {
-      const [avail, requests] = await Promise.all([
-        pb.collection('availability').getFullList({
-          filter: `contractorId = "${contractorId}"`,
-          sort: '+date',
-          $autoCancel: false,
-        }),
-        pb.collection('slot_requests').getFullList({
-          filter: `contractorId = "${contractorId}"`,
-          sort: '-created',
-          $autoCancel: false,
-        }),
-      ]);
-
+      const avail = await pb.collection('availability').getFullList({
+        filter: `contractorId = "${contractorId}"`,
+        sort: '+date',
+        $autoCancel: false,
+      });
       const map = {};
       const dates = [];
       for (const rec of avail) {
@@ -47,12 +39,22 @@ const ContractorAvailability = ({ contractorId }) => {
       }
       setAvailabilityMap(map);
       setAvailableDates(dates);
-      setSlotRequests(requests);
     } catch (err) {
       console.error('availability fetch failed', err);
-    } finally {
-      setLoading(false);
     }
+
+    try {
+      const requests = await pb.collection('slot_requests').getFullList({
+        filter: `contractorId = "${contractorId}"`,
+        sort: '-created',
+        $autoCancel: false,
+      });
+      setSlotRequests(requests);
+    } catch (err) {
+      console.error('slot_requests fetch failed', err);
+    }
+
+    setLoading(false);
   }, [contractorId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
