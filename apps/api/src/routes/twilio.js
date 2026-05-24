@@ -4,7 +4,7 @@ import { requirePbAuth } from '../middleware/pbAuth.js';
 import logger from '../utils/logger.js';
 
 const router = Router();
-const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
+const PB_URL = process.env.POCKETBASE_URL || 'https://workbee-pocketbase-cayj-production.up.railway.app';
 
 const VERIFY_SERVICE_SID = process.env.TWILIO_VERIFY_SERVICE_SID;
 const ACCOUNT_SID        = process.env.TWILIO_ACCOUNT_SID;

@@ -5,7 +5,7 @@ import logger from '../utils/logger.js';
 
 const router = Router();
 
-const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
+const PB_URL = process.env.POCKETBASE_URL || 'https://workbee-pocketbase-cayj-production.up.railway.app';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://workbee.space';
 
 async function adminPb() {

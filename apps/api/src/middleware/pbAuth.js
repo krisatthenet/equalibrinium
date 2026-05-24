@@ -1,6 +1,6 @@
 import PocketBase from 'pocketbase';
 
-const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
+const PB_URL = process.env.POCKETBASE_URL || 'https://workbee-pocketbase-cayj-production.up.railway.app';
 
 export async function requirePbAuth(req, res, next) {
   const authHeader = req.headers.authorization;
