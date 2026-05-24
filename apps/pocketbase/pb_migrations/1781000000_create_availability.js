@@ -10,9 +10,9 @@ migrate((app) => {
     name: "availability",
     type: "base",
     fields: [
-      new TextField({ name: "contractorId", required: true }),
-      new TextField({ name: "date",         required: true }), // YYYY-MM-DD
-      new TextField({ name: "note" }),
+      { type: "text", name: "contractorId", required: true },
+      { type: "text", name: "date",         required: true }, // YYYY-MM-DD
+      { type: "text", name: "note" },
     ],
     listRule:   "@request.auth.id != ''",
     viewRule:   "@request.auth.id != ''",
