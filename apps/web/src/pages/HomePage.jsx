@@ -36,6 +36,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import ReviewsCarousel from '@/components/ReviewsCarousel.jsx';
 import FireworksIntro from '@/components/FireworksIntro.jsx';
+import LeadCapturePopup from '@/components/LeadCapturePopup.jsx';
 
 const CONFETTI_COLORS = [
   '#ff4444','#ff8800','#ffdd00','#44cc44','#44aaff','#cc44ff','#ff44cc','#fff','#ffd700',
@@ -239,7 +240,7 @@ const HomePage = () => {
         <script type="application/ld+json">{JSON.stringify(HOME_JSON_LD)}</script>
       </Helmet>
       
-      <div data-reach-form="fc0e72ea-35ae-4ecd-80e7-6f6a25205017" />
+      <LeadCapturePopup />
       <div className="min-h-screen flex flex-col bg-background">
         <FireworksIntro roll={dndRoll} />
         <DndRollToast roll={dndRoll} />

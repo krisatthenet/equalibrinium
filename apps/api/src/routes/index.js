@@ -7,6 +7,7 @@ import pushRouter from './push.js';
 import referralsRouter from './referrals.js';
 import recaptchaRouter from './recaptcha.js';
 import twilioRouter from './twilio.js';
+import reachRouter from './reach.js';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ export default () => {
   router.use('/referrals', referralsRouter);
   router.use('/recaptcha', recaptchaRouter);
   router.use('/twilio', twilioRouter);
+  router.use('/reach', reachRouter);
 
   return router;
 };
