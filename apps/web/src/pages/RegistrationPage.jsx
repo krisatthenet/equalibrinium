@@ -109,7 +109,9 @@ const RegistrationPage = () => {
       console.error('Registration error:', err);
       setLoading(false);
 
-      if (err.response?.data?.password) {
+      if (err.response?.data?.email?.code === 'validation_not_unique') {
+        setError('An account with this email already exists. Please log in instead.');
+      } else if (err.response?.data?.password) {
         setError('Invalid password format. Please ensure it meets the requirements.');
       } else {
         setError(err.message || 'Registration failed. Please check your connection and try again.');
