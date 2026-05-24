@@ -239,6 +239,7 @@ const HomePage = () => {
         <script type="application/ld+json">{JSON.stringify(HOME_JSON_LD)}</script>
       </Helmet>
       
+      <div data-reach-form="fc0e72ea-35ae-4ecd-80e7-6f6a25205017" />
       <div className="min-h-screen flex flex-col bg-background">
         <FireworksIntro roll={dndRoll} />
         <DndRollToast roll={dndRoll} />
