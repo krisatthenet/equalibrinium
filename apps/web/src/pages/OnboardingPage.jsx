@@ -450,7 +450,9 @@ const OnboardingPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: 'vip', cycle: 'monthly', trial: true, successPath: dashPath + '?trial=started' }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error(`Server error (${res.status})`); }
       if (data.url) {
         window.location.href = data.url;
       } else {
