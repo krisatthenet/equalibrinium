@@ -447,13 +447,22 @@ const OnboardingPage = () => {
   const startTrial = async () => {
     if (userId) localStorage.setItem(ONBOARDING_KEY(userId), '1');
     const dashPath = getDashboardPath();
-    const res = await apiServerClient.fetch('/stripe/create-subscription-checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: 'vip', cycle: 'monthly', trial: true, successPath: dashPath + '?trial=started' }),
-    });
-    const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    try {
+      const res = await apiServerClient.fetch('/stripe/create-subscription-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'vip', cycle: 'monthly', trial: true, successPath: dashPath + '?trial=started' }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error(data.error || 'Could not create trial session');
+      }
+    } catch (err) {
+      toast({ title: 'Could not start trial', description: err.message, variant: 'destructive' });
+      throw err;
+    }
   };
 
   if (!currentUser && !userId) return null;

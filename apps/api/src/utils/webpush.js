@@ -2,7 +2,7 @@ import webpush from 'web-push';
 import PocketBase from 'pocketbase';
 import logger from './logger.js';
 
-const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
+const PB_URL = process.env.POCKETBASE_URL || 'https://workbee-pocketbase-cayj-production.up.railway.app';
 
 const vapidConfigured = process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY;
 if (vapidConfigured) {
