@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { X, Loader2, User, Briefcase, Megaphone } from 'lucide-react';
+import pb from '@/lib/pocketbaseClient.js';
 
 const SESSION_KEY = 'wb_lead_popup_shown';
 const API_URL = import.meta.env.VITE_API_URL || 'https://workbee-api-zfq-production.up.railway.app';
@@ -22,6 +23,7 @@ const LeadCapturePopup = () => {
 
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
+    if (pb.authStore.isValid) return; // already logged in — don't show popup
     const t = setTimeout(() => {
       setVisible(true);
       sessionStorage.setItem(SESSION_KEY, '1');

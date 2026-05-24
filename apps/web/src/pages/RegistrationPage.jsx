@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -25,6 +25,15 @@ const RegistrationPage = () => {
   const [searchParams] = useSearchParams();
   const { signup } = useAuth();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (pb.authStore.isValid) {
+      const type = pb.authStore.record?.userType ?? pb.authStore.model?.userType ?? '';
+      if (type === 'contractor') navigate('/dashboard/contractor', { replace: true });
+      else if (type === 'influencer') navigate('/dashboard/influencer', { replace: true });
+      else navigate('/dashboard/client', { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [userType, setUserType] = useState(searchParams.get('type') || '');
   const refCode = searchParams.get('ref') || '';
