@@ -3,7 +3,8 @@ import pb from '@/lib/pocketbaseClient.js';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, CalendarDays, Check, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Loader2, CalendarDays, Check, X, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const toDateKey = (d) => {
@@ -15,14 +16,31 @@ const toDateKey = (d) => {
   ].join('-');
 };
 
+const TYPES = {
+  available:     { label: 'Available',         emoji: '🟢', cal: 'bg-green-500/20 !text-green-400 font-semibold rounded-md hover:bg-green-500/30',   chip: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  priority:      { label: 'Priority / Urgent', emoji: '🟠', cal: 'bg-orange-500/20 !text-orange-400 font-semibold rounded-md hover:bg-orange-500/30', chip: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  holiday:       { label: 'Holiday',           emoji: '🌴', cal: 'bg-purple-500/20 !text-purple-400 font-semibold rounded-md hover:bg-purple-500/30', chip: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  busy:          { label: 'Busy',              emoji: '🔴', cal: 'bg-red-500/20 !text-red-400 font-semibold rounded-md hover:bg-red-500/30',           chip: 'bg-red-500/20 text-red-400 border-red-500/30' },
+  other_project: { label: 'Other project',     emoji: '🔵', cal: 'bg-blue-500/20 !text-blue-400 font-semibold rounded-md hover:bg-blue-500/30',       chip: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+};
+
+const PRESETS = {
+  holiday:       ['On holiday', 'Family trip', 'Public holiday', 'Vacation'],
+  busy:          ['Busy', 'Personal matter', 'Doctor appointment'],
+  other_project: ['Working on another project', 'On-site work', 'Full day booked'],
+};
+
 const ContractorAvailability = ({ contractorId }) => {
   const { toast } = useToast();
-  const [availableDates, setAvailableDates] = useState([]);
-  const [availabilityMap, setAvailabilityMap] = useState({});
+  const [records, setRecords]         = useState([]);
+  const [recordMap, setRecordMap]     = useState({});  // dateKey → record
   const [slotRequests, setSlotRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [toggling, setToggling] = useState(null);
-  const [actioning, setActioning] = useState(null);
+  const [loading, setLoading]         = useState(true);
+  const [editingDay, setEditingDay]   = useState(null); // { key, record | null }
+  const [editType, setEditType]       = useState('available');
+  const [editNote, setEditNote]       = useState('');
+  const [saving, setSaving]           = useState(false);
+  const [actioning, setActioning]     = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -32,13 +50,9 @@ const ContractorAvailability = ({ contractorId }) => {
         $autoCancel: false,
       });
       const map = {};
-      const dates = [];
-      for (const rec of avail) {
-        map[rec.date] = rec.id;
-        dates.push(new Date(rec.date + 'T12:00:00'));
-      }
-      setAvailabilityMap(map);
-      setAvailableDates(dates);
+      for (const rec of avail) map[rec.date] = rec;
+      setRecordMap(map);
+      setRecords(avail);
     } catch (err) {
       console.error('availability fetch failed', err);
     }
@@ -59,24 +73,51 @@ const ContractorAvailability = ({ contractorId }) => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleDayClick = async (date) => {
-    if (toggling) return;
+  const openEditor = (date) => {
     const key = toDateKey(date);
-    setToggling(key);
+    const existing = recordMap[key] ?? null;
+    setEditingDay({ key, record: existing });
+    setEditType(existing?.type || 'available');
+    setEditNote(existing?.note || '');
+  };
+
+  const handleSave = async () => {
+    if (!editingDay) return;
+    setSaving(true);
     try {
-      if (availabilityMap[key]) {
-        await pb.collection('availability').delete(availabilityMap[key], { $autoCancel: false });
+      if (editingDay.record) {
+        await pb.collection('availability').update(editingDay.record.id, {
+          type: editType,
+          note: editNote.trim(),
+        }, { $autoCancel: false });
       } else {
-        await pb.collection('availability').create(
-          { contractorId, date: key },
-          { $autoCancel: false }
-        );
+        await pb.collection('availability').create({
+          contractorId,
+          date: editingDay.key,
+          type: editType,
+          note: editNote.trim(),
+        }, { $autoCancel: false });
       }
+      setEditingDay(null);
       await fetchData();
     } catch (err) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     } finally {
-      setToggling(null);
+      setSaving(false);
+    }
+  };
+
+  const handleRemove = async () => {
+    if (!editingDay?.record) return;
+    setSaving(true);
+    try {
+      await pb.collection('availability').delete(editingDay.record.id, { $autoCancel: false });
+      setEditingDay(null);
+      await fetchData();
+    } catch (err) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -96,6 +137,19 @@ const ContractorAvailability = ({ contractorId }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Build per-type date arrays for the calendar
+  const modifiers = {};
+  const modifiersClassNames = {};
+  for (const [type, cfg] of Object.entries(TYPES)) {
+    const dates = records
+      .filter(r => (r.type || 'available') === type)
+      .map(r => new Date(r.date + 'T12:00:00'));
+    if (dates.length) {
+      modifiers[type] = dates;
+      modifiersClassNames[type] = cfg.cal;
+    }
+  }
+
   const pendingRequests = slotRequests.filter(r => r.status === 'pending');
   const pastRequests    = slotRequests.filter(r => r.status !== 'pending');
 
@@ -108,26 +162,113 @@ const ContractorAvailability = ({ contractorId }) => {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">
-        Click any future date to mark yourself as <strong className="text-foreground">available</strong>. Clients browsing your profile can then request a specific day — cutting the "when are you free?" back-and-forth.
+        Click any future date to set its status. Clients see <strong className="text-green-400">available</strong> and{' '}
+        <strong className="text-orange-400">priority</strong> dates and can request a slot.
       </p>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Calendar */}
-        <div className="flex-1 min-w-0">
+        {/* Calendar + editor */}
+        <div className="flex-1 min-w-0 space-y-4">
           <Calendar
-            onDayClick={handleDayClick}
+            onDayClick={openEditor}
             disabled={{ before: today }}
-            modifiers={{ available: availableDates }}
-            modifiersClassNames={{
-              available: 'bg-green-500/20 !text-green-400 font-semibold rounded-md hover:bg-green-500/30',
-            }}
+            modifiers={modifiers}
+            modifiersClassNames={modifiersClassNames}
             className="rounded-xl border border-border p-3 w-full"
           />
-          <p className="text-xs text-muted-foreground mt-3 flex items-center gap-2">
-            <span className="inline-block w-3 h-3 rounded bg-green-500/30 shrink-0" />
-            Available &nbsp;·&nbsp; Click any future date to toggle
-            {toggling && <Loader2 className="h-3 w-3 animate-spin ml-1" />}
-          </p>
+
+          {/* Legend */}
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {Object.entries(TYPES).map(([type, cfg]) => (
+              <span key={type} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span>{cfg.emoji}</span>{cfg.label}
+              </span>
+            ))}
+          </div>
+
+          {/* Date editor card — Google Calendar-style inline panel */}
+          {editingDay && (
+            <div className="border border-border rounded-xl p-4 space-y-3 bg-card shadow-sm">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-foreground">{editingDay.key}</p>
+                {editingDay.record && (
+                  <Button
+                    size="sm" variant="ghost"
+                    className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1"
+                    onClick={handleRemove}
+                    disabled={saving}
+                  >
+                    <Trash2 className="h-3 w-3" /> Remove
+                  </Button>
+                )}
+              </div>
+
+              {/* Type chips */}
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(TYPES).map(([type, cfg]) => (
+                  <button
+                    key={type}
+                    onClick={() => setEditType(type)}
+                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                      editType === type
+                        ? cfg.chip
+                        : 'bg-transparent border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground'
+                    }`}
+                  >
+                    {cfg.emoji} {cfg.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Quick preset labels */}
+              {PRESETS[editType] && (
+                <div className="flex flex-wrap gap-1.5">
+                  {PRESETS[editType].map(preset => (
+                    <button
+                      key={preset}
+                      onClick={() => setEditNote(editNote === preset ? '' : preset)}
+                      className={`px-2 py-0.5 rounded-md text-xs border transition-all ${
+                        editNote === preset
+                          ? 'bg-primary/20 text-primary border-primary/30'
+                          : 'border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Custom note */}
+              <Input
+                value={editNote}
+                onChange={e => setEditNote(e.target.value)}
+                placeholder="Add a note… (optional)"
+                className="text-sm bg-input border-border rounded-xl h-9"
+              />
+
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg h-8 text-xs"
+                  onClick={handleSave}
+                  disabled={saving}
+                >
+                  {saving
+                    ? <Loader2 className="h-3 w-3 animate-spin" />
+                    : <><Check className="h-3 w-3 mr-1" />Save</>}
+                </Button>
+                <Button
+                  size="sm" variant="ghost"
+                  className="rounded-lg h-8 text-xs"
+                  onClick={() => setEditingDay(null)}
+                  disabled={saving}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Requests sidebar */}
@@ -166,8 +307,7 @@ const ContractorAvailability = ({ contractorId }) => {
                           : <><Check className="h-3 w-3 mr-1" />Confirm</>}
                       </Button>
                       <Button
-                        size="sm"
-                        variant="ghost"
+                        size="sm" variant="ghost"
                         className="flex-1 rounded-lg h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleAction(req.id, 'declined')}
                         disabled={actioning === req.id}
@@ -181,10 +321,10 @@ const ContractorAvailability = ({ contractorId }) => {
             </div>
           )}
 
-          {pendingRequests.length === 0 && availableDates.length === 0 && (
+          {pendingRequests.length === 0 && records.length === 0 && (
             <div className="text-center py-8 text-sm text-muted-foreground border border-dashed border-border rounded-xl">
               <CalendarDays className="h-8 w-8 mx-auto mb-2 opacity-30" />
-              No available dates set yet.
+              No dates marked yet.
               <br />Start by clicking dates on the calendar.
             </div>
           )}
