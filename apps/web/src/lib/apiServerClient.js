@@ -1,6 +1,6 @@
 import pb from './pocketbaseClient.js';
 
-const API_SERVER_URL = import.meta.env.VITE_API_URL || "/hcgi/api";
+const API_SERVER_URL = import.meta.env.VITE_API_URL || "https://workbee-api-zfq-production.up.railway.app";
 
 const apiServerClient = {
     fetch: async (url, options = {}) => {
