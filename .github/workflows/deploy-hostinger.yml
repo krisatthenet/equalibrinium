@@ -7,6 +7,7 @@ on:
       - 'apps/web/**'
       - 'package.json'
       - '.github/workflows/deploy-hostinger.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:
