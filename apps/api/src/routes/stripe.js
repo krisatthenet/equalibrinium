@@ -18,8 +18,8 @@ router.get('/health', async (req, res) => {
 });
 
 const PLATFORM_FEE_PCT = 0.05; // 5%
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
-const PB_URL = process.env.POCKETBASE_URL || 'http://localhost:8090';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://workbee.space';
+const PB_URL = process.env.POCKETBASE_URL || 'https://workbee-pocketbase-cayj-production.up.railway.app';
 
 /** Get an admin-authenticated PocketBase client */
 async function adminPb() {
@@ -594,6 +594,35 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       }
     } catch (err) {
       logger.error('Subscription deleted webhook error:', err);
+    }
+  }
+
+  if (event.type === 'invoice.paid') {
+    const invoice = event.data.object;
+    if (invoice.subscription) {
+      try {
+        const pb = await adminPb();
+        const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+        const priceId = sub.items?.data?.[0]?.price?.id;
+        const mapped = planFromPriceId(priceId);
+        if (mapped) {
+          const results = await pb.collection('users').getList(1, 1, {
+            filter: `stripeCustomerId = "${invoice.customer}"`,
+          });
+          if (results.items.length) {
+            const planExpiresAt = new Date(sub.current_period_end * 1000);
+            await pb.collection('users').update(results.items[0].id, {
+              plan: mapped.plan,
+              planCycle: mapped.cycle,
+              planExpiresAt: planExpiresAt.toISOString(),
+              stripeSubscriptionId: sub.id,
+            });
+            logger.info(`invoice.paid renewal: user=${results.items[0].id} plan=${mapped.plan} expires=${planExpiresAt.toISOString()}`);
+          }
+        }
+      } catch (err) {
+        logger.error('invoice.paid webhook error:', err);
+      }
     }
   }
 
