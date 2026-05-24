@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { X, Loader2 } from 'lucide-react';
 
 const SESSION_KEY = 'wb_lead_popup_shown';
@@ -36,7 +34,7 @@ const LeadCapturePopup = () => {
         body: JSON.stringify({ name: name.trim(), email: email.trim() }),
       });
       setDone(true);
-      setTimeout(dismiss, 2000);
+      setTimeout(dismiss, 2200);
     } catch (_) {
       dismiss();
     } finally {
@@ -48,73 +46,85 @@ const LeadCapturePopup = () => {
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-4"
       onClick={dismiss}
     >
       <div
-        className="relative w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-8 animate-in slide-in-from-bottom-4 duration-300"
+        className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border shadow-2xl shadow-black/60 animate-in slide-in-from-bottom-6 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={dismiss}
-          className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
-          aria-label="Close"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* yellow accent bar */}
+        <div className="h-1 w-full bg-amber-400" />
 
-        {done ? (
-          <div className="text-center py-4">
-            <div className="text-4xl mb-3">🐝</div>
-            <h3 className="text-xl font-bold text-foreground mb-1">You're on the list!</h3>
-            <p className="text-muted-foreground text-sm">We'll be in touch soon.</p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-6">
-              <div className="text-3xl mb-3">🐝</div>
-              <h3 className="text-xl font-bold text-foreground mb-1">Stay in the loop</h3>
-              <p className="text-muted-foreground text-sm">
-                Get early access updates and tips for finding the best specialists in Lithuania.
-              </p>
+        <div className="bg-card px-8 pt-7 pb-8">
+          <button
+            onClick={dismiss}
+            className="absolute top-5 right-5 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          {done ? (
+            <div className="text-center py-6">
+              <img src="/logo.svg" alt="WorkBee" className="h-14 w-14 mx-auto mb-4" />
+              <h3 className="font-black text-2xl text-foreground mb-1" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                You're on the list!
+              </h3>
+              <p className="text-muted-foreground text-sm">We'll be in touch soon. 🐝</p>
             </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 mb-6">
+                <img src="/logo.svg" alt="WorkBee" className="h-10 w-10 shrink-0" />
+                <div>
+                  <h3
+                    className="font-black text-xl leading-tight text-foreground"
+                    style={{ fontFamily: 'Outfit, sans-serif' }}
+                  >
+                    Stay in the loop
+                  </h3>
+                  <p className="text-muted-foreground text-xs mt-0.5">
+                    Early access updates &amp; specialist tips for Lithuania.
+                  </p>
+                </div>
+              </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="lead-name">Name</Label>
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 <Input
-                  id="lead-name"
                   placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
                   autoFocus
+                  className="bg-muted border-border focus-visible:ring-amber-400/50"
                 />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="lead-email">Email</Label>
                 <Input
-                  id="lead-email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="your@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="bg-muted border-border focus-visible:ring-amber-400/50"
                 />
-              </div>
-              <Button type="submit" className="w-full rounded-xl mt-1" disabled={submitting}>
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Keep me posted'}
-              </Button>
-              <button
-                type="button"
-                onClick={dismiss}
-                className="text-xs text-muted-foreground hover:text-foreground text-center transition-colors py-1"
-              >
-                No thanks, I'll just browse
-              </button>
-            </form>
-          </>
-        )}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="mt-1 w-full inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 text-black font-black text-sm px-6 py-3 rounded-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-400/20"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Keep me posted 🐝'}
+                </button>
+                <button
+                  type="button"
+                  onClick={dismiss}
+                  className="text-xs text-muted-foreground hover:text-foreground text-center transition-colors pt-1"
+                >
+                  No thanks, I'll just browse
+                </button>
+              </form>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
