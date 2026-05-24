@@ -400,9 +400,11 @@ const SettingsPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
-      if (!res.ok) throw new Error('Failed to start Stripe onboarding');
-      const { url } = await res.json();
-      window.location.href = url;
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { throw new Error(`Non-JSON (${res.status}): ${text.slice(0, 200)}`); }
+      if (!res.ok || data.error) throw new Error(data.error || 'Failed to start Stripe onboarding');
+      window.location.href = data.url;
     } catch (err) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
       setStripeConnectLoading(false);
