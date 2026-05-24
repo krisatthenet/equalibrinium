@@ -351,7 +351,7 @@ const ClientDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <h1 className="text-4xl font-bold text-foreground">{t('dashboard.client_title')}</h1>
+                  <h1 className="text-2xl sm:text-4xl font-bold text-foreground">{t('dashboard.client_title')}</h1>
                   {currentUser?.title && <Badge variant="secondary">{currentUser.title}</Badge>}
                   <PlanBadge plan={currentUser?.plan} />
                 </div>
@@ -386,7 +386,7 @@ const ClientDashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
               {statCards.map(card => (
                 <Card
                   key={card.key}

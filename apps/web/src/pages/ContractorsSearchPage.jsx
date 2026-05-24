@@ -85,7 +85,7 @@ const ContractorsSearchPage = () => {
         <div className="flex-1 py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
-              <h1 className="text-4xl font-bold mb-2 text-foreground">{t('search.title')}</h1>
+              <h1 className="text-2xl sm:text-4xl font-bold mb-2 text-foreground">{t('search.title')}</h1>
               <p className="text-muted-foreground">Find the right professional for your job, sorted by reputation.</p>
             </div>
 
@@ -132,7 +132,7 @@ const ContractorsSearchPage = () => {
                 </div>
 
                 {loading ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-96 rounded-2xl" />)}
                   </div>
                 ) : filtered.length > 0 ? (
@@ -140,7 +140,7 @@ const ContractorsSearchPage = () => {
                     <p className="text-sm text-muted-foreground mb-4">
                       {filtered.length} contractor{filtered.length !== 1 ? 's' : ''}{hasFilters ? ' found' : ' available'}
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                       {filtered.map(contractor => (
                         <Card key={contractor.id} className="bg-card border-border hover:shadow-lg hover:shadow-primary/10 transition-all duration-200 hover:-translate-y-1 overflow-hidden h-full flex flex-col rounded-2xl">
                           <div className="aspect-square bg-muted relative overflow-hidden">

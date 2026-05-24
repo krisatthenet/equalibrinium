@@ -255,17 +255,17 @@ const HomePage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <img 
-                src="/logo.svg" 
-                alt="WorkBee Logo" 
-                className="h-56 w-56 mx-auto mb-8"
+              <img
+                src="/logo.svg"
+                alt="WorkBee Logo"
+                className="h-32 w-32 sm:h-44 sm:w-44 md:h-56 md:w-56 mx-auto mb-6 md:mb-8"
               />
-              
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground mb-6 leading-tight">
+
+              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold text-foreground mb-4 md:mb-6 leading-tight">
                 {t('home.title')}
               </h1>
-              
-              <p className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
+
+              <p className="text-lg md:text-2xl text-muted-foreground mb-8 md:mb-12 max-w-2xl mx-auto leading-relaxed">
                 {t('home.subtitle')}
               </p>
               
@@ -294,7 +294,7 @@ const HomePage = () => {
         {/* Launch Party Section */}
         <LaunchPartyHero />
 
-        <section className="py-24 bg-muted/30">
+        <section className="py-12 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -302,20 +302,20 @@ const HomePage = () => {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">{t('home.categories_title')}</h2>
-              <p className="text-muted-foreground text-center mb-16 max-w-2xl mx-auto">
+              <h2 className="text-2xl md:text-4xl font-bold text-center mb-4">{t('home.categories_title')}</h2>
+              <p className="text-muted-foreground text-center mb-8 md:mb-16 max-w-2xl mx-auto">
                 {t('home.categories_subtitle')}
               </p>
             </motion.div>
 
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[...Array(6)].map((_, i) => (
                   <Skeleton key={i} className="h-32 rounded-2xl" />
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {categories.map((category, index) => {
                   const IconComponent = categoryIcons[category.name] || Wrench;
                   return (
@@ -350,7 +350,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        <section className="py-24 bg-background">
+        <section className="py-12 md:py-24 bg-background">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -358,20 +358,20 @@ const HomePage = () => {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">{t('home.featured_title')}</h2>
-              <p className="text-muted-foreground text-center mb-16 max-w-2xl mx-auto">
+              <h2 className="text-2xl md:text-4xl font-bold text-center mb-4">{t('home.featured_title')}</h2>
+              <p className="text-muted-foreground text-center mb-8 md:mb-16 max-w-2xl mx-auto">
                 {t('home.featured_subtitle')}
               </p>
             </motion.div>
 
             {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                 {[...Array(4)].map((_, i) => (
                   <Skeleton key={i} className="h-96 rounded-2xl" />
                 ))}
               </div>
             ) : featuredContractors.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
                 {featuredContractors.map((contractor, index) => (
                   <motion.div
                     key={contractor.id}
@@ -452,7 +452,7 @@ const HomePage = () => {
           </div>
         </section>
 
-        <section className="py-12 bg-muted/30">
+        <section className="py-12 md:py-16 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -460,7 +460,7 @@ const HomePage = () => {
               transition={{ duration: 0.5 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">{t('home.reviews_title')}</h2>
+              <h2 className="text-2xl md:text-4xl font-bold text-center mb-4">{t('home.reviews_title')}</h2>
               <p className="text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
                 {t('home.reviews_subtitle')}
               </p>

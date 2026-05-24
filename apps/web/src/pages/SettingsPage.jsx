@@ -488,7 +488,8 @@ const SettingsPage = () => {
             </div>
 
             <Tabs defaultValue="profile" className="space-y-6">
-              <TabsList className="bg-card border border-border p-1 rounded-xl">
+              <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+              <TabsList className="bg-card border border-border p-1 rounded-xl whitespace-nowrap w-max sm:w-auto">
                 <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                   <User className="w-4 h-4 mr-2" /> {t('settings.tab_profile')}
                 </TabsTrigger>
@@ -507,6 +508,7 @@ const SettingsPage = () => {
                   <Gift className="w-4 h-4 mr-2" /> Referrals
                 </TabsTrigger>
               </TabsList>
+              </div>
 
               {/* PROFILE TAB */}
               <TabsContent value="profile">

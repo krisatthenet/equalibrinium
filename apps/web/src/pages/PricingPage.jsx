@@ -144,7 +144,8 @@ const PricingPage = () => {
           </div>
 
           {/* Comparison table */}
-          <div className="rounded-2xl border border-border overflow-hidden">
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div className="rounded-2xl border border-border overflow-hidden min-w-[480px]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40">
@@ -187,6 +188,7 @@ const PricingPage = () => {
                 </tr>
               </tbody>
             </table>
+          </div>
           </div>
 
           <p className="text-center text-xs text-muted-foreground mt-6">
