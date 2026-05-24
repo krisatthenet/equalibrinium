@@ -84,18 +84,13 @@ router.post('/login', async (req, res) => {
  * Body: { email, newPassword, captchaToken }
  */
 router.post('/reset-password', async (req, res) => {
-  const { email, newPassword, captchaToken } = req.body;
+  const { email, newPassword } = req.body;
 
-  if (!email || !newPassword || !captchaToken) {
-    return res.status(400).json({ error: 'email, newPassword, and captchaToken are required' });
+  if (!email || !newPassword) {
+    return res.status(400).json({ error: 'email and newPassword are required' });
   }
   if (newPassword.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
-  }
-
-  const captchaOk = await verifyCaptchaToken(captchaToken, 'RESET_PASSWORD');
-  if (!captchaOk) {
-    return res.status(403).json({ error: 'Security check failed. Please try again.' });
   }
 
   try {

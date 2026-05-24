@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import { useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
-import { verifyRecaptcha, getRawCaptchaToken } from '@/lib/recaptcha.js';
+import { verifyRecaptcha } from '@/lib/recaptcha.js';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,17 +83,10 @@ const LoginPage = () => {
 
     setResetLoading(true);
     try {
-      const captchaToken = await getRawCaptchaToken('RESET_PASSWORD');
-      if (!captchaToken) {
-        setResetError('Security check unavailable. Please try again.');
-        setResetLoading(false);
-        return;
-      }
-
       const res = await apiServerClient.fetch('/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: resetEmail, newPassword: resetNewPass, captchaToken }),
+        body: JSON.stringify({ email: resetEmail, newPassword: resetNewPass }),
       });
       let data = {};
       try { data = await res.json(); } catch {}
@@ -193,8 +186,7 @@ const LoginPage = () => {
                     <ShieldCheck className="h-5 w-5 text-primary" /> Reset your password
                   </CardTitle>
                   <CardDescription>
-                    Enter your email and a new password. We'll verify it's you with reCAPTCHA.
-                    {' '}If you use an ad blocker, please disable it on this page for the security check to work.
+                    Enter your email and a new password to reset it.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -257,13 +249,9 @@ const LoginPage = () => {
                         className="w-full rounded-xl h-11 font-semibold bg-primary text-primary-foreground hover:bg-primary/90"
                       >
                         {resetLoading
-                          ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying…</>
-                          : <><ShieldCheck className="mr-2 h-4 w-4" /> Reset with reCAPTCHA</>}
+                          ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving…</>
+                          : <><ShieldCheck className="mr-2 h-4 w-4" /> Reset password</>}
                       </Button>
-
-                      <p className="text-xs text-muted-foreground text-center">
-                        Protected by Google reCAPTCHA Enterprise. No email required.
-      </p>
                     </form>
                   )}
                 </CardContent>
