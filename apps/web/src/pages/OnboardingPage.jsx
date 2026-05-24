@@ -303,11 +303,8 @@ const TrialStep = ({ userType, onSkip, onStartTrial }) => {
 
   const handleTrial = async () => {
     setLoading(true);
-    try {
-      await onStartTrial();
-    } catch {
-      setLoading(false);
-    }
+    await onStartTrial();
+    setLoading(false);
   };
 
   return (
@@ -461,7 +458,6 @@ const OnboardingPage = () => {
       }
     } catch (err) {
       toast({ title: 'Could not start trial', description: err.message, variant: 'destructive' });
-      throw err;
     }
   };
 
