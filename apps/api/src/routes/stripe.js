@@ -393,7 +393,7 @@ router.post('/create-subscription-checkout', requirePbAuth, async (req, res) => 
     res.json({ url: session.url });
   } catch (err) {
     logger.error('create-subscription-checkout error:', err);
-    res.status(500).json({ error: 'Failed to create subscription checkout', detail: err.message });
+    res.status(500).json({ error: 'Failed to create subscription checkout' });
   }
 });
 
