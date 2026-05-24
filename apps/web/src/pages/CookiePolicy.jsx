@@ -25,7 +25,8 @@ const CookiePolicy = () => {
 
             <div className="space-y-12">
               <section>
-                <h1 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">Slapukų politika</h1>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Slapukų politika</h1>
+                <p className="text-sm text-muted-foreground mb-6">Versija 2.1 · Atnaujinta: 2026 m. gegužė</p>
                 <p className="text-lg text-muted-foreground leading-relaxed">
                   Ši slapukų politika paaiškina, kas yra slapukai ir kaip mes juos naudojame „WorkBee“ platformoje. 
                   Prašome perskaityti šią politiką, kad suprastumėte, kokią informaciją renkame naudodami slapukus ir kaip ta informacija yra naudojama.

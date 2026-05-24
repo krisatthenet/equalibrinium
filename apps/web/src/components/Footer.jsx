@@ -17,21 +17,36 @@ const Footer = () => {
             <p className="text-muted-foreground text-sm max-w-sm mb-6">
               {t('home.subtitle')}
             </p>
-            <div className="flex flex-wrap gap-4">
-              {[
-                { src: '/team-tadas.jpeg', name: 'Tadas', role: 'Co-founder' },
-                { src: '/team-kristupas.jpg', name: 'Kristupas', role: 'Co-founder' },
-                { src: '/team-olek.jpeg', name: 'Olek Suchodolski', role: 'Mentor' },
-                { src: '/team-brigita.jpeg', name: 'Brigita Suchodolska', role: 'Mentor' },
-              ].map(({ src, name, role }) => (
-                <div key={name} className="flex items-center gap-2">
-                  <img src={src} alt={name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground leading-tight">{name}</p>
-                    <p className="text-xs text-muted-foreground">{role}</p>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-wrap gap-4">
+                {[
+                  { src: '/team-tadas.jpeg', name: 'Tadas', role: 'Co-founder' },
+                  { src: '/team-kristupas.jpg', name: 'Kristupas', role: 'Co-founder' },
+                ].map(({ src, name, role }) => (
+                  <div key={name} className="flex items-center gap-2">
+                    <img src={src} alt={name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground leading-tight">{name}</p>
+                      <p className="text-xs text-muted-foreground">{role}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="border-t border-border/50 w-full" />
+              <div className="flex flex-wrap gap-4">
+                {[
+                  { src: '/team-olek.jpeg', name: 'Olek Suchodolski', role: 'Mentor' },
+                  { src: '/team-brigita.jpeg', name: 'Brigita Suchodolska', role: 'Mentor' },
+                ].map(({ src, name, role }) => (
+                  <div key={name} className="flex items-center gap-2">
+                    <img src={src} alt={name} className="w-10 h-10 rounded-xl object-cover shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground leading-tight">{name}</p>
+                      <p className="text-xs text-muted-foreground">{role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

@@ -1,18 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { PageMeta } from '@/components/PageMeta.jsx';
-import { useTranslation } from 'react-i18next';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 
 const GdprPage = () => {
-  const { t } = useTranslation();
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <PageMeta
-        title="GDPR Policy - WorkBee"
-        description="Learn how WorkBee processes your personal data in compliance with the General Data Protection Regulation (GDPR)."
+        title="BDAR politika - WorkBee"
+        description="Sužinokite, kaip WorkBee tvarko jūsų asmens duomenis laikydamasi Bendrojo duomenų apsaugos reglamento (BDAR)."
       />
 
       <Header />
@@ -20,25 +17,25 @@ const GdprPage = () => {
       <main className="flex-1 py-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="mb-12 text-center">
-            <h1 className="text-4xl font-bold text-foreground mb-4">GDPR Policy</h1>
-            <p className="text-muted-foreground">Last updated: May 2025</p>
+            <h1 className="text-4xl font-bold text-foreground mb-4">BDAR politika</h1>
+            <p className="text-muted-foreground">Versija 2.1 · Atnaujinta: 2026 m. gegužė</p>
           </div>
 
           <div className="prose prose-neutral dark:prose-invert max-w-none">
             <p className="text-lg text-muted-foreground mb-8">
-              This GDPR Policy describes how WorkBee ("we", "us", or "our") collects, uses, and protects
-              your personal data in accordance with the General Data Protection Regulation (EU) 2016/679
-              ("GDPR"). We are committed to ensuring the privacy and security of your personal data.
+              Ši BDAR politika aprašo, kaip WorkBee („mes", „mūsų" arba „mums") renka, naudoja ir saugo
+              jūsų asmens duomenis pagal Bendrąjį duomenų apsaugos reglamentą (ES) 2016/679 („BDAR").
+              Mes esame įsipareigoję užtikrinti jūsų asmens duomenų privatumą ir saugumą.
             </p>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">1. Data Controller</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">1. Duomenų valdytojas</h2>
               <p className="text-muted-foreground mb-4">
-                WorkBee operates the platform at <strong className="text-foreground">workbee.space</strong>.
-                For the purposes of the GDPR, WorkBee is the data controller responsible for your personal data.
+                WorkBee valdo platformą adresu <strong className="text-foreground">workbee.space</strong>.
+                BDAR tikslais WorkBee yra duomenų valdytojas, atsakingas už jūsų asmens duomenis.
               </p>
               <p className="text-muted-foreground">
-                You can contact us regarding any data protection matter at:{' '}
+                Dėl bet kokių duomenų apsaugos klausimų galite susisiekti su mumis:{' '}
                 <a href="mailto:privacy@workbee.space" className="text-primary hover:underline">
                   privacy@workbee.space
                 </a>
@@ -46,253 +43,249 @@ const GdprPage = () => {
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">2. Personal Data We Collect</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">2. Renkami asmens duomenys</h2>
               <p className="text-muted-foreground mb-4">
-                We collect and process the following categories of personal data:
+                Mes renkame ir tvarkome šių kategorijų asmens duomenis:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li><strong className="text-foreground">Identity data:</strong> name, username, profile photo</li>
-                <li><strong className="text-foreground">Contact data:</strong> email address, phone number, location</li>
-                <li><strong className="text-foreground">Profile data:</strong> professional bio, skills, service categories, social media links</li>
-                <li><strong className="text-foreground">Transaction data:</strong> service requests, bids, payment records</li>
-                <li><strong className="text-foreground">Communication data:</strong> messages exchanged through our platform</li>
-                <li><strong className="text-foreground">Usage data:</strong> pages visited, features used, timestamps, IP address, browser type</li>
-                <li><strong className="text-foreground">Review data:</strong> ratings and feedback submitted on the platform</li>
+                <li><strong className="text-foreground">Tapatybės duomenys:</strong> vardas, vartotojo vardas, profilio nuotrauka</li>
+                <li><strong className="text-foreground">Kontaktiniai duomenys:</strong> el. pašto adresas, telefono numeris, buvimo vieta</li>
+                <li><strong className="text-foreground">Profilio duomenys:</strong> profesinė biografija, įgūdžiai, paslaugų kategorijos, socialinių tinklų nuorodos</li>
+                <li><strong className="text-foreground">Sandorių duomenys:</strong> paslaugų užklausos, pasiūlymai, mokėjimo įrašai</li>
+                <li><strong className="text-foreground">Komunikacijos duomenys:</strong> per platformą keičiamasi žinutės</li>
+                <li><strong className="text-foreground">Naudojimo duomenys:</strong> lankyti puslapiai, naudotos funkcijos, laiko žymės, IP adresas, naršyklės tipas</li>
+                <li><strong className="text-foreground">Atsiliepimų duomenys:</strong> platformoje pateikti įvertinimai ir atsiliepimai</li>
               </ul>
               <p className="text-muted-foreground mt-4">
-                Payment card details are not stored by us — they are processed directly by our PCI-DSS
-                compliant payment provider (Stripe).
+                Mokėjimo kortelių duomenų mes nesaugome — juos tiesiogiai apdoroja mūsų PCI-DSS
+                atitinkantis mokėjimo paslaugų teikėjas (Stripe).
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">3. Legal Basis for Processing</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">3. Teisinis tvarkymo pagrindas</h2>
               <p className="text-muted-foreground mb-4">
-                We only process your personal data when we have a lawful basis to do so. The legal bases
-                we rely on are:
+                Asmens duomenis tvarkome tik turėdami teisėtą pagrindą. Remiamės šiais teisiniais pagrindais:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>
-                  <strong className="text-foreground">Contract performance (Art. 6(1)(b)):</strong> Processing
-                  is necessary to provide our services — account creation, matching clients with contractors,
-                  facilitating payments and communications.
+                  <strong className="text-foreground">Sutarties vykdymas (6 str. 1 d. b p.):</strong> Tvarkymas
+                  būtinas mūsų paslaugoms teikti — paskyros kūrimui, klientų ir rangovų derinimui,
+                  mokėjimų ir komunikacijos užtikrinimui.
                 </li>
                 <li>
-                  <strong className="text-foreground">Legitimate interests (Art. 6(1)(f)):</strong> Improving
-                  platform performance, preventing fraud, ensuring security, and sending service-related
-                  communications.
+                  <strong className="text-foreground">Teisėti interesai (6 str. 1 d. f p.):</strong> Platformos
+                  tobulinimas, sukčiavimo prevencija, saugumo užtikrinimas ir su paslaugomis susijusių
+                  pranešimų siuntimas.
                 </li>
                 <li>
-                  <strong className="text-foreground">Legal obligation (Art. 6(1)(c)):</strong> Compliance
-                  with applicable laws including tax, anti-money laundering, and financial regulations.
+                  <strong className="text-foreground">Teisinė prievolė (6 str. 1 d. c p.):</strong> Atitiktis
+                  taikomiems teisės aktams, įskaitant mokesčių, kovos su pinigų plovimu ir finansinius reglamentus.
                 </li>
                 <li>
-                  <strong className="text-foreground">Consent (Art. 6(1)(a)):</strong> Marketing emails and
-                  non-essential cookies — only where you have given explicit consent, which you may withdraw
-                  at any time.
+                  <strong className="text-foreground">Sutikimas (6 str. 1 d. a p.):</strong> Rinkodaros el. laiškai ir
+                  neesminiai slapukai — tik kai esate davę aiškų sutikimą, kurį galite bet kada atšaukti.
                 </li>
               </ul>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">4. How We Use Your Data</h2>
-              <p className="text-muted-foreground mb-4">We use your personal data to:</p>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">4. Kaip naudojame jūsų duomenis</h2>
+              <p className="text-muted-foreground mb-4">Jūsų asmens duomenis naudojame, kad:</p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li>Create and manage your account and profile</li>
-                <li>Match clients with suitable contractors and service providers</li>
-                <li>Process payments and maintain transaction records</li>
-                <li>Enable in-platform messaging between users</li>
-                <li>Send transactional notifications (booking confirmations, payment receipts, security alerts)</li>
-                <li>Resolve disputes and provide customer support</li>
-                <li>Detect and prevent fraud, abuse, and security incidents</li>
-                <li>Comply with legal and regulatory obligations</li>
-                <li>Improve and personalise platform features based on usage patterns</li>
+                <li>Sukurtume ir valdytume jūsų paskyrą bei profilį</li>
+                <li>Suderintume klientus su tinkamais rangovais ir paslaugų teikėjais</li>
+                <li>Apdorotume mokėjimus ir saugotume sandorių įrašus</li>
+                <li>Įgalintume žinučių siuntimą tarp platformos naudotojų</li>
+                <li>Siųstume operacinius pranešimus (rezervavimo patvirtinimus, mokėjimo kvitus, saugumo įspėjimus)</li>
+                <li>Spręstume ginčus ir teiktume klientų aptarnavimą</li>
+                <li>Aptiktume ir išvengtume sukčiavimo, piktnaudžiavimo ir saugumo incidentų</li>
+                <li>Laikytumėmės teisinių ir reguliavimo prievolių</li>
+                <li>Tobulintume ir individualizuotume platformos funkcijas pagal naudojimo modelius</li>
               </ul>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">5. Data Retention</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">5. Duomenų saugojimo laikotarpiai</h2>
               <p className="text-muted-foreground mb-4">
-                We retain your personal data only for as long as necessary to fulfil the purposes for
-                which it was collected, or as required by law:
+                Asmens duomenis saugome tik tiek laiko, kiek būtina tikslams, dėl kurių jie buvo renkami,
+                pasiekti, arba kiek reikalauja teisės aktai:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li><strong className="text-foreground">Account data:</strong> retained for the duration of your account plus 30 days after deletion (to allow account recovery)</li>
-                <li><strong className="text-foreground">Transaction and payment records:</strong> retained for 7 years to meet tax and financial regulatory requirements</li>
-                <li><strong className="text-foreground">Communications:</strong> retained for 2 years after the conversation ends</li>
-                <li><strong className="text-foreground">Usage logs:</strong> retained for 12 months for security and fraud prevention</li>
+                <li><strong className="text-foreground">Paskyros duomenys:</strong> saugomi paskyros galiojimo laikotarpiu ir 30 dienų po ištrynimo (paskyros atkūrimui)</li>
+                <li><strong className="text-foreground">Sandorių ir mokėjimų įrašai:</strong> saugomi 7 metus pagal mokesčių ir finansinius reglamentus</li>
+                <li><strong className="text-foreground">Komunikacija:</strong> saugoma 2 metus po pokalbio pabaigos</li>
+                <li><strong className="text-foreground">Naudojimo žurnalai:</strong> saugomi 12 mėnesių saugumo ir sukčiavimo prevencijos tikslais</li>
               </ul>
               <p className="text-muted-foreground mt-4">
-                When data is no longer required, it is securely deleted or anonymised.
+                Duomenims nebereikalingais tapus jie saugiai ištriniami arba anonimizuojami.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">6. Data Sharing and Third Parties</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">6. Duomenų dalinimasis ir trečiosios šalys</h2>
               <p className="text-muted-foreground mb-4">
-                We do not sell your personal data. We share it only in the following circumstances:
+                Mes neparduodame jūsų asmens duomenų. Juos daliname tik šiais atvejais:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>
-                  <strong className="text-foreground">Service providers:</strong> Stripe (payments), PocketBase
-                  (database hosting), and email delivery providers — all bound by Data Processing Agreements.
+                  <strong className="text-foreground">Paslaugų teikėjai:</strong> Stripe (mokėjimai), PocketBase
+                  (duomenų bazės priegloba) ir el. pašto tiekėjai — visi susaistyti duomenų tvarkymo sutartimis.
                 </li>
                 <li>
-                  <strong className="text-foreground">Between users:</strong> Profile and review data is shared
-                  with other users as part of the platform's core functionality.
+                  <strong className="text-foreground">Tarp naudotojų:</strong> Profilio ir atsiliepimų duomenys
+                  dalinami su kitais naudotojais kaip pagrindinė platformos funkcija.
                 </li>
                 <li>
-                  <strong className="text-foreground">Analytics:</strong> Aggregated, anonymised usage data may
-                  be shared with analytics providers to improve the platform.
+                  <strong className="text-foreground">Analizė:</strong> Apibendrinti, anonimizuoti naudojimo duomenys
+                  gali būti dalinami su analitikos teikėjais platformai tobulinti.
                 </li>
                 <li>
-                  <strong className="text-foreground">Legal requirements:</strong> Where required by law, court
-                  order, or to protect our rights and the safety of users.
+                  <strong className="text-foreground">Teisiniai reikalavimai:</strong> Kai to reikalauja teisės aktai,
+                  teismo nutartis arba siekiant apsaugoti mūsų teises ir naudotojų saugumą.
                 </li>
               </ul>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">7. International Data Transfers</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">7. Tarptautiniai duomenų perdavimai</h2>
               <p className="text-muted-foreground mb-4">
-                Some of our service providers may process data outside the European Economic Area (EEA).
-                Where this occurs, we ensure that appropriate safeguards are in place, such as:
+                Kai kurie mūsų paslaugų teikėjai gali tvarkyti duomenis už Europos ekonominės erdvės (EEE) ribų.
+                Tokiais atvejais užtikriname, kad būtų taikomos tinkamos apsaugos priemonės, pavyzdžiui:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-                <li>Standard Contractual Clauses (SCCs) approved by the European Commission</li>
-                <li>Transfers to countries with an adequacy decision from the European Commission</li>
+                <li>Europos Komisijos patvirtintos standartinės sutarčių sąlygos (SSS)</li>
+                <li>Perdavimai į šalis, kurioms Europos Komisija yra priėmusi tinkamumo sprendimą</li>
               </ul>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">8. Your Rights Under GDPR</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">8. Jūsų teisės pagal BDAR</h2>
               <p className="text-muted-foreground mb-4">
-                As a data subject under the GDPR, you have the following rights:
+                Kaip duomenų subjektas pagal BDAR, jūs turite šias teises:
               </p>
               <ul className="list-disc pl-6 text-muted-foreground space-y-2">
                 <li>
-                  <strong className="text-foreground">Right of access (Art. 15):</strong> Request a copy of
-                  the personal data we hold about you.
+                  <strong className="text-foreground">Teisė susipažinti (15 str.):</strong> Paprašyti mūsų
+                  saugomų asmens duomenų kopijos.
                 </li>
                 <li>
-                  <strong className="text-foreground">Right to rectification (Art. 16):</strong> Request
-                  correction of inaccurate or incomplete data.
+                  <strong className="text-foreground">Teisė ištaisyti (16 str.):</strong> Prašyti ištaisyti
+                  netikslius ar neišsamius duomenis.
                 </li>
                 <li>
-                  <strong className="text-foreground">Right to erasure (Art. 17):</strong> Request deletion
-                  of your personal data ("right to be forgotten"), subject to legal retention obligations.
+                  <strong className="text-foreground">Teisė ištrinti (17 str.):</strong> Prašyti ištrinti
+                  jūsų asmens duomenis („teisė būti pamirštam"), laikantis teisinio saugojimo prievolių.
                 </li>
                 <li>
-                  <strong className="text-foreground">Right to restriction (Art. 18):</strong> Request that
-                  we limit how we process your data in certain circumstances.
+                  <strong className="text-foreground">Teisė apriboti tvarkymą (18 str.):</strong> Prašyti,
+                  kad tam tikromis aplinkybėmis apribotume duomenų tvarkymą.
                 </li>
                 <li>
-                  <strong className="text-foreground">Right to data portability (Art. 20):</strong> Receive
-                  your data in a structured, machine-readable format and transfer it to another controller.
+                  <strong className="text-foreground">Teisė į duomenų perkeliamumą (20 str.):</strong> Gauti
+                  duomenis struktūrizuotu, mašininiu būdu skaitomu formatu ir perduoti juos kitam valdytojui.
                 </li>
                 <li>
-                  <strong className="text-foreground">Right to object (Art. 21):</strong> Object to processing
-                  based on legitimate interests or for direct marketing purposes.
+                  <strong className="text-foreground">Teisė nesutikti (21 str.):</strong> Nesutikti su
+                  tvarkymu teisėtų interesų pagrindu arba tiesioginės rinkodaros tikslais.
                 </li>
                 <li>
-                  <strong className="text-foreground">Rights related to automated decisions (Art. 22):</strong>{' '}
-                  Not to be subject to decisions based solely on automated processing that significantly
-                  affects you.
+                  <strong className="text-foreground">Teisės, susijusios su automatizuotu sprendimų priėmimu (22 str.):</strong>{' '}
+                  Nebūti subjektu sprendimų, priimtų išimtinai automatizuoto tvarkymo pagrindu, kurie daro
+                  reikšmingą poveikį.
                 </li>
                 <li>
-                  <strong className="text-foreground">Right to withdraw consent:</strong> Where processing is
-                  based on consent, you may withdraw it at any time without affecting the lawfulness of prior
-                  processing.
+                  <strong className="text-foreground">Teisė atšaukti sutikimą:</strong> Kai tvarkymas grindžiamas
+                  sutikimu, galite jį bet kada atšaukti, tai neturės įtakos ankstesnio tvarkymo teisėtumui.
                 </li>
               </ul>
               <p className="text-muted-foreground mt-4">
-                To exercise any of these rights, contact us at{' '}
+                Norėdami pasinaudoti bet kuria iš šių teisių, susisiekite su mumis:{' '}
                 <a href="mailto:privacy@workbee.space" className="text-primary hover:underline">
                   privacy@workbee.space
                 </a>
-                . We will respond within 30 days. You can also manage many of these preferences directly
-                in your{' '}
+                . Atsakysime per 30 dienų. Daugelį nuostatų taip pat galite valdyti tiesiogiai{' '}
                 <Link to="/settings" className="text-primary hover:underline">
-                  account settings
+                  paskyros nustatymuose
                 </Link>
                 .
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">9. Cookies</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">9. Slapukai</h2>
               <p className="text-muted-foreground mb-4">
-                We use cookies and similar technologies to operate the platform and, where you have
-                consented, to analyse usage. For full details on which cookies we use, their purpose,
-                and how to manage your preferences, please read our{' '}
+                Mes naudojame slapukus ir panašias technologijas platformai valdyti ir, gavę jūsų
+                sutikimą, naudojimui analizuoti. Išsamią informaciją apie tai, kokius slapukus naudojame,
+                jų paskirtį ir kaip valdyti nuostatas, rasite mūsų{' '}
                 <Link to="/cookie-policy" className="text-primary hover:underline">
-                  Cookie Policy
+                  Slapukų politikoje
                 </Link>
                 .
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">10. Data Security</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">10. Duomenų saugumas</h2>
               <p className="text-muted-foreground mb-4">
-                We implement appropriate technical and organisational measures to protect your personal
-                data against unauthorised access, accidental loss, destruction, or damage. These include
-                encrypted data storage, TLS in transit, access controls, and regular security reviews.
+                Įgyvendiname tinkamas technines ir organizacines priemones jūsų asmens duomenims apsaugoti
+                nuo neteisėtos prieigos, atsitiktinio praradimo, sunaikinimo ar sugadinimo. Tai apima
+                šifruotą duomenų saugojimą, TLS ryšio šifravimą, prieigos kontrolę ir reguliarius saugumo auditus.
               </p>
               <p className="text-muted-foreground">
-                If a data breach occurs that is likely to result in a risk to your rights and freedoms,
-                we will notify the relevant supervisory authority within 72 hours and, where required,
-                inform you directly.
+                Įvykus duomenų saugumo pažeidimui, dėl kurio gali kilti pavojus jūsų teisėms ir laisvėms,
+                pranešime kompetentingai priežiūros institucijai per 72 valandas ir, kur reikalaujama,
+                informuosime jus tiesiogiai.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">11. Right to Lodge a Complaint</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">11. Teisė pateikti skundą</h2>
               <p className="text-muted-foreground mb-4">
-                If you believe we have not handled your personal data in accordance with the GDPR, you
-                have the right to lodge a complaint with the supervisory authority in your EU member state.
-                For users in Lithuania, the relevant authority is:
+                Jei manote, kad mes tinkamai netvarkome jūsų asmens duomenų pagal BDAR, turite teisę
+                pateikti skundą priežiūros institucijai savo ES valstybėje narėje.
+                Lietuvos naudotojams kompetentinga institucija yra:
               </p>
               <address className="text-muted-foreground not-italic mb-4 pl-4 border-l-2 border-border">
-                State Data Protection Inspectorate (VDAI)<br />
-                L. Sapiegos g. 17, LT-10312 Vilnius, Lithuania<br />
+                Valstybinė duomenų apsaugos inspekcija (VDAI)<br />
+                L. Sapiegos g. 17, LT-10312 Vilnius, Lietuva<br />
                 <a href="https://vdai.lrv.lt" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                   vdai.lrv.lt
                 </a>
               </address>
               <p className="text-muted-foreground">
-                We encourage you to contact us first at{' '}
+                Pirmiausia rekomenduojame susisiekti su mumis{' '}
                 <a href="mailto:privacy@workbee.space" className="text-primary hover:underline">
                   privacy@workbee.space
-                </a>{' '}
-                so we can resolve your concern directly.
+                </a>
+                {' '}— taip galėsime išspręsti jūsų problemą tiesiogiai.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">12. Changes to This Policy</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">12. Šios politikos pakeitimai</h2>
               <p className="text-muted-foreground mb-4">
-                We may update this GDPR Policy from time to time. When we make material changes, we will
-                notify you by email or via a prominent notice on the platform before the changes take
-                effect. The "Last updated" date at the top of this page reflects when changes were last made.
+                Šią BDAR politiką galime periodiškai atnaujinti. Atlikę esminius pakeitimus, informuosime
+                jus el. paštu arba paskelbsime ryškų pranešimą platformoje prieš pakeitimams įsigaliojant.
+                Puslapio viršuje nurodytas „Atnaujinimo" laukas rodo, kada politika buvo paskutinį kartą keista.
               </p>
             </section>
 
             <section className="mb-10">
-              <h2 className="text-2xl font-semibold text-foreground mb-4">13. Contact Us</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">13. Susisiekite su mumis</h2>
               <p className="text-muted-foreground mb-4">
-                For any questions or requests relating to this GDPR Policy or our data practices, please
-                contact us:
+                Dėl bet kokių klausimų ar prašymų, susijusių su šia BDAR politika ar mūsų duomenų tvarkymo
+                praktika, kreipkitės:
               </p>
               <ul className="list-none pl-0 text-muted-foreground space-y-1">
                 <li>
-                  <strong className="text-foreground">Email:</strong>{' '}
+                  <strong className="text-foreground">El. paštas:</strong>{' '}
                   <a href="mailto:privacy@workbee.space" className="text-primary hover:underline">
                     privacy@workbee.space
                   </a>
                 </li>
                 <li>
-                  <strong className="text-foreground">Website:</strong>{' '}
+                  <strong className="text-foreground">Svetainė:</strong>{' '}
                   <Link to="/contact" className="text-primary hover:underline">
                     workbee.space/contact
                   </Link>
