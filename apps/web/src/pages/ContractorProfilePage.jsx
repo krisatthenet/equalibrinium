@@ -355,7 +355,7 @@ const WorkExamplesGallery = ({ contractor }) => {
       {images.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
           {images.map(filename => {
-            const url = pb.files.getUrl(contractor, filename);
+            const url = pb.files.getURL(contractor, filename);
             return (
               <div
                 key={filename}
@@ -374,7 +374,7 @@ const WorkExamplesGallery = ({ contractor }) => {
           {pdfs.map(filename => (
             <a
               key={filename}
-              href={pb.files.getUrl(contractor, filename)}
+              href={pb.files.getURL(contractor, filename)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 rounded-xl border border-border hover:bg-muted/50 transition-colors"

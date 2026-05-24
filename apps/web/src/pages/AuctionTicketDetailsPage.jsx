@@ -246,12 +246,12 @@ const AuctionTicketDetailsPage = () => {
                           {images.map((img, i) => (
                             <a 
                               key={i} 
-                              href={pb.files.getUrl(ticket, img)} 
+                              href={pb.files.getURL(ticket, img)} 
                               target="_blank" 
                               rel="noopener noreferrer" 
                               className="block aspect-square rounded-xl overflow-hidden border border-border hover:opacity-80 transition-opacity bg-muted"
                             >
-                              <img src={pb.files.getUrl(ticket, img)} alt={`Attachment ${i+1}`} className="w-full h-full object-cover" />
+                              <img src={pb.files.getURL(ticket, img)} alt={`Attachment ${i+1}`} className="w-full h-full object-cover" />
                             </a>
                           ))}
                         </div>
@@ -262,7 +262,7 @@ const AuctionTicketDetailsPage = () => {
                           {pdfs.map((pdf, i) => (
                             <a 
                               key={i} 
-                              href={pb.files.getUrl(ticket, pdf)} 
+                              href={pb.files.getURL(ticket, pdf)} 
                               target="_blank" 
                               rel="noopener noreferrer" 
                               className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/50 transition-colors group"

@@ -93,7 +93,7 @@ const MasterProfilePage = () => {
       <PageMeta
         title={`${master.name} - WorkBee`}
         description={master.bio || `View ${master.name}'s profile and reviews on WorkBee.`}
-        image={master.profilePicture ? pb.files.getUrl(master, master.profilePicture) : undefined}
+        image={master.profilePicture ? pb.files.getURL(master, master.profilePicture) : undefined}
       />
       <Helmet>
         <script type="application/ld+json">{JSON.stringify({
@@ -102,7 +102,7 @@ const MasterProfilePage = () => {
           name: master.name,
           ...(master.bio && { description: master.bio }),
           url: `https://workbee.space/master/${master.id}`,
-          ...(master.profilePicture && { image: pb.files.getUrl(master, master.profilePicture) }),
+          ...(master.profilePicture && { image: pb.files.getURL(master, master.profilePicture) }),
           ...(master.rating && master.reviewCount && {
             aggregateRating: {
               '@type': 'AggregateRating',
@@ -128,7 +128,7 @@ const MasterProfilePage = () => {
                     <div className="aspect-square bg-muted rounded-xl overflow-hidden mb-6">
                       {master.profilePicture ? (
                         <img 
-                          src={pb.files.getUrl(master, master.profilePicture)} 
+                          src={pb.files.getURL(master, master.profilePicture)} 
                           alt={master.name}
                           className="w-full h-full object-cover"
                         />

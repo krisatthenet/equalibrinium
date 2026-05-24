@@ -238,7 +238,7 @@ const MastersSearchPage = () => {
                         <div className="aspect-square bg-muted relative overflow-hidden">
                           {master.profilePicture ? (
                             <img 
-                              src={pb.files.getUrl(master, master.profilePicture)} 
+                              src={pb.files.getURL(master, master.profilePicture)} 
                               alt={master.name}
                               className="w-full h-full object-cover"
                             />

@@ -82,7 +82,7 @@ const SettingsPage = () => {
 
   const loadAvatar = () => {
     if (currentUser?.avatar) {
-      setAvatarPreview(pb.files.getUrl(currentUser, currentUser.avatar));
+      setAvatarPreview(pb.files.getURL(currentUser, currentUser.avatar));
     }
   };
 
@@ -602,7 +602,7 @@ const SettingsPage = () => {
                               {existingWorkExamples.length > 0 && (
                                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                   {existingWorkExamples.map(filename => {
-                                    const url = pb.files.getUrl(currentUser, filename);
+                                    const url = pb.files.getURL(currentUser, filename);
                                     const isPdf = filename.endsWith('.pdf');
                                     return (
                                       <div key={filename} className="relative group aspect-square rounded-lg border border-border overflow-hidden bg-muted flex items-center justify-center">
