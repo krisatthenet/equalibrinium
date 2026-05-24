@@ -1,16 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, User, Briefcase, Megaphone } from 'lucide-react';
 
 const SESSION_KEY = 'wb_lead_popup_shown';
 const API_URL = import.meta.env.VITE_API_URL || 'https://workbee-api-zfq-production.up.railway.app';
 
+const ROLES = [
+  { key: 'client',      label: 'I need a specialist', icon: User },
+  { key: 'contractor',  label: 'I offer services',    icon: Briefcase },
+  { key: 'influencer',  label: 'I\'m an influencer',  icon: Megaphone },
+];
+
 const LeadCapturePopup = () => {
+  const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
+  const [step, setStep] = useState('form'); // 'form' | 'role'
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [done, setDone] = useState(false);
 
   useEffect(() => {
     if (sessionStorage.getItem(SESSION_KEY)) return;
@@ -33,13 +41,14 @@ const LeadCapturePopup = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: name.trim(), email: email.trim() }),
       });
-      setDone(true);
-      setTimeout(dismiss, 2200);
-    } catch (_) {
-      dismiss();
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (_) {}
+    setSubmitting(false);
+    setStep('role');
+  };
+
+  const handleRole = (role) => {
+    dismiss();
+    navigate(`/register?type=${role}&name=${encodeURIComponent(name.trim())}&email=${encodeURIComponent(email.trim())}`);
   };
 
   if (!visible) return null;
@@ -53,7 +62,6 @@ const LeadCapturePopup = () => {
         className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border shadow-2xl shadow-black/60 animate-in slide-in-from-bottom-6 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* yellow accent bar */}
         <div className="h-1 w-full bg-amber-400" />
 
         <div className="bg-card px-8 pt-7 pb-8">
@@ -65,23 +73,12 @@ const LeadCapturePopup = () => {
             <X className="w-4 h-4" />
           </button>
 
-          {done ? (
-            <div className="text-center py-6">
-              <img src="/logo.svg" alt="WorkBee" className="h-14 w-14 mx-auto mb-4" />
-              <h3 className="font-black text-2xl text-foreground mb-1" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                You're on the list!
-              </h3>
-              <p className="text-muted-foreground text-sm">We'll be in touch soon. 🐝</p>
-            </div>
-          ) : (
+          {step === 'form' ? (
             <>
               <div className="flex items-center gap-3 mb-6">
                 <img src="/logo.svg" alt="WorkBee" className="h-10 w-10 shrink-0" />
                 <div>
-                  <h3
-                    className="font-black text-xl leading-tight text-foreground"
-                    style={{ fontFamily: 'Outfit, sans-serif' }}
-                  >
+                  <h3 className="font-black text-xl leading-tight text-foreground" style={{ fontFamily: 'Outfit, sans-serif' }}>
                     Stay in the loop
                   </h3>
                   <p className="text-muted-foreground text-xs mt-0.5">
@@ -122,6 +119,42 @@ const LeadCapturePopup = () => {
                   No thanks, I'll just browse
                 </button>
               </form>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 mb-6">
+                <img src="/logo.svg" alt="WorkBee" className="h-10 w-10 shrink-0" />
+                <div>
+                  <h3 className="font-black text-xl leading-tight text-foreground" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                    How would you like to join?
+                  </h3>
+                  <p className="text-muted-foreground text-xs mt-0.5">
+                    We'll take you straight to your registration.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-3">
+                {ROLES.map(({ key, label, icon: Icon }) => (
+                  <button
+                    key={key}
+                    onClick={() => handleRole(key)}
+                    className="flex items-center gap-4 w-full px-5 py-4 rounded-xl border border-border bg-muted hover:border-amber-400/60 hover:bg-amber-400/5 transition-all duration-150 text-left group"
+                  >
+                    <div className="p-2 rounded-lg bg-amber-400/10 group-hover:bg-amber-400/20 transition-colors">
+                      <Icon className="w-5 h-5 text-amber-400" />
+                    </div>
+                    <span className="font-semibold text-sm text-foreground">{label}</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={dismiss}
+                  className="text-xs text-muted-foreground hover:text-foreground text-center transition-colors pt-1"
+                >
+                  Maybe later
+                </button>
+              </div>
             </>
           )}
         </div>
