@@ -6,5 +6,5 @@ import pb from './pocketbaseClient.js';
  */
 export function getUserImageUrl(user, { thumb } = {}) {
   if (!user?.avatar) return null;
-  return pb.files.getUrl(user, user.avatar, thumb ? { thumb } : {});
+  return pb.files.getURL(user, user.avatar, thumb ? { thumb } : {});
 }
