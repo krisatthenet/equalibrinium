@@ -29,10 +29,10 @@ const RegistrationPage = () => {
   const [userType, setUserType] = useState(searchParams.get('type') || '');
   const refCode = searchParams.get('ref') || '';
   const [formData, setFormData] = useState({
-    email: '',
+    email: searchParams.get('email') || '',
     password: '',
     passwordConfirm: '',
-    name: '',
+    name: searchParams.get('name') || '',
     phone: '',
     location: '',
     profession: '',
