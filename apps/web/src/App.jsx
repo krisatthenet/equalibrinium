@@ -1,6 +1,6 @@
 import React, { Suspense, useEffect, useState, useTransition, Component } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { initMixpanel, trackPageView } from '@/lib/mixpanel';
+
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { AdminAuthProvider } from '@/contexts/AdminAuthContext.jsx';
 import { Toaster } from '@/components/ui/toaster';
@@ -95,7 +95,6 @@ const AppRoutes = () => {
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    trackPageView();
     startTransition(() => setDisplayLocation(location));
   }, [location.pathname, location.search]);
 
@@ -211,7 +210,6 @@ const AppRoutes = () => {
 };
 
 const App = () => {
-  useEffect(() => { initMixpanel(); }, []);
 
   return (
     <ErrorBoundary>
