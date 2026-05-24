@@ -348,7 +348,7 @@ router.post('/request-payout', requirePbAuth, async (req, res) => {
 // ---------------------------------------------------------------------------
 router.post('/create-subscription-checkout', requirePbAuth, async (req, res) => {
   try {
-    const { plan, cycle } = req.body;
+    const { plan, cycle, trial, successPath } = req.body;
     const userId = req.pbUser.id;
     if (!plan || !cycle) {
       return res.status(400).json({ error: 'plan and cycle are required' });
@@ -371,16 +371,25 @@ router.post('/create-subscription-checkout', requirePbAuth, async (req, res) => 
       return res.status(502).json({ error: 'Could not create or retrieve Stripe customer. Please try again.' });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const successUrl = successPath
+      ? `${FRONTEND_URL}${successPath}`
+      : `${FRONTEND_URL}/settings?subscription=success`;
+
+    const sessionParams = {
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       metadata: { userId, plan, cycle },
-      success_url: `${FRONTEND_URL}/settings?subscription=success`,
+      success_url: successUrl,
       cancel_url:  `${FRONTEND_URL}/settings?subscription=cancel`,
       allow_promotion_codes: true,
-    });
+    };
 
+    if (trial) {
+      sessionParams.subscription_data = { trial_period_days: 7 };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
     res.json({ url: session.url });
   } catch (err) {
     logger.error('create-subscription-checkout error:', err);
