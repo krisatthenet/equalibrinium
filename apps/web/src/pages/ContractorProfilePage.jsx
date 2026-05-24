@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
 import { getUserImageUrl } from '@/lib/userImage';
-import { Star, Heart, Briefcase, User, Send, FileText, X } from 'lucide-react';
+import { Star, Heart, Briefcase, User, Send, FileText, X, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -18,6 +18,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
 import PlanBadge from '@/components/PlanBadge.jsx';
+import AvailabilityPicker from '@/components/AvailabilityPicker.jsx';
 import { getEffectivePlan, isInTrial } from '@/lib/plans';
 
 const ContractorProfilePage = () => {
@@ -247,6 +248,16 @@ const ContractorProfilePage = () => {
                         <Heart className={`h-4 w-4 mr-2 ${isFavourite ? 'fill-rose-500 text-rose-500' : ''}`} />
                         {isFavourite ? 'Saved to Favourites' : t('profile.save_favorite')}
                       </Button>
+                    </div>
+
+                    <Separator className="my-6" />
+
+                    <div>
+                      <p className="text-sm font-semibold mb-3 flex items-center gap-2">
+                        <CalendarDays className="h-4 w-4 text-primary" />
+                        Availability
+                      </p>
+                      <AvailabilityPicker contractorId={contractor.id} />
                     </div>
                   </CardContent>
                 </Card>

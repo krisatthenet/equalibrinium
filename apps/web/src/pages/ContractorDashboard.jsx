@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PlanBadge from '@/components/PlanBadge.jsx';
@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications.js';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import ContractorAvailability from '@/components/ContractorAvailability.jsx';
 
 const StarRating = ({ value }) => (
   <div className="flex gap-0.5">
@@ -41,6 +42,7 @@ const ContractorDashboard = () => {
   const [now, setNow] = useState(Date.now());
   const [searchRank, setSearchRank] = useState(null);
   const [totalContractors, setTotalContractors] = useState(null);
+  const [showAvailability, setShowAvailability] = useState(false);
   const { permission, requestPermission } = usePushNotifications(currentUser?.id);
 
   useEffect(() => {
@@ -544,6 +546,36 @@ const ContractorDashboard = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Availability section */}
+            <Card className="bg-card border-border rounded-2xl mb-8">
+              <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <CalendarDays className="h-5 w-5 text-primary" />
+                  Availability Calendar
+                </CardTitle>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl shrink-0"
+                  onClick={() => setShowAvailability(v => !v)}
+                >
+                  {showAvailability ? 'Collapse' : 'Manage'}
+                </Button>
+              </CardHeader>
+              {showAvailability && (
+                <CardContent>
+                  <ContractorAvailability contractorId={currentUser?.id} />
+                </CardContent>
+              )}
+              {!showAvailability && (
+                <CardContent className="pt-0">
+                  <p className="text-sm text-muted-foreground">
+                    Mark the days you're available so clients can request a specific slot — no more "when are you free?" messages.
+                  </p>
+                </CardContent>
+              )}
+            </Card>
 
             {/* Insights section */}
             <Card className="bg-card border-border rounded-2xl mb-8">
