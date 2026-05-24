@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import i18n from '@/i18n';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { verifyRecaptcha } from '@/lib/recaptcha.js';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -82,13 +81,6 @@ const RegistrationPage = () => {
     }
 
     setLoading(true);
-
-    const captchaOk = await verifyRecaptcha('REGISTER');
-    if (!captchaOk) {
-      setError('Security check failed. Please try again.');
-      setLoading(false);
-      return;
-    }
 
     try {
       const extraData = {
@@ -222,14 +214,7 @@ const RegistrationPage = () => {
                   )}
                   {error && (
                     <Alert variant="destructive" className="rounded-xl">
-                      <AlertDescription>
-                        {error}
-                        {error.toLowerCase().includes('security check') && (
-                          <span className="block mt-1 text-xs">
-                            If you have an ad blocker enabled, please disable it on this page and try again.
-                          </span>
-                        )}
-                      </AlertDescription>
+                      <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   )}
 
