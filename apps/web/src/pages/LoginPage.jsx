@@ -130,7 +130,14 @@ const LoginPage = () => {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     {error && (
                       <Alert variant="destructive" className="rounded-xl">
-                        <AlertDescription>{error}</AlertDescription>
+                        <AlertDescription>
+                          {error}
+                          {error.toLowerCase().includes('security check') && (
+                            <span className="block mt-1 text-xs">
+                              If you have an ad blocker enabled, please disable it on this page and try again.
+                            </span>
+                          )}
+                        </AlertDescription>
                       </Alert>
                     )}
 
@@ -187,6 +194,7 @@ const LoginPage = () => {
                   </CardTitle>
                   <CardDescription>
                     Enter your email and a new password. We'll verify it's you with reCAPTCHA.
+                    {' '}If you use an ad blocker, please disable it on this page for the security check to work.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -203,7 +211,14 @@ const LoginPage = () => {
                     <form onSubmit={handleReset} className="space-y-4">
                       {resetError && (
                         <Alert variant="destructive" className="rounded-xl">
-                          <AlertDescription>{resetError}</AlertDescription>
+                          <AlertDescription>
+                            {resetError}
+                            {resetError.toLowerCase().includes('security check') && (
+                              <span className="block mt-1 text-xs">
+                                If you have an ad blocker enabled, please disable it on this page and try again.
+                              </span>
+                            )}
+                          </AlertDescription>
                         </Alert>
                       )}
 

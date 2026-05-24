@@ -222,7 +222,14 @@ const RegistrationPage = () => {
                   )}
                   {error && (
                     <Alert variant="destructive" className="rounded-xl">
-                      <AlertDescription>{error}</AlertDescription>
+                      <AlertDescription>
+                        {error}
+                        {error.toLowerCase().includes('security check') && (
+                          <span className="block mt-1 text-xs">
+                            If you have an ad blocker enabled, please disable it on this page and try again.
+                          </span>
+                        )}
+                      </AlertDescription>
                     </Alert>
                   )}
 
