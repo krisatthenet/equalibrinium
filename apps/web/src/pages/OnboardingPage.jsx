@@ -2,21 +2,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
+import apiServerClient from '@/lib/apiServerClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, CheckCircle, ChevronRight, Loader2, User, Briefcase, Image, MapPin } from 'lucide-react';
+import { Camera, CheckCircle, ChevronRight, Loader2, User, Image } from 'lucide-react';
 import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
 
 const ONBOARDING_KEY = (id) => `wb_onboarded_${id}`;
 
 // Steps per user type
 const STEPS = {
-  contractor: ['photo', 'about', 'categories', 'portfolio', 'done'],
-  client:     ['photo', 'location', 'done'],
+  contractor: ['photo', 'about', 'categories', 'portfolio', 'trial', 'done'],
+  client:     ['photo', 'location', 'trial', 'done'],
   influencer: ['photo', 'social', 'done'],
 };
 
@@ -281,6 +282,78 @@ const SocialStep = ({ user, onNext, saving }) => {
   );
 };
 
+// ── Step: Trial ──────────────────────────────────────────────────────────────
+const TRIAL_BENEFITS = {
+  contractor: [
+    'Priority listing in search results',
+    'Unlimited job bids per month',
+    'Direct client contact unlocked',
+  ],
+  client: [
+    'Post unlimited jobs',
+    'Access verified specialist profiles',
+    'Priority support',
+  ],
+};
+
+const TrialStep = ({ userType, onSkip, onStartTrial }) => {
+  const [loading, setLoading] = useState(false);
+  const price = userType === 'contractor' ? '€9' : '€7';
+  const benefits = TRIAL_BENEFITS[userType] || TRIAL_BENEFITS.client;
+
+  const handleTrial = async () => {
+    setLoading(true);
+    try {
+      await onStartTrial();
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-6 text-center">
+      <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center">
+        <img src="/logo.svg" alt="WorkBee" className="w-12 h-12" />
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">7 days free, on us 🐝</h2>
+        <p className="text-muted-foreground text-sm max-w-xs">
+          Try WorkBee VIP free for 7 days. Then just {price}/month. Cancel anytime before your trial ends — no charge.
+        </p>
+      </div>
+      <div className="w-full space-y-3">
+        <div className="bg-muted/40 border border-border rounded-xl p-4 text-sm text-left space-y-2.5">
+          {benefits.map((b) => (
+            <div key={b} className="flex items-center gap-2.5 text-foreground">
+              <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+              {b}
+            </div>
+          ))}
+          <div className="flex items-center gap-2.5 text-foreground">
+            <CheckCircle className="w-4 h-4 text-primary shrink-0" />
+            No charges for 7 days
+          </div>
+        </div>
+        <Button
+          className="w-full rounded-xl text-base py-5 bg-primary text-primary-foreground hover:bg-primary/90"
+          onClick={handleTrial}
+          disabled={loading}
+        >
+          {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          Start free trial — card required
+        </Button>
+        <button
+          type="button"
+          onClick={onSkip}
+          className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
+        >
+          Skip, take me to my dashboard
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // ── Step: Done ───────────────────────────────────────────────────────────────
 const DoneStep = ({ userType, onGo }) => (
   <div className="flex flex-col items-center gap-6 text-center">
@@ -371,6 +444,18 @@ const OnboardingPage = () => {
     navigate(getDashboardPath(), { replace: true });
   };
 
+  const startTrial = async () => {
+    if (userId) localStorage.setItem(ONBOARDING_KEY(userId), '1');
+    const dashPath = getDashboardPath();
+    const res = await apiServerClient.fetch('/stripe/create-subscription-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: 'vip', cycle: 'monthly', trial: true, successPath: dashPath + '?trial=started' }),
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
+
   if (!currentUser && !userId) return null;
 
   return (
@@ -430,13 +515,20 @@ const OnboardingPage = () => {
               onNext={(data) => save(data)}
             />
           )}
+          {currentStep === 'trial' && (
+            <TrialStep
+              userType={userType}
+              onSkip={() => setStepIndex(i => i + 1)}
+              onStartTrial={startTrial}
+            />
+          )}
           {currentStep === 'done' && (
             <DoneStep userType={userType} onGo={finish} />
           )}
         </div>
 
         {/* Skip entire onboarding */}
-        {currentStep !== 'done' && (
+        {currentStep !== 'done' && currentStep !== 'trial' && (
           <button
             type="button"
             onClick={finish}
