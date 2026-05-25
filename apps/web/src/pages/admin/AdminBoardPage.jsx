@@ -106,7 +106,7 @@ const AdminBoardPage = () => {
 
       <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Team Board</h1>
+          <h1 className="text-2xl font-bold text-foreground">Team Board</h1>
           <p className="text-muted-foreground text-sm mt-0.5">{tasks.length} tasks across all departments</p>
         </div>
         <div className="flex items-center gap-3">

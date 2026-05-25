@@ -58,7 +58,7 @@ const AdminReviewsPage = () => {
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Reviews</h1>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Reviews</h1>
           <p className="text-muted-foreground mt-1">Moderate platform feedback and ratings.</p>
         </div>
         <div className="relative w-full sm:w-72">
@@ -102,7 +102,7 @@ const AdminReviewsPage = () => {
                 filteredReviews.map((review) => (
                   <tr key={review.id} className="hover:bg-[hsl(var(--admin-border))/30] transition-colors">
                     <td className="px-6 py-4">
-                      <span className="font-medium text-white">{review.expand?.clientId?.email || 'Unknown'}</span>
+                      <span className="font-medium text-foreground">{review.expand?.clientId?.email || 'Unknown'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center text-[hsl(var(--admin-primary))]">

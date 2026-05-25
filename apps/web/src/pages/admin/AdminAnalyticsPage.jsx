@@ -79,7 +79,7 @@ const AdminAnalyticsPage = () => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-[hsl(var(--admin-card))] border border-[hsl(var(--admin-border))] p-3 rounded-lg shadow-lg">
-          <p className="text-white font-medium mb-1">{label}</p>
+          <p className="text-foreground font-medium mb-1">{label}</p>
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: {entry.value}
@@ -98,14 +98,14 @@ const AdminAnalyticsPage = () => {
       </Helmet>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Analytics & Reports</h1>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">Analytics & Reports</h1>
         <p className="text-muted-foreground mt-1">Deep dive into platform performance.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Income Chart */}
         <div className="admin-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">Revenue Overview</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-6">Revenue Overview</h3>
           {loading ? (
             <Skeleton className="h-[300px] w-full bg-[hsl(var(--admin-border))]" />
           ) : (
@@ -125,7 +125,7 @@ const AdminAnalyticsPage = () => {
 
         {/* Ticket Status Chart */}
         <div className="admin-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">Ticket Completion Rate</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-6">Ticket Completion Rate</h3>
           {loading ? (
             <Skeleton className="h-[300px] w-full bg-[hsl(var(--admin-border))]" />
           ) : (
@@ -151,7 +151,7 @@ const AdminAnalyticsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* User Distribution */}
         <div className="admin-card p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">User Distribution</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-6">User Distribution</h3>
           {loading ? (
             <Skeleton className="h-[300px] w-full bg-[hsl(var(--admin-border))]" />
           ) : (

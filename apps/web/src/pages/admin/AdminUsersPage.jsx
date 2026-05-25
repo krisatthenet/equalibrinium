@@ -130,7 +130,7 @@ const AdminUsersPage = () => {
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Users</h1>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Users</h1>
           <p className="text-muted-foreground mt-1">Manage platform users and permissions.</p>
         </div>
         <div className="relative w-full sm:w-72">
@@ -176,7 +176,7 @@ const AdminUsersPage = () => {
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">{user.name || 'Unnamed User'}</span>
+                          <span className="font-medium text-foreground">{user.name || 'Unnamed User'}</span>
                           {user.title && <Badge variant="secondary" className="text-xs">{user.title}</Badge>}
                           <PlanBadge plan={user.plan} />
                         </div>
@@ -215,7 +215,7 @@ const AdminUsersPage = () => {
                     <td className="px-6 py-4 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
@@ -249,7 +249,7 @@ const AdminUsersPage = () => {
 
       {/* Ban Modal */}
       <Dialog open={banModalOpen} onOpenChange={setBanModalOpen}>
-        <DialogContent className="bg-[hsl(var(--admin-card))] border-[hsl(var(--admin-border))] text-white">
+        <DialogContent className="bg-[hsl(var(--admin-card))] border-[hsl(var(--admin-border))] text-foreground">
           <DialogHeader>
             <DialogTitle>Ban User</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -269,7 +269,7 @@ const AdminUsersPage = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setBanModalOpen(false)} disabled={actionLoading} className="border-[hsl(var(--admin-border))] text-white hover:bg-[hsl(var(--admin-border))]">
+            <Button variant="outline" onClick={() => setBanModalOpen(false)} disabled={actionLoading} className="border-[hsl(var(--admin-border))] text-foreground hover:bg-[hsl(var(--admin-border))]">
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleBanUser} disabled={actionLoading || !banReason.trim()}>

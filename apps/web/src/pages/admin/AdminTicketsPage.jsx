@@ -78,7 +78,7 @@ const AdminTicketsPage = () => {
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Tickets</h1>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Tickets</h1>
           <p className="text-muted-foreground mt-1">Monitor and manage service requests.</p>
         </div>
         <div className="relative w-full sm:w-72">
@@ -123,7 +123,7 @@ const AdminTicketsPage = () => {
                   <tr key={ticket.id} className="hover:bg-[hsl(var(--admin-border))/30] transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
-                        <span className="font-medium text-white">{ticket.expand?.categoryId?.name || 'Unknown Category'}</span>
+                        <span className="font-medium text-foreground">{ticket.expand?.categoryId?.name || 'Unknown Category'}</span>
                         <span className="text-xs text-muted-foreground">{ticket.expand?.clientId?.email || 'Unknown Client'}</span>
                       </div>
                     </td>
@@ -132,7 +132,7 @@ const AdminTicketsPage = () => {
                         {ticket.status}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-white font-medium">
+                    <td className="px-6 py-4 text-foreground font-medium">
                       {ticket.budget ? `€${ticket.budget}` : 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
@@ -143,7 +143,7 @@ const AdminTicketsPage = () => {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-[hsl(var(--admin-border))]"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-[hsl(var(--admin-border))]"
                           onClick={() => { setSelectedTicket(ticket); setViewModalOpen(true); }}
                         >
                           <Eye className="h-4 w-4" />
@@ -168,7 +168,7 @@ const AdminTicketsPage = () => {
 
       {/* View Modal */}
       <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-        <DialogContent className="bg-[hsl(var(--admin-card))] border-[hsl(var(--admin-border))] text-white max-w-2xl">
+        <DialogContent className="bg-[hsl(var(--admin-card))] border-[hsl(var(--admin-border))] text-foreground max-w-2xl">
           <DialogHeader>
             <DialogTitle>Ticket Details</DialogTitle>
           </DialogHeader>

@@ -33,7 +33,7 @@ const MetricCard = ({ title, value, icon: Icon, trend, loading, prefix = '' }) =
       {loading ? (
         <Skeleton className="h-8 w-24 bg-[hsl(var(--admin-border))]" />
       ) : (
-        <h3 className="text-3xl font-bold text-white tracking-tight">
+        <h3 className="text-3xl font-bold text-foreground tracking-tight">
           {prefix}{typeof value === 'number' ? value.toLocaleString() : value}
         </h3>
       )}
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
       </Helmet>
 
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white tracking-tight">Platform Overview</h1>
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">Platform Overview</h1>
         <p className="text-muted-foreground mt-1">Key metrics and performance indicators.</p>
       </div>
 

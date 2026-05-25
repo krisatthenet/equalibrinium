@@ -13,7 +13,7 @@ const AdminLoginPage = () => {
   const [password, setPassword] = useState('');
   const [localError, setLocalError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const { login, error: contextError } = useAdminAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,19 +24,17 @@ const AdminLoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError('');
-    
+
     if (!email || !password) {
       setLocalError('Please enter both email and password.');
       return;
     }
 
     setIsSubmitting(true);
-
     try {
       await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      console.error('Admin login error:', err);
       setLocalError(err.message || 'Invalid credentials or unauthorized access.');
     } finally {
       setIsSubmitting(false);
@@ -48,74 +46,74 @@ const AdminLoginPage = () => {
   return (
     <>
       <Helmet>
-        <title>Admin Login - Bee Marketplace</title>
+        <title>Admin Login - WorkBee</title>
         <meta name="robots" content="noindex, nofollow" />
       </Helmet>
 
-      <div className="min-h-screen bg-[hsl(var(--admin-bg))] flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-md">
+          {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center p-3 bg-[hsl(var(--admin-primary))/10] rounded-2xl mb-4">
-              <ShieldAlert className="h-10 w-10 text-[hsl(var(--admin-primary))]" />
+            <div className="inline-flex items-center justify-center p-3 bg-primary/10 border border-primary/20 rounded-2xl mb-4">
+              <ShieldAlert className="h-8 w-8 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">Admin Portal</h1>
-            <p className="text-muted-foreground mt-2">Secure access required</p>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Admin Portal</h1>
+            <p className="text-muted-foreground mt-2 text-sm">Restricted access — authorised personnel only</p>
           </div>
 
+          {/* Card */}
           <div className="admin-card p-8">
             {isTimeout && (
-              <Alert className="mb-6 bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
-                <AlertDescription>Your session has expired. Please log in again.</AlertDescription>
+              <Alert className="mb-6 bg-yellow-500/10 text-yellow-500 border-yellow-500/20 rounded-xl">
+                <AlertDescription>Your session has expired. Please sign in again.</AlertDescription>
               </Alert>
             )}
 
             {displayError && (
-              <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20">
+              <Alert variant="destructive" className="mb-6 bg-destructive/10 border-destructive/20 rounded-xl">
                 <AlertDescription>{displayError}</AlertDescription>
               </Alert>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5" noValidate>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-300">Admin Email</Label>
+                <Label htmlFor="email" className="text-muted-foreground text-sm">Admin Email</Label>
                 <Input
                   id="email"
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="admin-input"
-                  placeholder="admin@example.com"
+                  onChange={e => setEmail(e.target.value)}
+                  className="admin-input rounded-xl"
+                  placeholder="admin@workbee.space"
                   autoComplete="email"
                   disabled={isSubmitting}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-300">Password</Label>
+                <Label htmlFor="password" className="text-muted-foreground text-sm">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="admin-input"
+                  onChange={e => setPassword(e.target.value)}
+                  className="admin-input rounded-xl"
                   placeholder="••••••••"
                   autoComplete="current-password"
                   disabled={isSubmitting}
                 />
               </div>
 
-              <Button 
-                type="submit" 
-                className="w-full bg-[hsl(var(--admin-primary))] text-white hover:bg-[hsl(var(--admin-primary))/90] h-11 text-base font-medium mt-2 transition-all duration-200 active:scale-[0.98]"
+              <Button
+                type="submit"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-11 text-base font-semibold mt-2 rounded-xl transition-all duration-200 active:scale-[0.98]"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? (
-                  <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Authenticating...</>
-                ) : (
-                  'Sign In'
-                )}
+                {isSubmitting
+                  ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Authenticating…</>
+                  : 'Sign In'}
               </Button>
             </form>
           </div>
