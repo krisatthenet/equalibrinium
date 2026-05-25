@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
-import { Star, MapPin, Map as MapIcon, Users, Search, X, Navigation, SlidersHorizontal, ShieldCheck } from 'lucide-react';
+import { Star, MapPin, Map as MapIcon, Users, Search, X, Navigation, SlidersHorizontal, ShieldCheck, Bookmark, BookmarkCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +12,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/contexts/AuthContext.jsx';
+import { useToast } from '@/hooks/use-toast';
+import pb from '@/lib/pocketbaseClient.js';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import GoogleMapsIntegration from '@/components/GoogleMapsIntegration.jsx';
@@ -38,6 +41,8 @@ const RADIUS_OPTIONS = [
 
 const ContractorsSearchPage = () => {
   const { t } = useTranslation();
+  const { currentUser, isAuthenticated } = useAuth();
+  const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [contractors, setContractors] = useState([]);
   const [tickets, setTickets] = useState([]);
@@ -45,11 +50,58 @@ const ContractorsSearchPage = () => {
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
   const [locating, setLocating] = useState(false);
+  const [savedSearches, setSavedSearches] = useState([]);
+  const [saveLoading, setSaveLoading] = useState(false);
 
   const [keyword, setKeyword] = useState(searchParams.get('q') || '');
   const [cityQuery, setCityQuery] = useState(searchParams.get('city') || '');
   const [radius, setRadius] = useState('any');
   const categoryParam = searchParams.get('category') || '';
+
+  useEffect(() => {
+    if (!isAuthenticated || currentUser?.userType !== 'client') return;
+    pb.collection('saved_searches').getFullList({
+      filter: `userId = "${currentUser.id}"`,
+      $autoCancel: false,
+    }).then(setSavedSearches).catch(() => {});
+  }, [isAuthenticated, currentUser]);
+
+  const buildLabel = () => {
+    const parts = [];
+    if (keyword.trim()) parts.push(keyword.trim());
+    else if (categoryParam) {
+      const cat = categories.find(c => c.id === categoryParam);
+      if (cat) parts.push(cat.name);
+    }
+    if (cityQuery.trim()) parts.push(`in ${cityQuery.trim()}`);
+    return parts.join(' · ') || 'All contractors';
+  };
+
+  const isAlreadySaved = savedSearches.some(s =>
+    s.categoryId === (categoryParam || '') &&
+    (s.location || '').toLowerCase() === cityQuery.toLowerCase().trim() &&
+    (s.keyword || '').toLowerCase() === keyword.toLowerCase().trim()
+  );
+
+  const handleSaveSearch = async () => {
+    if (!isAuthenticated) { toast({ title: 'Sign in to save searches' }); return; }
+    setSaveLoading(true);
+    try {
+      const rec = await pb.collection('saved_searches').create({
+        userId: currentUser.id,
+        label: buildLabel(),
+        categoryId: categoryParam || '',
+        location: cityQuery.trim(),
+        keyword: keyword.trim(),
+      }, { $autoCancel: false });
+      setSavedSearches(prev => [...prev, rec]);
+      toast({ title: 'Search saved', description: `You'll be notified when "${buildLabel()}" matches appear.` });
+    } catch {
+      toast({ title: 'Could not save search', variant: 'destructive' });
+    } finally {
+      setSaveLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -225,6 +277,19 @@ const ContractorsSearchPage = () => {
                       onClick={() => { setKeyword(''); setCityQuery(''); setRadius('any'); }}
                     >
                       <X className="h-4 w-4 mr-1" /> Clear
+                    </Button>
+                  )}
+                  {hasFilters && isAuthenticated && currentUser?.userType === 'client' && (
+                    <Button
+                      variant={isAlreadySaved ? 'secondary' : 'outline'}
+                      className="rounded-xl h-11 px-4 shrink-0"
+                      onClick={handleSaveSearch}
+                      disabled={saveLoading || isAlreadySaved}
+                    >
+                      {isAlreadySaved
+                        ? <><BookmarkCheck className="h-4 w-4 mr-1.5 text-primary" /> Saved</>
+                        : <><Bookmark className="h-4 w-4 mr-1.5" /> Save search</>
+                      }
                     </Button>
                   )}
                 </div>

@@ -11,6 +11,7 @@ const TYPE_META = {
   bid_accepted:     { icon: CheckCircle2,  color: 'text-green-400',  bg: 'bg-green-500/10' },
   ticket_completed: { icon: Hammer,        color: 'text-blue-400',   bg: 'bg-blue-500/10' },
   dispute_update:   { icon: Info,          color: 'text-orange-400', bg: 'bg-orange-500/10' },
+  search_alert:     { icon: Bell,          color: 'text-purple-400', bg: 'bg-purple-500/10' },
 };
 
 const timeAgo = (dateStr) => {

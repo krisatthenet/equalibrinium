@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
-import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil, MessageCircle, AlertTriangle } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil, MessageCircle, AlertTriangle, Bookmark, Trash2, Search } from 'lucide-react';
 import ConversationsInbox from '@/components/ConversationsInbox.jsx';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
@@ -46,6 +46,8 @@ const ClientDashboard = () => {
   const [disputingTicket, setDisputingTicket] = useState(null);
   const [disputeReason, setDisputeReason] = useState('');
   const [disputeLoading, setDisputeLoading] = useState(false);
+  const [savedSearches, setSavedSearches] = useState([]);
+  const [deletingSearchId, setDeletingSearchId] = useState(null);
 
   const fetchTickets = async () => {
     try {
@@ -130,6 +132,27 @@ const ClientDashboard = () => {
   useEffect(() => {
     if (currentUser) fetchTickets();
   }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    pb.collection('saved_searches').getFullList({
+      filter: `userId = "${currentUser.id}"`,
+      sort: '-created',
+      $autoCancel: false,
+    }).then(setSavedSearches).catch(() => {});
+  }, [currentUser]);
+
+  const handleDeleteSavedSearch = async (id) => {
+    setDeletingSearchId(id);
+    try {
+      await pb.collection('saved_searches').delete(id, { $autoCancel: false });
+      setSavedSearches(prev => prev.filter(s => s.id !== id));
+    } catch {
+      // silently ignore
+    } finally {
+      setDeletingSearchId(null);
+    }
+  };
 
   const allTickets = tickets;
   const activeTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress');
@@ -223,6 +246,14 @@ const ClientDashboard = () => {
       icon: <CheckCircle className="h-6 w-6 text-green-500" />,
       bg: 'bg-green-500/10',
       ring: 'ring-green-500/50',
+    },
+    {
+      key: 'searches',
+      label: 'Saved Searches',
+      value: savedSearches.length,
+      icon: <Bookmark className="h-6 w-6 text-purple-500" />,
+      bg: 'bg-purple-500/10',
+      ring: 'ring-purple-500/50',
     },
   ];
 
@@ -423,6 +454,50 @@ const ClientDashboard = () => {
       icon: <MessageCircle className="h-5 w-5 text-primary" />,
       content: <ConversationsInbox />,
     },
+    searches: {
+      title: 'Saved Searches',
+      icon: <Bookmark className="h-5 w-5 text-purple-500" />,
+      content: savedSearches.length > 0 ? (
+        <div className="space-y-3">
+          {savedSearches.map(s => (
+            <div key={s.id} className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-border bg-card hover:bg-muted/30 transition-colors">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2 bg-purple-500/10 rounded-lg shrink-0">
+                  <Search className="h-4 w-4 text-purple-500" />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium text-sm text-foreground truncate">{s.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {[s.keyword, s.location].filter(Boolean).join(' · ') || 'Any contractor'}
+                    {' · '}Alerts on
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleDeleteSavedSearch(s.id)}
+                disabled={deletingSearchId === s.id}
+                className="shrink-0 p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                aria-label="Delete saved search"
+              >
+                {deletingSearchId === s.id
+                  ? <Loader2 className="h-4 w-4 animate-spin" />
+                  : <Trash2 className="h-4 w-4" />
+                }
+              </button>
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground pt-2 px-1">
+            You'll get an SMS and in-app alert when a new contractor matching any of these searches joins WorkBee.
+          </p>
+        </div>
+      ) : (
+        <div className="text-center py-10">
+          <Bookmark className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground mb-3">No saved searches yet.</p>
+          <Link to="/explore" className="text-sm text-primary hover:underline">Go to search →</Link>
+        </div>
+      ),
+    },
   };
 
   return (
@@ -474,7 +549,7 @@ const ClientDashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8">
               {statCards.map(card => (
                 <Card
                   key={card.key}
