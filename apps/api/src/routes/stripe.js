@@ -17,7 +17,7 @@ router.get('/health', async (req, res) => {
   }
 });
 
-const PLATFORM_FEE_PCT = 0.05; // 5%
+const PLATFORM_FEE_PCT = Number(process.env.PLATFORM_FEE_PCT) || 0.07; // 7% commission on completed jobs
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://workbee.space';
 const PB_URL = process.env.POCKETBASE_URL || 'https://workbee-pocketbase-cayj-production.up.railway.app';
 
@@ -633,10 +633,12 @@ router.post('/release-escrow', requirePbAuth, async (req, res) => {
     } catch (_) {}
 
     // Record payment + update statuses
+    const platformFee = parseFloat((escrow.amount * PLATFORM_FEE_PCT).toFixed(2));
     await pb.collection('payments').create({
       ticketId,
       userId,
       amount: escrow.amount,
+      platformFee,
       paymentMethod: 'stripe',
       paymentOption: 'escrow',
       status: 'completed',
@@ -646,7 +648,7 @@ router.post('/release-escrow', requirePbAuth, async (req, res) => {
     await pb.collection('escrow_payments').update(escrow.id, { status: 'released' });
     await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' });
 
-    logger.info(`Escrow released: ticket ${ticketId}, €${escrow.amount} captured`);
+    logger.info(`Escrow released: ticket ${ticketId}, €${escrow.amount} captured, platform fee €${platformFee} (${(PLATFORM_FEE_PCT * 100).toFixed(0)}%)`);
     res.json({ success: true });
   } catch (err) {
     logger.error('release-escrow error:', err);
@@ -799,10 +801,12 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
       }
 
       // Record payment
+      const platformFee = parseFloat((amountPaid * PLATFORM_FEE_PCT).toFixed(2));
       await pb.collection('payments').create({
         ticketId,
         userId,
         amount: amountPaid,
+        platformFee,
         paymentMethod: 'stripe',
         paymentOption: 'full',
         status: 'completed',
