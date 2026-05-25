@@ -61,6 +61,20 @@ export const AuthProvider = ({ children }) => {
     return authData;
   };
 
+  const loginWithOAuth2 = async (provider, createData = {}) => {
+    const options = { provider };
+    if (Object.keys(createData).length > 0) options.createData = createData;
+    const authData = await pb.collection('users').authWithOAuth2(options);
+    setCurrentUser(authData.record);
+    return authData;
+  };
+
+  const refreshUser = async () => {
+    const fresh = await pb.collection('users').getOne(pb.authStore.model.id, { $autoCancel: false });
+    setCurrentUser(fresh);
+    return fresh;
+  };
+
   const logout = () => {
     pb.authStore.clear();
     setCurrentUser(null);
@@ -78,6 +92,8 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     signup,
     login,
+    loginWithOAuth2,
+    refreshUser,
     logout,
     requestPasswordReset,
     resendVerification,

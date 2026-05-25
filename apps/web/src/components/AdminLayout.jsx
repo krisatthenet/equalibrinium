@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/contexts/AdminAuthContext.jsx';
 import {
   LayoutDashboard, Users, Ticket, Star, BarChart3, LogOut,
-  ShieldAlert, Code2, Megaphone, HeadphonesIcon, DollarSign, FileText, LayoutKanban
+  ShieldAlert, Code2, Megaphone, HeadphonesIcon, DollarSign, FileText, Kanban
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -71,7 +71,7 @@ const AdminLayout = ({ children }) => {
               { path: '/admin/support', label: 'Support', icon: HeadphonesIcon },
               { path: '/admin/finance', label: 'Finance', icon: DollarSign },
               { path: '/admin/invoices', label: 'Invoices', icon: FileText },
-              { path: '/admin/board', label: 'Board', icon: LayoutKanban },
+              { path: '/admin/board', label: 'Board', icon: Kanban },
             ]}
           />
         </nav>
