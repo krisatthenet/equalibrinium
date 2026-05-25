@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle, Zap } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle, Zap, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import apiServerClient from '@/lib/apiServerClient.js';
 import ConversationsInbox from '@/components/ConversationsInbox.jsx';
 
@@ -19,6 +19,7 @@ const haversine = (lat1, lon1, lat2, lon2) => {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PlanBadge from '@/components/PlanBadge.jsx';
+import { PLANS, getEffectivePlan, formatLimit } from '@/lib/plans';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -55,7 +56,7 @@ const ContractorDashboard = () => {
   const [searchRank, setSearchRank] = useState(null);
   const [totalContractors, setTotalContractors] = useState(null);
   const [showAvailability, setShowAvailability] = useState(false);
-  const [boostLoading, setBoostLoading] = useState(false);
+  const [subLoading, setSubLoading] = useState(false);
   const { permission, requestPermission } = usePushNotifications(currentUser?.id);
 
   useEffect(() => {
@@ -223,18 +224,19 @@ const ContractorDashboard = () => {
 
   useEffect(() => {
     if (searchParams.get('tab') === 'messages') setActivePanel('messages');
-    if (searchParams.get('boost') === 'success') {
-      toast({ title: '🎉 Listing boosted!', description: 'Your profile is now Featured for 30 days.' });
+    if (searchParams.get('subscription') === 'success') {
+      toast({ title: 'Plan activated!', description: 'Your Pro plan is now live.' });
       fetchData();
     }
   }, [searchParams]);
 
-  const handleBoost = async () => {
-    setBoostLoading(true);
+  const handleUpgrade = async (plan) => {
+    setSubLoading(true);
     try {
-      const resp = await apiServerClient.fetch('/stripe/create-boost-checkout', {
+      const resp = await apiServerClient.fetch('/stripe/create-subscription-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan, cycle: 'monthly', successPath: '/dashboard/contractor?subscription=success' }),
       });
       const data = await resp.json();
       if (data.url) window.location.href = data.url;
@@ -242,7 +244,7 @@ const ContractorDashboard = () => {
     } catch {
       toast({ title: 'Error', description: 'Could not connect to payment service.', variant: 'destructive' });
     } finally {
-      setBoostLoading(false);
+      setSubLoading(false);
     }
   };
 
@@ -587,44 +589,76 @@ const ContractorDashboard = () => {
               ))}
             </div>
 
-            {/* Featured listing boost card */}
-            {contractorProfile && (
-              <Card className={`rounded-2xl mb-6 border ${contractorProfile.isPromoted ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}`}>
-                <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className={`shrink-0 p-3 rounded-xl ${contractorProfile.isPromoted ? 'bg-primary/20' : 'bg-muted'}`}>
-                    <Zap className={`h-5 w-5 ${contractorProfile.isPromoted ? 'text-primary' : 'text-muted-foreground'}`} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    {contractorProfile.isPromoted ? (
-                      <>
-                        <p className="font-semibold text-foreground">Featured listing active</p>
+            {/* Pro plan promo / status card */}
+            {(() => {
+              const plan = getEffectivePlan(currentUser);
+              const isPro = plan !== 'standard';
+              const limits = PLANS[plan]?.contractor ?? PLANS.standard.contractor;
+
+              if (isPro) {
+                return (
+                  <Card className="rounded-2xl mb-6 border-primary/30 bg-primary/5">
+                    <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                      <div className="shrink-0 p-3 rounded-xl bg-primary/20">
+                        <ShieldCheck className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="font-semibold text-foreground">Pro features active</p>
+                          <PlanBadge plan={plan} />
+                        </div>
                         <p className="text-sm text-muted-foreground">
-                          Your profile is pinned at the top of search results
-                          {contractorProfile.promotedUntil
-                            ? ` until ${new Date(contractorProfile.promotedUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
-                            : ''}.
+                          Priority listing · Verified Pro badge · {formatLimit(limits.bidsPerMonth)} bids/month
                         </p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-semibold text-foreground">Boost your listing — €19 for 30 days</p>
-                        <p className="text-sm text-muted-foreground">Pin your profile at the top of search results and get a Featured badge. One-off payment, no subscription.</p>
-                      </>
-                    )}
-                  </div>
-                  {!contractorProfile.isPromoted && (
-                    <Button
-                      onClick={handleBoost}
-                      disabled={boostLoading}
-                      className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-semibold"
-                    >
-                      {boostLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
-                      Boost now
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                      </div>
+                      <Button variant="outline" size="sm" className="shrink-0 rounded-xl" asChild>
+                        <Link to="/settings?tab=plan">Manage plan</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              }
+
+              // Free tier — show 3-column Pro pitch
+              const proFeatures = [
+                { icon: <Eye className="h-4 w-4 text-primary" />, label: 'More bids', desc: `Up to 15/month vs 5 free` },
+                { icon: <TrendingUp className="h-4 w-4 text-primary" />, label: 'Priority listing', desc: 'Appear above free contractors' },
+                { icon: <ShieldCheck className="h-4 w-4 text-primary" />, label: 'Pro badge', desc: 'Stand out to clients' },
+              ];
+              return (
+                <Card className="rounded-2xl mb-6 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-5 w-5 text-primary" />
+                        <p className="font-semibold text-foreground">Go Pro — from €9/month</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => handleUpgrade('vip')}
+                        disabled={subLoading}
+                        className="shrink-0 rounded-xl"
+                      >
+                        {subLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <ArrowUpRight className="h-3.5 w-3.5 mr-1.5" />}
+                        Upgrade
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      {proFeatures.map(f => (
+                        <div key={f.label} className="flex flex-col items-center text-center p-3 rounded-xl bg-background/60 border border-border/50">
+                          <div className="p-2 rounded-lg bg-primary/10 mb-2">{f.icon}</div>
+                          <p className="text-xs font-semibold text-foreground">{f.label}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-tight">{f.desc}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground text-center mt-3">
+                      Cancel anytime · <Link to="/settings?tab=plan" className="underline underline-offset-2">See all plans</Link>
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {activePanel && panels[activePanel] && (
               <Card className="bg-card border-border rounded-2xl mb-8">

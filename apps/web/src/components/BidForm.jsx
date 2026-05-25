@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
@@ -8,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
+import { PLANS, getEffectivePlan } from '@/lib/plans';
 
 
 const BidForm = ({ ticketId, onSuccess, onCancel }) => {
@@ -30,6 +32,29 @@ const BidForm = ({ ticketId, onSuccess, onCancel }) => {
 
     setLoading(true);
     try {
+      // Enforce monthly bid limit based on plan
+      const plan = getEffectivePlan(currentUser);
+      const limit = PLANS[plan]?.contractor?.bidsPerMonth ?? 5;
+      if (limit !== Infinity) {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        const monthBids = await pb.collection('bids').getList(1, 1, {
+          filter: `masterId = "${currentUser.id}" && created >= "${startOfMonth.toISOString()}"`,
+          $autoCancel: false,
+        });
+        if (monthBids.totalItems >= limit) {
+          toast({
+            title: "Monthly bid limit reached",
+            description: `Your ${plan === 'standard' ? 'free' : plan} plan allows ${limit} bids/month. Upgrade to place more bids.`,
+            variant: "destructive",
+            action: <Link to="/settings?tab=plan" className="underline text-sm">Upgrade</Link>,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       await pb.collection('bids').create({
         ticketId: ticketId,
         masterId: currentUser.id, // Keeping masterId as per DB schema

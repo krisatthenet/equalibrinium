@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
-import { Star, MapPin, Map as MapIcon, Users, Search, X, Navigation, SlidersHorizontal } from 'lucide-react';
+import { Star, MapPin, Map as MapIcon, Users, Search, X, Navigation, SlidersHorizontal, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -123,6 +123,12 @@ const ContractorsSearchPage = () => {
       return matchesKeyword && matchesCity && matchesCategory;
     })
     .sort((a, b) => {
+      // Paid plan contractors always appear first
+      const planRank = { ultra: 0, premium: 1, elite: 2, vip: 3, standard: 4 };
+      const pa = planRank[a.plan] ?? 4;
+      const pb = planRank[b.plan] ?? 4;
+      if (pa !== pb) return pa - pb;
+
       if (radius !== 'any' && radius !== 'lithuania' && userLocation) {
         const da = getDistance(a) ?? Infinity;
         const db = getDistance(b) ?? Infinity;
@@ -251,9 +257,10 @@ const ContractorsSearchPage = () => {
                                   <span className="text-4xl font-bold text-primary">{contractor.name?.charAt(0)}</span>
                                 </div>
                               )}
-                              {contractor.isPromoted && (
-                                <div className="absolute top-3 right-3 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-                                  {t('map.promoted')}
+                              {contractor.plan && contractor.plan !== 'standard' && (
+                                <div className="absolute top-3 right-3 bg-primary text-primary-foreground px-2.5 py-1 rounded-full text-xs font-semibold shadow-md flex items-center gap-1">
+                                  <ShieldCheck className="h-3 w-3" />
+                                  Pro
                                 </div>
                               )}
                               {dist !== null && (
@@ -265,9 +272,9 @@ const ContractorsSearchPage = () => {
                             </div>
                             <CardContent className="p-6 flex flex-col flex-1">
                               <h3 className="font-semibold text-xl mb-1 text-foreground">{contractor.name}</h3>
-                              {(contractor.idVerified || contractor.phoneVerified) && (
+                              {(contractor.idVerified || contractor.phoneVerified || (contractor.plan && contractor.plan !== 'standard')) && (
                                 <div className="mb-1.5">
-                                  <VerifiedBadge idVerified={contractor.idVerified} phoneVerified={contractor.phoneVerified} size="xs" />
+                                  <VerifiedBadge idVerified={contractor.idVerified} phoneVerified={contractor.phoneVerified} plan={contractor.plan} size="xs" />
                                 </div>
                               )}
                               {contractor.profession && (

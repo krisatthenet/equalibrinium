@@ -1,13 +1,24 @@
 import React from 'react';
-import { ShieldCheck, Phone } from 'lucide-react';
+import { ShieldCheck, Phone, Zap } from 'lucide-react';
+import { PLANS } from '@/lib/plans';
 
-const VerifiedBadge = ({ idVerified, phoneVerified, size = 'sm' }) => {
+const VerifiedBadge = ({ idVerified, phoneVerified, plan, size = 'sm' }) => {
   const iconClass = size === 'xs' ? 'h-3 w-3' : 'h-3.5 w-3.5';
   const textClass = size === 'xs' ? 'text-[10px]' : 'text-[11px]';
   const padClass  = size === 'xs' ? 'px-1.5 py-0.5' : 'px-2 py-0.5';
+  const isPro = plan && plan !== 'standard' && PLANS[plan]?.contractor?.verifiedBadge;
 
   return (
     <span className="inline-flex items-center gap-1.5 flex-wrap">
+      {isPro && (
+        <span
+          title={`${PLANS[plan].label} Pro`}
+          className={`inline-flex items-center gap-1 ${padClass} rounded-full bg-primary/15 text-primary border border-primary/25 font-medium ${textClass}`}
+        >
+          <Zap className={iconClass} strokeWidth={2.5} />
+          Pro
+        </span>
+      )}
       {idVerified && (
         <span
           title="ID Verified"
