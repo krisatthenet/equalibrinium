@@ -18,6 +18,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
 import PlanBadge from '@/components/PlanBadge.jsx';
+import VerifiedBadge from '@/components/VerifiedBadge.jsx';
 import AvailabilityPicker from '@/components/AvailabilityPicker.jsx';
 import { getEffectivePlan, isInTrial } from '@/lib/plans';
 
@@ -200,6 +201,12 @@ const ContractorProfilePage = () => {
                     </div>
 
                     <h1 className="text-2xl font-bold mb-2">{contractor.name}</h1>
+
+                    {(contractor.idVerified || contractor.phoneVerified) && (
+                      <div className="mb-2">
+                        <VerifiedBadge idVerified={contractor.idVerified} phoneVerified={contractor.phoneVerified} />
+                      </div>
+                    )}
 
                     {(contractor.title || contractor.plan || isInTrial(contractor)) && (
                       <div className="flex items-center gap-2 mb-2">

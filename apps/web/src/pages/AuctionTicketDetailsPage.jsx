@@ -18,6 +18,7 @@ import Footer from '@/components/Footer.jsx';
 import BidForm from '@/components/BidForm.jsx';
 import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
 import ChatPanel from '@/components/ChatPanel.jsx';
+import VerifiedBadge from '@/components/VerifiedBadge.jsx';
 
 const AuctionTicketDetailsPage = () => {
   const { id } = useParams();
@@ -305,6 +306,11 @@ const AuctionTicketDetailsPage = () => {
                                   </div>
                                   <div>
                                     <p className="font-semibold text-foreground">{bidder?.name || 'Contractor'}</p>
+                                    {bidder && (bidder.idVerified || bidder.phoneVerified) && (
+                                      <div className="mt-0.5 mb-1">
+                                        <VerifiedBadge idVerified={bidder.idVerified} phoneVerified={bidder.phoneVerified} size="xs" />
+                                      </div>
+                                    )}
                                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                       <Star className="h-3.5 w-3.5 text-primary fill-primary" />
                                       <span>{bidder?.rating || '0.0'}</span>

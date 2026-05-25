@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet';
 import pb from '@/lib/pocketbaseClient';
 import AdminLayout from '@/components/AdminLayout.jsx';
 import { useToast } from '@/hooks/use-toast';
-import { Search, ShieldBan, ShieldCheck, Trash2, MoreVertical, Loader2 } from 'lucide-react';
+import { Search, ShieldBan, ShieldCheck, Trash2, MoreVertical, Loader2, BadgeCheck, Phone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -104,7 +104,20 @@ const AdminUsersPage = () => {
     }
   };
 
-  const filteredUsers = users.filter(u => 
+  const handleToggleIdVerified = async (user) => {
+    const next = !user.idVerified;
+    const action = next ? 'ID-verify' : 'remove ID verification from';
+    if (!window.confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${user.email}?`)) return;
+    try {
+      await pb.collection('users').update(user.id, { idVerified: next }, { $autoCancel: false });
+      toast({ title: next ? "ID Verified" : "ID Verification Removed", description: `${user.email} updated.` });
+      fetchUsers();
+    } catch {
+      toast({ title: "Error", description: "Failed to update ID verification.", variant: "destructive" });
+    }
+  };
+
+  const filteredUsers = users.filter(u =>
     u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (u.name && u.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -176,13 +189,25 @@ const AdminUsersPage = () => {
                       </Badge>
                     </td>
                     <td className="px-6 py-4">
-                      {user.banned ? (
-                        <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30 border-none">Banned</Badge>
-                      ) : user.verified ? (
-                        <Badge className="bg-[hsl(var(--admin-success))]/20 text-[hsl(var(--admin-success))] hover:bg-[hsl(var(--admin-success))]/30 border-none">Verified</Badge>
-                      ) : (
-                        <Badge className="bg-[hsl(var(--admin-warning))]/20 text-[hsl(var(--admin-warning))] hover:bg-[hsl(var(--admin-warning))]/30 border-none">Unverified</Badge>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {user.banned ? (
+                          <Badge className="bg-destructive/20 text-destructive hover:bg-destructive/30 border-none w-fit">Banned</Badge>
+                        ) : user.verified ? (
+                          <Badge className="bg-[hsl(var(--admin-success))]/20 text-[hsl(var(--admin-success))] hover:bg-[hsl(var(--admin-success))]/30 border-none w-fit">Email ✓</Badge>
+                        ) : (
+                          <Badge className="bg-[hsl(var(--admin-warning))]/20 text-[hsl(var(--admin-warning))] hover:bg-[hsl(var(--admin-warning))]/30 border-none w-fit">Unverified</Badge>
+                        )}
+                        {user.idVerified && (
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-none w-fit flex items-center gap-1">
+                            <BadgeCheck className="h-3 w-3" /> ID ✓
+                          </Badge>
+                        )}
+                        {user.phoneVerified && (
+                          <Badge className="bg-sky-500/20 text-sky-400 border-none w-fit flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> Phone ✓
+                          </Badge>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-muted-foreground">
                       {new Date(user.created).toLocaleDateString()}
@@ -204,6 +229,10 @@ const AdminUsersPage = () => {
                               <ShieldBan className="h-4 w-4 mr-2" /> Ban User
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem onClick={() => handleToggleIdVerified(user)} className="text-emerald-400 focus:text-emerald-400 focus:bg-emerald-500/10 cursor-pointer">
+                            <BadgeCheck className="h-4 w-4 mr-2" />
+                            {user.idVerified ? 'Remove ID Verification' : 'Mark ID Verified'}
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleDeleteUser(user)} className="text-destructive focus:text-destructive focus:bg-destructive/10 cursor-pointer">
                             <Trash2 className="h-4 w-4 mr-2" /> Delete User
                           </DropdownMenuItem>
