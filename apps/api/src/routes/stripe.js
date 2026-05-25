@@ -355,6 +355,51 @@ router.post('/request-payout', requirePbAuth, async (req, res) => {
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// POST /stripe/create-boost-checkout
+// One-off payment for a 30-day featured listing slot
+// ---------------------------------------------------------------------------
+router.post('/create-boost-checkout', requirePbAuth, async (req, res) => {
+  try {
+    const userId = req.pbUser.id;
+    const BOOST_PRICE_CENTS = Number(process.env.BOOST_PRICE_CENTS) || 1900; // €19
+
+    const pb = await adminPb();
+    const user = await pb.collection('users').getOne(userId);
+
+    if (user.userType !== 'contractor' && user.userType !== 'master') {
+      return res.status(403).json({ error: 'Only contractors can purchase a listing boost' });
+    }
+
+    const customerId = await getOrCreateStripeCustomer(pb, user);
+
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      customer: customerId,
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: 'WorkBee Featured Listing — 30 Days',
+            description: 'Your profile is pinned at the top of search results and marked as Featured for 30 days.',
+          },
+          unit_amount: BOOST_PRICE_CENTS,
+        },
+        quantity: 1,
+      }],
+      success_url: `${FRONTEND_URL}/dashboard/contractor?boost=success`,
+      cancel_url:  `${FRONTEND_URL}/dashboard/contractor`,
+      metadata: { userId, type: 'boost' },
+    });
+
+    logger.info(`Boost checkout session created: ${session.id} for user ${userId}`);
+    res.json({ url: session.url });
+  } catch (err) {
+    logger.error('create-boost-checkout error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /stripe/create-subscription-checkout
 // Body: { userId, plan, cycle }
 // ---------------------------------------------------------------------------
@@ -481,6 +526,22 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     logger.info(`Processing checkout.session.completed: ${session.id}`);
+
+    // --- Featured listing boost ---
+    if (session.metadata?.type === 'boost') {
+      const { userId } = session.metadata;
+      if (userId) {
+        try {
+          const pb = await adminPb();
+          const boostedUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          await pb.collection('users').update(userId, { isPromoted: true, promotedUntil: boostedUntil });
+          logger.info(`Boost activated for user ${userId} until ${boostedUntil}`);
+        } catch (err) {
+          logger.error('Boost webhook error:', err);
+        }
+      }
+      return res.json({ received: true });
+    }
 
     try {
       const pb = await adminPb();

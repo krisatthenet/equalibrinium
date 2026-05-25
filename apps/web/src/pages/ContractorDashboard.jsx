@@ -4,7 +4,8 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle, Zap } from 'lucide-react';
+import apiServerClient from '@/lib/apiServerClient.js';
 import ConversationsInbox from '@/components/ConversationsInbox.jsx';
 
 const deg2rad = d => d * (Math.PI / 180);
@@ -54,6 +55,7 @@ const ContractorDashboard = () => {
   const [searchRank, setSearchRank] = useState(null);
   const [totalContractors, setTotalContractors] = useState(null);
   const [showAvailability, setShowAvailability] = useState(false);
+  const [boostLoading, setBoostLoading] = useState(false);
   const { permission, requestPermission } = usePushNotifications(currentUser?.id);
 
   useEffect(() => {
@@ -221,7 +223,28 @@ const ContractorDashboard = () => {
 
   useEffect(() => {
     if (searchParams.get('tab') === 'messages') setActivePanel('messages');
+    if (searchParams.get('boost') === 'success') {
+      toast({ title: '🎉 Listing boosted!', description: 'Your profile is now Featured for 30 days.' });
+      fetchData();
+    }
   }, [searchParams]);
+
+  const handleBoost = async () => {
+    setBoostLoading(true);
+    try {
+      const resp = await apiServerClient.fetch('/stripe/create-boost-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const data = await resp.json();
+      if (data.url) window.location.href = data.url;
+      else toast({ title: 'Error', description: data.error || 'Could not start checkout.', variant: 'destructive' });
+    } catch {
+      toast({ title: 'Error', description: 'Could not connect to payment service.', variant: 'destructive' });
+    } finally {
+      setBoostLoading(false);
+    }
+  };
 
   const statCards = [
     {
@@ -563,6 +586,45 @@ const ContractorDashboard = () => {
                 </Card>
               ))}
             </div>
+
+            {/* Featured listing boost card */}
+            {contractorProfile && (
+              <Card className={`rounded-2xl mb-6 border ${contractorProfile.isPromoted ? 'border-primary/40 bg-primary/5' : 'border-border bg-card'}`}>
+                <CardContent className="p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className={`shrink-0 p-3 rounded-xl ${contractorProfile.isPromoted ? 'bg-primary/20' : 'bg-muted'}`}>
+                    <Zap className={`h-5 w-5 ${contractorProfile.isPromoted ? 'text-primary' : 'text-muted-foreground'}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {contractorProfile.isPromoted ? (
+                      <>
+                        <p className="font-semibold text-foreground">Featured listing active</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your profile is pinned at the top of search results
+                          {contractorProfile.promotedUntil
+                            ? ` until ${new Date(contractorProfile.promotedUntil).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+                            : ''}.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-semibold text-foreground">Boost your listing — €19 for 30 days</p>
+                        <p className="text-sm text-muted-foreground">Pin your profile at the top of search results and get a Featured badge. One-off payment, no subscription.</p>
+                      </>
+                    )}
+                  </div>
+                  {!contractorProfile.isPromoted && (
+                    <Button
+                      onClick={handleBoost}
+                      disabled={boostLoading}
+                      className="shrink-0 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-semibold"
+                    >
+                      {boostLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
+                      Boost now
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {activePanel && panels[activePanel] && (
               <Card className="bg-card border-border rounded-2xl mb-8">
