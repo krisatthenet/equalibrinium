@@ -7,92 +7,85 @@ import { Button } from '@/components/ui/button';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
 const ORANGE = '#f97316';
+const MAP_ID  = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
 
-// Lithuania geographic constants
 const LT_CENTER = { lat: 55.1694, lng: 23.8813 };
-const LT_BOUNDS = {
-  north: 56.45, south: 53.89, east: 26.85, west: 20.95,
-};
+const LT_BOUNDS = { north: 56.45, south: 53.89, east: 26.85, west: 20.95 };
 
-const GoogleMapsIntegration = ({
-  tickets = [],
-  radius,
-  onLocationChange,
-}) => {
+// Build a coloured dot using PinElement (requires marker library).
+function makePinElement(color, scale = 1) {
+  const PinElement = window.google.maps.marker.PinElement;
+  return new PinElement({ background: color, borderColor: '#ffffff', glyphColor: '#ffffff', scale }).element;
+}
+
+const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const mapRef = useRef(null);
-  const { isLoaded, initMap } = useGoogleMaps();
+  const { isLoaded } = useGoogleMaps();
+  const gmpMapRef = useRef(null);
   const [mapInstance, setMapInstance] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
 
-  const markersRef = useRef([]);
-  const clustererRef = useRef(null);
-  const infoWindowRef = useRef(null);
-  const userMarkerRef = useRef(null);
+  const markersRef      = useRef([]);
+  const clustererRef    = useRef(null);
+  const infoWindowRef   = useRef(null);
+  const userMarkerRef   = useRef(null);
   const radiusCircleRef = useRef(null);
 
+  // Geolocation
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setUserLocation(p);
-          if (onLocationChange) onLocationChange(p);
-        },
-        (err) => console.warn('Geolocation error:', err)
-      );
-    }
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const p = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        setUserLocation(p);
+        onLocationChange?.(p);
+      },
+      (err) => console.warn('Geolocation error:', err),
+    );
   }, [onLocationChange]);
 
+  // Wait for gmp-map web component to expose innerMap, then store it.
   useEffect(() => {
-    if (isLoaded && mapRef.current && !mapInstance) {
-      const map = initMap(mapRef.current, {
-        center: userLocation || LT_CENTER,
-        zoom: userLocation ? 11 : 7,
-        disableDefaultUI: false,
-        styles: [
-          { elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
-          { elementType: 'labels.text.stroke', stylers: [{ color: '#1e293b' }] },
-          { elementType: 'labels.text.fill', stylers: [{ color: '#94a3b8' }] },
-          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#334155' }] },
-          { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#64748b' }] },
-          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0f172a' }] },
-          { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
-          { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
-          { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#334155' }] },
-        ],
-      });
-      setMapInstance(map);
-      infoWindowRef.current = new window.google.maps.InfoWindow();
-    }
-  }, [isLoaded, initMap, mapInstance, userLocation]);
+    if (!isLoaded) return;
+    let id;
+    const poll = () => {
+      const inner = gmpMapRef.current?.innerMap;
+      if (inner) {
+        if (userLocation) inner.setCenter(userLocation);
+        inner.setZoom(userLocation ? 11 : 7);
+        infoWindowRef.current = new window.google.maps.InfoWindow();
+        setMapInstance(inner);
+      } else {
+        id = setTimeout(poll, 100);
+      }
+    };
+    poll();
+    return () => clearTimeout(id);
+  }, [isLoaded]); // userLocation intentionally excluded — centering handled below
 
+  // Ticket markers + clusterer
   useEffect(() => {
     if (!mapInstance || !window.google) return;
 
-    markersRef.current.forEach(m => m.setMap(null));
+    // Tear down previous markers
+    markersRef.current.forEach((m) => { m.map = null; });
     markersRef.current = [];
-    if (clustererRef.current) clustererRef.current.clearMarkers();
+    clustererRef.current?.clearMarkers();
 
-    const newMarkers = [];
+    const AdvancedMarkerElement = window.google.maps.marker.AdvancedMarkerElement;
     const geocoder = new window.google.maps.Geocoder();
+    const newMarkers = [];
 
     const placeTicketMarker = (ticket, lat, lng) => {
       const catName = ticket.expand?.categoryId?.name || 'Other';
+      const pin = makePinElement(ORANGE);
 
-      const marker = new window.google.maps.Marker({
+      const marker = new AdvancedMarkerElement({
         position: { lat, lng },
         map: mapInstance,
         title: catName,
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 9,
-          fillColor: ORANGE,
-          fillOpacity: 0.9,
-          strokeColor: '#ffffff',
-          strokeWeight: 2.5,
-        },
+        content: pin,
       });
 
       marker.addListener('click', () => {
@@ -117,58 +110,45 @@ const GoogleMapsIntegration = ({
       return marker;
     };
 
-    tickets.forEach(ticket => {
+    tickets.forEach((ticket) => {
       const lat = Number(ticket.latitude);
       const lng = Number(ticket.longitude);
-
       if (lat !== 0 || lng !== 0) {
-        // Has real coordinates — place immediately
         newMarkers.push(placeTicketMarker(ticket, lat, lng));
       } else if (ticket.location) {
-        // No coordinates — geocode location string asynchronously
         geocoder.geocode({ address: ticket.location }, (results, status) => {
           if (status === 'OK' && results[0]) {
             const pos = results[0].geometry.location;
-            const marker = placeTicketMarker(ticket, pos.lat(), pos.lng());
-            markersRef.current.push(marker);
-            clustererRef.current?.addMarkers([marker]);
+            const m = placeTicketMarker(ticket, pos.lat(), pos.lng());
+            markersRef.current.push(m);
+            clustererRef.current?.addMarkers([m]);
           }
         });
       }
     });
 
     markersRef.current = newMarkers;
-
-    clustererRef.current = new MarkerClusterer({
-      map: mapInstance,
-      markers: newMarkers,
-    });
+    clustererRef.current = new MarkerClusterer({ map: mapInstance, markers: newMarkers });
   }, [mapInstance, tickets]);
 
-  // User location marker & radius circle
+  // User location marker + radius circle
   useEffect(() => {
     if (!mapInstance || !window.google || !userLocation) return;
 
+    const AdvancedMarkerElement = window.google.maps.marker.AdvancedMarkerElement;
+
     if (!userMarkerRef.current) {
-      userMarkerRef.current = new window.google.maps.Marker({
+      userMarkerRef.current = new AdvancedMarkerElement({
         position: userLocation,
         map: mapInstance,
         title: 'My Location',
-        icon: {
-          path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 9,
-          fillColor: '#3b82f6',
-          fillOpacity: 1,
-          strokeColor: '#ffffff',
-          strokeWeight: 3,
-        },
+        content: makePinElement('#3b82f6'),
       });
     } else {
-      userMarkerRef.current.setPosition(userLocation);
+      userMarkerRef.current.position = userLocation;
     }
 
-    if (radiusCircleRef.current) radiusCircleRef.current.setMap(null);
-
+    radiusCircleRef.current?.setMap(null);
     if (radius && radius !== 'any') {
       radiusCircleRef.current = new window.google.maps.Circle({
         strokeColor: '#3b82f6',
@@ -184,10 +164,7 @@ const GoogleMapsIntegration = ({
   }, [mapInstance, userLocation, radius]);
 
   const centerOnUser = () => {
-    if (mapInstance && userLocation) {
-      mapInstance.panTo(userLocation);
-      mapInstance.setZoom(12);
-    }
+    if (mapInstance && userLocation) { mapInstance.panTo(userLocation); mapInstance.setZoom(12); }
   };
 
   const fitLithuania = () => {
@@ -201,40 +178,42 @@ const GoogleMapsIntegration = ({
   if (!isLoaded) {
     return (
       <div className="w-full h-[500px] bg-muted rounded-xl animate-pulse flex items-center justify-center text-muted-foreground">
-        Loading Map...
+        Loading Map…
       </div>
     );
   }
 
   return (
     <div style={{ isolation: 'isolate', position: 'relative', zIndex: 0 }}>
-    <div className="relative w-full rounded-xl overflow-hidden border border-border shadow-sm">
-      <div ref={mapRef} className="w-full h-[600px]" />
+      <div className="relative w-full rounded-xl overflow-hidden border border-border shadow-sm">
+        <gmp-map
+          ref={gmpMapRef}
+          center={`${LT_CENTER.lat},${LT_CENTER.lng}`}
+          zoom="7"
+          map-id={MAP_ID}
+          style={{ height: '600px', display: 'block' }}
+        />
 
-      {/* My location button */}
-      <Button
-        variant="secondary"
-        size="icon"
-        className="absolute bottom-6 right-6 shadow-lg rounded-full bg-background hover:bg-muted z-10"
-        onClick={centerOnUser}
-        title="My Location"
-      >
-        <Navigation className="h-5 w-5 text-primary" />
-      </Button>
+        <Button
+          variant="secondary"
+          size="icon"
+          className="absolute bottom-6 right-6 shadow-lg rounded-full bg-background hover:bg-muted z-10"
+          onClick={centerOnUser}
+          title="My Location"
+        >
+          <Navigation className="h-5 w-5 text-primary" />
+        </Button>
 
-      {/* All Lithuania button */}
-      <Button
-        variant="secondary"
-        size="sm"
-        className="absolute bottom-6 right-16 shadow-lg rounded-full bg-background hover:bg-muted z-10 text-xs px-3 h-9"
-        onClick={fitLithuania}
-        title="View all Lithuania"
-      >
-        🇱🇹 Lithuania
-      </Button>
-
-
-    </div>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute bottom-6 right-16 shadow-lg rounded-full bg-background hover:bg-muted z-10 text-xs px-3 h-9"
+          onClick={fitLithuania}
+          title="View all Lithuania"
+        >
+          🇱🇹 Lithuania
+        </Button>
+      </div>
     </div>
   );
 };

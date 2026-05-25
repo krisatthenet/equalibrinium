@@ -3,115 +3,127 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps.js';
-import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
+
+const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
+const DEFAULT_CENTER = '54.6872,25.2797';
 
 const LocationPicker = ({ initialLocation, onLocationSelect, onSave }) => {
   const { t } = useTranslation();
-  const mapRef = useRef(null);
-  const { isLoaded, initMap } = useGoogleMaps();
-  const [mapInstance, setMapInstance] = useState(null);
-  const [markerInstance, setMarkerInstance] = useState(null);
+  const { isLoaded } = useGoogleMaps();
+  const gmpMapRef  = useRef(null);
+  const markerRef  = useRef(null);
+  const pickerRef  = useRef(null);
   const [markerPos, setMarkerPos] = useState(initialLocation || null);
-  const [address, setAddress] = useState(initialLocation?.address || '');
+  const [address,   setAddress]   = useState(initialLocation?.address || '');
 
-  const defaultCenter = { lat: 54.6872, lng: 25.2797 };
-
+  // Set initial marker when map inner map is ready.
   useEffect(() => {
-    if (isLoaded && mapRef.current && !mapInstance) {
-      const map = initMap(mapRef.current, {
-        center: markerPos || defaultCenter,
-        zoom: markerPos ? 14 : 11,
-        disableDefaultUI: false,
-        styles: [
-          { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
-          { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
-          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
-          { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] }
-        ]
-      });
-
-      map.addListener('click', (e) => {
-        const newPos = { lat: e.latLng.lat(), lng: e.latLng.lng() };
-        updateMarkerAndAddress(newPos, map);
-      });
-
-      setMapInstance(map);
+    if (!isLoaded || !initialLocation) return;
+    const trySet = () => {
+      const m = markerRef.current;
+      const map = gmpMapRef.current;
+      if (!m || !map) return false;
+      m.position = { lat: initialLocation.lat, lng: initialLocation.lng };
+      map.center = { lat: initialLocation.lat, lng: initialLocation.lng };
+      map.zoom = 14;
+      return true;
+    };
+    if (!trySet()) {
+      const id = setInterval(() => { if (trySet()) clearInterval(id); }, 100);
+      return () => clearInterval(id);
     }
-  }, [isLoaded, initMap, mapInstance]);
+  }, [isLoaded, initialLocation]);
 
+  // gmpx-place-picker → gmpx-placechange
   useEffect(() => {
-    if (mapInstance && markerPos && !markerInstance) {
-      const m = new window.google.maps.Marker({
-        position: markerPos,
-        map: mapInstance,
-        icon: {
-          path: window.google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
-          scale: 6,
-          fillColor: "#fbc706",
-          fillOpacity: 1,
-          strokeColor: "#ffffff",
-          strokeWeight: 2,
-        }
+    const picker = pickerRef.current;
+    if (!isLoaded || !picker) return;
+
+    const onPlaceChange = () => {
+      const place = picker.value;
+      if (!place?.location) return;
+
+      const lat = typeof place.location.lat === 'function' ? place.location.lat() : place.location.lat;
+      const lng = typeof place.location.lng === 'function' ? place.location.lng() : place.location.lng;
+      const addr = place.formattedAddress || place.displayName || '';
+
+      setMarkerPos({ lat, lng });
+      setAddress(addr);
+
+      const map = gmpMapRef.current;
+      if (map) {
+        if (place.viewport) map.innerMap?.fitBounds(place.viewport);
+        else { map.center = place.location; map.zoom = 17; }
+      }
+      if (markerRef.current) markerRef.current.position = place.location;
+      onLocationSelect?.({ lat, lng, address: addr });
+    };
+
+    picker.addEventListener('gmpx-placechange', onPlaceChange);
+    return () => picker.removeEventListener('gmpx-placechange', onPlaceChange);
+  }, [isLoaded, onLocationSelect]);
+
+  // Click-on-map to drop a pin.
+  useEffect(() => {
+    if (!isLoaded) return;
+    let listener;
+    const attach = () => {
+      const inner = gmpMapRef.current?.innerMap;
+      if (!inner) return false;
+      listener = inner.addListener('click', (e) => {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+        setMarkerPos({ lat, lng });
+        if (markerRef.current) markerRef.current.position = { lat, lng };
+
+        new window.google.maps.Geocoder().geocode({ location: { lat, lng } }, (results, status) => {
+          const addr = status === 'OK' && results[0] ? results[0].formatted_address : '';
+          setAddress(addr);
+          onLocationSelect?.({ lat, lng, address: addr });
+        });
       });
-      setMarkerInstance(m);
-    } else if (markerInstance && markerPos) {
-      markerInstance.setPosition(markerPos);
+      return true;
+    };
+    if (!attach()) {
+      const id = setInterval(() => { if (attach()) clearInterval(id); }, 200);
+      return () => { clearInterval(id); listener?.remove(); };
     }
-  }, [mapInstance, markerPos, markerInstance]);
-
-  const updateMarkerAndAddress = (pos, map) => {
-    setMarkerPos(pos);
-    if (map) map.panTo(pos);
-
-    if (window.google && window.google.maps) {
-      const geocoder = new window.google.maps.Geocoder();
-      geocoder.geocode({ location: pos }, (results, status) => {
-        let locationName = '';
-        if (status === 'OK' && results[0]) {
-          locationName = results[0].formatted_address;
-          setAddress(locationName);
-        }
-        if (onLocationSelect) {
-          onLocationSelect({ ...pos, address: locationName });
-        }
-      });
-    }
-  };
-
-  const handlePlaceSelect = (placeDetails) => {
-    const pos = { lat: placeDetails.lat, lng: placeDetails.lng };
-    setMarkerPos(pos);
-    setAddress(placeDetails.address);
-    if (mapInstance) {
-      mapInstance.panTo(pos);
-      mapInstance.setZoom(15);
-    }
-    if (onLocationSelect) {
-      onLocationSelect({ ...pos, address: placeDetails.address });
-    }
-  };
+    return () => listener?.remove();
+  }, [isLoaded, onLocationSelect]);
 
   const handleSave = (e) => {
     e.preventDefault();
-    if (onSave && markerPos) {
-      onSave({ ...markerPos, address });
-    }
+    if (onSave && markerPos) onSave({ ...markerPos, address });
   };
 
-  if (!isLoaded) return <div className="w-full h-[300px] bg-muted rounded-lg animate-pulse flex items-center justify-center">Loading Map...</div>;
+  if (!isLoaded) {
+    return (
+      <div className="w-full h-[300px] bg-muted rounded-lg animate-pulse flex items-center justify-center text-muted-foreground">
+        Loading Map…
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <PlacesAutocompleteInput 
-        placeholder="Search for a location..."
-        onSelectPlace={handlePlaceSelect}
-        className="bg-input border-border text-foreground rounded-lg"
+      <gmpx-place-picker
+        ref={pickerRef}
+        placeholder="Search for a location…"
+        style={{ width: '100%', display: 'block' }}
       />
 
-      <div className="border border-border rounded-lg overflow-hidden relative">
-        <div ref={mapRef} className="w-full h-[300px]" />
+      <div className="border border-border rounded-lg overflow-hidden">
+        <gmp-map
+          ref={gmpMapRef}
+          center={markerPos ? `${markerPos.lat},${markerPos.lng}` : DEFAULT_CENTER}
+          zoom={markerPos ? '14' : '11'}
+          map-id={MAP_ID}
+          style={{ height: '300px', display: 'block' }}
+        >
+          <gmp-advanced-marker ref={markerRef} />
+        </gmp-map>
       </div>
-      
+
       <div className="flex items-center justify-between bg-muted/30 p-3 rounded-lg border border-border">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4 text-primary shrink-0" />
@@ -124,10 +136,10 @@ const LocationPicker = ({ initialLocation, onLocationSelect, onSave }) => {
           )}
         </div>
         {onSave && (
-          <Button 
-            type="button" 
-            size="sm" 
-            onClick={handleSave} 
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleSave}
             disabled={!markerPos}
             className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg"
           >
