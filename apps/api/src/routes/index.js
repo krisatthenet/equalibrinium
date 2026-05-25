@@ -10,6 +10,7 @@ import twilioRouter from './twilio.js';
 import reachRouter from './reach.js';
 import chatRouter from './chat.js';
 import ticketsRouter from './tickets.js';
+import reviewsRouter from './reviews.js';
 
 const router = Router();
 
@@ -26,6 +27,7 @@ export default () => {
   router.use('/reach', reachRouter);
   router.use('/chat', chatRouter);
   router.use('/tickets', ticketsRouter);
+  router.use('/reviews', reviewsRouter);
 
   return router;
 };

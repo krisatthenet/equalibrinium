@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Quote, MessageSquareReply } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -135,6 +135,16 @@ const ReviewsCarousel = () => {
                   {new Date(currentReview.created).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
                 </p>
               </div>
+
+              {currentReview.reply && (
+                <div className="mt-6 max-w-xl w-full mx-auto border-l-2 border-primary/30 pl-4 text-left">
+                  <p className="text-xs font-semibold text-primary flex items-center gap-1 mb-1">
+                    <MessageSquareReply className="h-3.5 w-3.5" />
+                    {contractor?.name || 'Contractor'} replied
+                  </p>
+                  <p className="text-sm text-muted-foreground italic">{currentReview.reply}</p>
+                </div>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>

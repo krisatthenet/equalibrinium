@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
 import { getUserImageUrl } from '@/lib/userImage';
-import { Star, Heart, Briefcase, User, Send, FileText, X, CalendarDays } from 'lucide-react';
+import { Star, Heart, Briefcase, User, Send, FileText, X, CalendarDays, MessageSquareReply, Check, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import apiServerClient from '@/lib/apiServerClient.js';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
@@ -37,6 +38,36 @@ const ContractorProfilePage = () => {
   const [favouriteId, setFavouriteId] = useState(null);
   const [favLoading, setFavLoading] = useState(false);
   const [requestOpen, setRequestOpen] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null); // reviewId
+  const [replyDraft, setReplyDraft] = useState('');
+  const [replySaving, setReplySaving] = useState(false);
+
+  const isOwnProfile = currentUser?.id === id;
+
+  const handleSaveReply = async (reviewId) => {
+    setReplySaving(true);
+    try {
+      const resp = await apiServerClient.fetch(`/reviews/${reviewId}/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reply: replyDraft }),
+      });
+      if (!resp.ok) {
+        const data = await resp.json();
+        throw new Error(data.error || 'Failed to save reply');
+      }
+      setReviews(prev => prev.map(r =>
+        r.id === reviewId ? { ...r, reply: replyDraft.trim(), repliedAt: new Date().toISOString() } : r
+      ));
+      setReplyingTo(null);
+      setReplyDraft('');
+      toast({ title: 'Reply saved' });
+    } catch (err) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setReplySaving(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -331,6 +362,60 @@ const ContractorProfilePage = () => {
                             </div>
                             {review.comment && (
                               <p className="text-muted-foreground">{review.comment}</p>
+                            )}
+
+                            {/* Contractor reply */}
+                            {replyingTo === review.id ? (
+                              <div className="mt-3 ml-4 pl-3 border-l-2 border-primary/30">
+                                <textarea
+                                  autoFocus
+                                  value={replyDraft}
+                                  onChange={e => setReplyDraft(e.target.value)}
+                                  rows={3}
+                                  placeholder="Write your response…"
+                                  className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                                />
+                                <div className="flex gap-2 mt-2">
+                                  <button
+                                    onClick={() => handleSaveReply(review.id)}
+                                    disabled={replySaving || !replyDraft.trim()}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold disabled:opacity-50 hover:bg-primary/90 transition-colors"
+                                  >
+                                    <Check className="h-3.5 w-3.5" />
+                                    {replySaving ? 'Saving…' : 'Save reply'}
+                                  </button>
+                                  <button
+                                    onClick={() => { setReplyingTo(null); setReplyDraft(''); }}
+                                    className="px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : review.reply ? (
+                              <div className="mt-3 ml-4 pl-3 border-l-2 border-primary/30">
+                                <p className="text-xs font-semibold text-primary mb-1 flex items-center gap-1">
+                                  <MessageSquareReply className="h-3.5 w-3.5" />
+                                  Response from {contractor?.name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">{review.reply}</p>
+                                {isOwnProfile && (
+                                  <button
+                                    onClick={() => { setReplyingTo(review.id); setReplyDraft(review.reply); }}
+                                    className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                                  >
+                                    <Pencil className="h-3 w-3" /> Edit reply
+                                  </button>
+                                )}
+                              </div>
+                            ) : isOwnProfile && (
+                              <button
+                                onClick={() => { setReplyingTo(review.id); setReplyDraft(''); }}
+                                className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                <MessageSquareReply className="h-3.5 w-3.5" />
+                                Reply
+                              </button>
                             )}
                           </div>
                         ))}
