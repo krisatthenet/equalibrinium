@@ -3,6 +3,10 @@
 migrate((app) => {
   const col = app.findCollectionByNameOrId("messages");
 
+  try { col.fields.getByName("senderId"); } catch (_) {
+    col.fields.add(new TextField({ name: "senderId", required: true }));
+  }
+
   try { col.fields.getByName("receiverId"); } catch (_) {
     col.fields.add(new TextField({ name: "receiverId", required: false }));
   }
