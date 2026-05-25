@@ -187,6 +187,17 @@ router.post('/onboard-contractor', requirePbAuth, async (req, res) => {
 
     let accountId = user.stripeAccountId;
 
+    // Verify existing account is still valid — stale IDs from deleted/test accounts will throw
+    if (accountId) {
+      try {
+        await stripe.accounts.retrieve(accountId);
+      } catch (err) {
+        logger.warn(`Stale stripeAccountId ${accountId} for user ${userId}, resetting: ${err.message}`);
+        accountId = null;
+        await pb.collection('users').update(userId, { stripeAccountId: '', stripeOnboarded: false });
+      }
+    }
+
     // Create account if one doesn't exist yet
     if (!accountId) {
       const account = await stripe.accounts.create({
@@ -212,7 +223,8 @@ router.post('/onboard-contractor', requirePbAuth, async (req, res) => {
     res.json({ url: accountLink.url });
   } catch (err) {
     logger.error('onboard-contractor error:', err);
-    res.status(500).json({ error: err.message });
+    const msg = err?.raw?.message || err.message || 'Failed to start Stripe onboarding';
+    res.status(500).json({ error: msg });
   }
 });
 
