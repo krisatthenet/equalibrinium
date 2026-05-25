@@ -8,6 +8,7 @@ import apiServerClient from '@/lib/apiServerClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
 import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil, MessageCircle } from 'lucide-react';
+import BidComparisonView from '@/components/BidComparisonView.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -290,54 +291,13 @@ const AuctionTicketDetailsPage = () => {
                     </CardHeader>
                     <CardContent>
                       {bids.length > 0 ? (
-                        <div className="space-y-4">
-                          {bids.map(bid => {
-                            const bidder = bidders[bid.masterId];
-                            return (
-                            <div key={bid.id} className={`border rounded-xl p-5 ${bid.status === 'accepted' ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                              <div className="flex justify-between items-start mb-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                    {getUserImageUrl(bidder) ? (
-                                      <img src={getUserImageUrl(bidder, { thumb: '100x100' })} alt="Avatar" className="w-full h-full object-cover" />
-                                    ) : (
-                                      <User className="h-6 w-6 text-muted-foreground" />
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-foreground">{bidder?.name || 'Contractor'}</p>
-                                    {bidder && (bidder.idVerified || bidder.phoneVerified) && (
-                                      <div className="mt-0.5 mb-1">
-                                        <VerifiedBadge idVerified={bidder.idVerified} phoneVerified={bidder.phoneVerified} size="xs" />
-                                      </div>
-                                    )}
-                                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                      <Star className="h-3.5 w-3.5 text-primary fill-primary" />
-                                      <span>{bidder?.rating || '0.0'}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <p className="font-bold text-xl text-primary">€{bid.proposedRate}</p>
-                                  <Badge variant="outline" className="mt-1 border-border">{bid.status}</Badge>
-                                </div>
-                              </div>
-                              {bid.message && (
-                                <p className="text-sm text-muted-foreground mb-4 bg-background border border-border p-4 rounded-lg">
-                                  "{bid.message}"
-                                </p>
-                              )}
-                              {ticket.status === 'Open' && bid.status === 'pending' && (
-                                <div className="flex justify-end gap-2">
-                                  <Button size="sm" onClick={() => handleAcceptBid(bid.id)} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg">
-                                    {t('auction.accept_bid')}
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                            );
-                          })}
-                        </div>
+                        <BidComparisonView
+                          bids={bids}
+                          bidders={bidders}
+                          ticket={ticket}
+                          onAccept={handleAcceptBid}
+                          canAccept={ticket.status === 'Open'}
+                        />
                       ) : (
                         <p className="text-muted-foreground text-center py-8">{t('auction.no_bids_placed')}</p>
                       )}
