@@ -2,7 +2,7 @@
 
 routerUse(function(e) {
     var origin = "";
-    try { origin = e.request.header.get("Origin"); } catch(_) {}
+    try { origin = e.request.header.get("Origin") || ""; } catch(_) {}
 
     if (origin) {
         var allowed = (
@@ -19,22 +19,17 @@ routerUse(function(e) {
         );
 
         if (allowed) {
-            try {
-                e.response.header().set("Access-Control-Allow-Origin", origin);
-                e.response.header().set("Access-Control-Allow-Credentials", "true");
-                e.response.header().set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
-                e.response.header().set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Token");
-                e.response.header().set("Vary", "Origin");
-            } catch(_) {}
+            e.response.header().set("Access-Control-Allow-Origin", origin);
+            e.response.header().set("Access-Control-Allow-Credentials", "true");
+            e.response.header().set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+            e.response.header().set("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Token");
+            e.response.header().set("Vary", "Origin");
         }
 
-        try {
-            if (e.request.method === "OPTIONS") {
-                e.noContent(204);
-                return;
-            }
-        } catch(_) {}
+        if (e.request.method === "OPTIONS") {
+            return e.noContent(204);
+        }
     }
 
-    e.next();
+    return e.next();
 });
