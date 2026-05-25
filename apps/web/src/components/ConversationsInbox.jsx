@@ -30,7 +30,6 @@ const ConversationsInbox = () => {
   const fetchMessages = useCallback(async () => {
     if (!currentUser) return;
     const msgs = await pb.collection('messages').getFullList({
-      filter: `senderId = "${currentUser.id}" || receiverId = "${currentUser.id}"`,
       sort: '-created',
       $autoCancel: false,
     });
