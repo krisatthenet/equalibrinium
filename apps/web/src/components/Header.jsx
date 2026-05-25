@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext.jsx';
 import { getUserImageUrl } from '@/lib/userImage';
 import useUnreadCount from '@/hooks/useUnreadCount.js';
 import { Menu, X, User, LogOut, LayoutDashboard, Settings, Heart, MessageCircle } from 'lucide-react';
+import NotificationsBell from './NotificationsBell.jsx';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -82,6 +83,7 @@ const Header = () => {
                 </>
               ) : (
                 <>
+                <NotificationsBell userId={currentUser?.id} />
                 <Link to={getDashboardLink() + '?tab=messages'} className="relative">
                   <Button variant="ghost" size="icon" className="rounded-full text-foreground hover:bg-muted" aria-label="Messages">
                     <MessageCircle className="h-5 w-5" />
@@ -138,6 +140,7 @@ const Header = () => {
             </div>
 
             <div className="md:hidden flex items-center gap-2">
+              {isAuthenticated && <NotificationsBell userId={currentUser?.id} />}
               <LanguageSelector />
               <button
                 className="text-foreground hover:text-primary transition-colors"
