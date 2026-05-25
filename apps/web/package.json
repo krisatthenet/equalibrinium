@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host :: --port 3000",
     "build": "node tools/generate-llms.js || true && node tools/generate-sitemap.js || true && vite build --outDir ../../dist/apps/web",
-    "build:hostinger": "node tools/generate-llms.js || true && node tools/generate-sitemap.js || true && vite build --outDir dist",
+    "build:hostinger": "node tools/generate-llms.js || true && node tools/generate-sitemap.js || true && vite build --outDir ../../dist --emptyOutDir",
     "start": "vite preview --outDir ../../dist/apps/web --host :: --port 3000",
     "lint": "eslint . --quiet",
     "lint:warn": "eslint .",
