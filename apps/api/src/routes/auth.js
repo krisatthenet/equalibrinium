@@ -20,8 +20,13 @@ async function verifyCaptchaToken(token, action) {
       }
     );
     const data = await r.json();
-    const score = data?.riskAnalysis?.score ?? data?.score ?? 0;
+    if (data?.error) {
+      logger.error('reCAPTCHA Enterprise API error:', JSON.stringify(data.error));
+      return true; // fail open on API key misconfiguration
+    }
+    const score = data?.riskAnalysis?.score ?? 0;
     const valid = data?.tokenProperties?.valid ?? false;
+    if (!valid) logger.warn(`reCAPTCHA token invalid: reason=${data?.tokenProperties?.invalidReason}, action=${action}`);
     return valid && score >= 0.5;
   } catch {
     return true; // fail open

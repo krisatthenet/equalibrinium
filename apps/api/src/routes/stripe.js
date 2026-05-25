@@ -618,7 +618,7 @@ router.post('/release-escrow', requirePbAuth, async (req, res) => {
           transfer_data: { destination: contractorStripeAccountId },
         };
       }
-    } catch (_) {}
+    } catch (_) {} // eslint-disable-line no-empty
 
     await stripe.paymentIntents.capture(escrow.stripePaymentIntentId, captureParams);
 
@@ -630,7 +630,7 @@ router.post('/release-escrow', requirePbAuth, async (req, res) => {
       await pb.collection('users').update(escrow.contractorId, {
         balance: parseFloat((currentBalance + contractorPayout).toFixed(2)),
       });
-    } catch (_) {}
+    } catch (_) {} // eslint-disable-line no-empty
 
     // Record payment + update statuses
     const platformFee = parseFloat((escrow.amount * PLATFORM_FEE_PCT).toFixed(2));

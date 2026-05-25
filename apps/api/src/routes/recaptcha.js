@@ -11,7 +11,6 @@ router.post('/verify', async (req, res) => {
 
   if (!token) return res.status(400).json({ success: false, error: 'Missing token' });
 
-  // If no API key configured, allow through (dev/unconfigured environments)
   if (!API_KEY) return res.json({ success: true, score: 1 });
 
   try {
@@ -27,16 +26,30 @@ router.post('/verify', async (req, res) => {
     );
 
     const data = await response.json();
-    const score = data?.riskAnalysis?.score ?? data?.score ?? 0;
-    const valid = data?.tokenProperties?.valid ?? false;
 
-    if (!valid || score < 0.5) {
+    // Google returns an error object when the API key is invalid/unauthorized
+    if (data?.error) {
+      console.error('reCAPTCHA Enterprise API error:', JSON.stringify(data.error));
+      // Fail open — misconfigured API key should not block users
+      return res.json({ success: true, score: null });
+    }
+
+    const score = data?.riskAnalysis?.score ?? 0;
+    const valid = data?.tokenProperties?.valid ?? false;
+    const invalidReason = data?.tokenProperties?.invalidReason;
+
+    if (!valid) {
+      console.warn(`reCAPTCHA token invalid: reason=${invalidReason}, action=${action}`);
+      return res.status(403).json({ success: false, score: 0, error: 'reCAPTCHA check failed', reason: invalidReason });
+    }
+
+    if (score < 0.5) {
+      console.warn(`reCAPTCHA low score: score=${score}, action=${action}`);
       return res.status(403).json({ success: false, score, error: 'reCAPTCHA check failed' });
     }
 
     res.json({ success: true, score });
   } catch (err) {
-    // Fail open — don't block users if Google API is unreachable
     console.error('reCAPTCHA verify error:', err.message);
     res.json({ success: true, score: null });
   }
