@@ -46,17 +46,24 @@ const AdminAnalyticsPage = () => {
           { name: 'Cancelled', value: cancelled }
         ]);
 
-        // Mock income data based on completed tickets (grouping by month would require more complex logic, using simple mock for visual)
-        const mockIncome = [
-          { name: 'Jan', income: 4000 },
-          { name: 'Feb', income: 3000 },
-          { name: 'Mar', income: 2000 },
-          { name: 'Apr', income: 2780 },
-          { name: 'May', income: 1890 },
-          { name: 'Jun', income: 2390 },
-          { name: 'Jul', income: 3490 },
-        ];
-        setIncomeData(mockIncome);
+        // Real revenue from payments collection — last 7 months
+        const payments = await pb.collection('payments').getFullList({ $autoCancel: false });
+        const now = new Date();
+        const revenueByMonth = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const label = d.toLocaleString('default', { month: 'short' });
+          const start = new Date(d.getFullYear(), d.getMonth(), 1);
+          const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
+          const income = payments
+            .filter(p => {
+              const c = new Date(p.created);
+              return c >= start && c <= end && p.status === 'completed';
+            })
+            .reduce((sum, p) => sum + (p.amount || 0), 0);
+          revenueByMonth.push({ name: label, income: Math.round(income * 100) / 100 });
+        }
+        setIncomeData(revenueByMonth);
 
       } catch (error) {
         console.error('Error fetching analytics:', error);
