@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient';
 import { getUserImageUrl } from '@/lib/userImage';
-import { Star, Heart, Briefcase, User, Send, FileText, X, CalendarDays, MessageSquareReply, Check, Pencil } from 'lucide-react';
+import { Star, Heart, Briefcase, User, Send, FileText, X, CalendarDays, MessageSquareReply, Check, Pencil, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,6 +23,18 @@ import VerifiedBadge from '@/components/VerifiedBadge.jsx';
 import AvailabilityPicker from '@/components/AvailabilityPicker.jsx';
 import PortfolioGallery from '@/components/PortfolioGallery.jsx';
 import { getEffectivePlan, isInTrial } from '@/lib/plans';
+
+function responseLabel(avgMs, count) {
+  if (!avgMs || !count || count < 3) return null;
+  const min = avgMs / 60_000;
+  if (min < 30)   return 'Typically replies within 30 minutes';
+  if (min < 60)   return 'Typically replies within an hour';
+  if (min < 120)  return 'Typically replies within 2 hours';
+  if (min < 240)  return 'Typically replies within a few hours';
+  if (min < 720)  return 'Typically replies within half a day';
+  if (min < 1440) return 'Typically replies within a day';
+  return null;
+}
 
 const ContractorProfilePage = () => {
   const { t } = useTranslation();
@@ -257,12 +269,23 @@ const ContractorProfilePage = () => {
                     {reviews.length > 0 && (() => {
                       const avg = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
                       return (
-                        <div className="flex items-center gap-2 mb-6">
+                        <div className="flex items-center gap-2 mb-3">
                           <div className="flex items-center gap-1">
                             <Star className="h-5 w-5 fill-primary text-primary" />
                             <span className="font-semibold text-lg">{avg.toFixed(1)}</span>
                           </div>
                           <span className="text-muted-foreground">({reviews.length} reviews)</span>
+                        </div>
+                      );
+                    })()}
+
+                    {(() => {
+                      const label = responseLabel(contractor.avgResponseMs, contractor.responseCount);
+                      if (!label) return null;
+                      return (
+                        <div className="flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-2.5 py-1.5 mb-6">
+                          <Zap className="h-3.5 w-3.5 shrink-0" />
+                          {label}
                         </div>
                       );
                     })()}
