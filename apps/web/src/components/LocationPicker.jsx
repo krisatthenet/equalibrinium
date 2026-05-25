@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import { useGoogleMaps } from '@/hooks/useGoogleMaps.js';
 
-const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
+const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'e7c94480b5619333d266cc00';
 const DEFAULT_CENTER = '54.6872,25.2797';
 
 const LocationPicker = ({ initialLocation, onLocationSelect, onSave }) => {

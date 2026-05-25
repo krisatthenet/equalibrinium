@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
 const ORANGE = '#f97316';
-const MAP_ID  = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
+const MAP_ID  = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'e7c94480b5619333d266cc00';
 
 const LT_CENTER = { lat: 55.1694, lng: 23.8813 };
 const LT_BOUNDS = { north: 56.45, south: 53.89, east: 26.85, west: 20.95 };
