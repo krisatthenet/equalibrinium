@@ -17,9 +17,18 @@ export const AuthProvider = ({ children }) => {
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
+    const isSuperuser = (model) => model && (
+      model.collectionName === '_superusers' || model.collectionId === '_pbc_2990389277'
+    );
+
     const init = async () => {
       if (pb.authStore.isValid) {
         const model = pb.authStore.model;
+        // Superuser tokens belong to AdminAuthContext — don't touch them
+        if (isSuperuser(model)) {
+          setInitialLoading(false);
+          return;
+        }
         try {
           const fresh = await pb.collection('users').getOne(model.id, { $autoCancel: false });
           setCurrentUser(fresh);
@@ -33,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     init();
 
     const unsubscribe = pb.authStore.onChange((token, model) => {
-      setCurrentUser(model);
+      if (!isSuperuser(model)) setCurrentUser(model);
     });
 
     return () => unsubscribe();
