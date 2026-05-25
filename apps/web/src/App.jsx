@@ -42,6 +42,7 @@ const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 const PricingPage = React.lazy(() => import('@/pages/PricingPage.jsx'));
 const CategoryLandingPage = React.lazy(() => import('@/pages/CategoryLandingPage.jsx'));
+const DashboardRedirectPage = React.lazy(() => import('@/pages/DashboardRedirectPage.jsx'));
 
 // Admin pages
 const AdminLoginPage = React.lazy(() => import('@/pages/admin/AdminLoginPage.jsx'));
@@ -148,6 +149,11 @@ const AppRoutes = () => {
           <Route path="/pricing" element={<PricingPage />} />
 
           {/* Protected User Routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <DashboardRedirectPage />
+            </ProtectedRoute>
+          } />
           <Route path="/dashboard/client" element={
             <ProtectedRoute allowedRoles={['client']}>
               <ClientDashboard />
