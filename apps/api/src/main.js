@@ -97,15 +97,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/', routes());
 app.use('/hcgi/api', routes());
 
-// Serve built frontend static files in production
+// Serve built frontend static files in production (only if the dist folder exists)
 const isProduction = process.env.NODE_ENV === 'production';
 if (isProduction) {
 	const staticPath = path.resolve(__dirname, '../../../dist/apps/web');
-	app.use(express.static(staticPath));
-	// SPA fallback — serve index.html for any non-API route
-	app.get('/{*path}', (req, res) => {
-		res.sendFile(path.join(staticPath, 'index.html'));
-	});
+	const indexHtml = path.join(staticPath, 'index.html');
+	try {
+		const fs = await import('node:fs');
+		if (fs.existsSync(indexHtml)) {
+			app.use(express.static(staticPath));
+			app.get('/{*path}', (req, res) => {
+				res.sendFile(indexHtml);
+			});
+		}
+	} catch (_) {
+		// dist not present — API-only mode, SPA served separately
+	}
 }
 
 app.use(errorMiddleware);
