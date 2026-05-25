@@ -9,7 +9,6 @@ const useNotifications = (userId) => {
     if (!userId) return;
     try {
       const result = await pb.collection('notifications').getList(1, 20, {
-        filter: `userId = "${userId}"`,
         sort: '-created',
         $autoCancel: false,
       });
