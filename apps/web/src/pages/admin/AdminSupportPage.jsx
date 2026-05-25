@@ -106,7 +106,7 @@ const AdminSupportPage = () => {
   }, []);
 
   useEffect(() => {
-    if (tab === 'cs') fetchCsTickets();
+    if (tab === 'cs' || tab === 'disputes') fetchCsTickets();
   }, [tab, fetchCsTickets]);
 
   const updateCsStatus = async (id, status) => {
@@ -178,7 +178,8 @@ const AdminSupportPage = () => {
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const csFiltered = csTickets.filter(t => csFilter === 'all' || t.status === csFilter);
+  const csFiltered = csTickets.filter(t => t.source !== 'dispute' && (csFilter === 'all' || t.status === csFilter));
+  const disputeTickets = csTickets.filter(t => t.source === 'dispute');
 
   return (
     <>
@@ -190,16 +191,21 @@ const AdminSupportPage = () => {
             <p className="text-sm text-muted-foreground mt-0.5">Manage users, tickets, and CS inbox</p>
           </div>
           <div className="flex gap-1 bg-[hsl(var(--admin-border))]/40 rounded-lg p-1">
-            {[['users','Users & Tickets'],['cs','CS Inbox']].map(([key, label]) => (
+            {[['users','Users & Tickets'],['cs','CS Inbox'],['disputes','Disputes']].map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === key ? 'bg-[hsl(var(--admin-primary))]/15 text-[hsl(var(--admin-primary))]' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 {label}
-                {key === 'cs' && csTickets.filter(t => t.status === 'open').length > 0 && (
+                {key === 'cs' && csTickets.filter(t => t.status === 'open' && t.source !== 'dispute').length > 0 && (
                   <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold">
-                    {csTickets.filter(t => t.status === 'open').length}
+                    {csTickets.filter(t => t.status === 'open' && t.source !== 'dispute').length}
+                  </span>
+                )}
+                {key === 'disputes' && csTickets.filter(t => t.source === 'dispute' && t.status === 'open').length > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold">
+                    {csTickets.filter(t => t.source === 'dispute' && t.status === 'open').length}
                   </span>
                 )}
               </button>
@@ -336,6 +342,53 @@ const AdminSupportPage = () => {
           )}
         </div>
         </>}
+
+        {tab === 'disputes' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {Object.entries(CS_STATUS).map(([key, { label, cls }]) => (
+                <div key={key} className="admin-card p-4">
+                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                  <p className="text-2xl font-bold text-white">{disputeTickets.filter(t => t.status === key).length}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="admin-card overflow-hidden">
+              {csLoading ? (
+                <div className="p-6 space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full bg-[hsl(var(--admin-border))]" />)}</div>
+              ) : disputeTickets.length === 0 ? (
+                <p className="p-8 text-center text-sm text-muted-foreground">No disputes raised</p>
+              ) : (
+                <div className="divide-y divide-[hsl(var(--admin-border))]/50">
+                  {disputeTickets.map(ticket => {
+                    const st = CS_STATUS[ticket.status] || CS_STATUS.open;
+                    const StIcon = st.icon;
+                    return (
+                      <div
+                        key={ticket.id}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-[hsl(var(--admin-border))]/30 cursor-pointer transition-colors"
+                        onClick={() => { setSelectedCsTicket(ticket); setReplyText(ticket.response || ''); setCsModalOpen(true); }}
+                      >
+                        <AlertTriangle className="h-4 w-4 text-orange-400 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-white truncate">{ticket.subject}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {ticket.name || ticket.email} · Ticket {ticket.ticketId?.slice(-8) || '—'} · {new Date(ticket.created).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant="outline" className="text-xs bg-orange-500/15 text-orange-400 border-orange-500/25">Dispute</Badge>
+                          <Badge variant="outline" className={`text-xs ${st.cls}`}>{st.label}</Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {tab === 'cs' && (
           <div className="space-y-4">
