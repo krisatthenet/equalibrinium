@@ -27,7 +27,7 @@ onRecordAfterUpdateSuccess((e) => {
         const clientEmail = client.get('email');
         const clientName = client.get('name') || 'Client';
 
-        const reviewUrl = `https://workbee.space/dashboard?tab=completed&review=${ticket.id}`;
+        const reviewUrl = `https://workbee.space/dashboard/client?tab=completed&review=${ticket.id}`;
 
         const msg = new MailerMessage({
             from: { address: 'kasparas@workbee.space', name: 'WorkBee' },
@@ -51,7 +51,7 @@ onRecordAfterUpdateSuccess((e) => {
     </a>
   </div>
 
-  <p style="color:#737373;font-size:13px;margin-top:32px;border-top:1px solid #1f1f1f;padding-top:16px;">If you have any issues with the completed work, you can raise a dispute from your <a href="https://workbee.space/dashboard?tab=completed" style="color:#facc15;">dashboard</a>.</p>
+  <p style="color:#737373;font-size:13px;margin-top:32px;border-top:1px solid #1f1f1f;padding-top:16px;">If you have any issues with the completed work, you can raise a dispute from your <a href="https://workbee.space/dashboard/client?tab=completed" style="color:#facc15;">dashboard</a>.</p>
   <p style="color:#525252;font-size:12px;">— WorkBee Team</p>
 </div>`
         });
