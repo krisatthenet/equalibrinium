@@ -38,14 +38,15 @@ router.post('/verify', async (req, res) => {
     const valid = data?.tokenProperties?.valid ?? false;
     const invalidReason = data?.tokenProperties?.invalidReason;
 
+    // Log suspicious signals for monitoring but never block — reCAPTCHA is a soft
+    // signal and invalid tokens (expired, action mismatch) are common for real users.
     if (!valid) {
-      console.warn(`reCAPTCHA token invalid: reason=${invalidReason}, action=${action}`);
-      return res.status(403).json({ success: false, score: 0, error: 'reCAPTCHA check failed', reason: invalidReason });
+      console.warn(`reCAPTCHA token invalid (fail open): reason=${invalidReason}, action=${action}`);
+      return res.json({ success: true, score: null });
     }
 
     if (score < 0.5) {
-      console.warn(`reCAPTCHA low score: score=${score}, action=${action}`);
-      return res.status(403).json({ success: false, score, error: 'reCAPTCHA check failed' });
+      console.warn(`reCAPTCHA low score (fail open): score=${score}, action=${action}`);
     }
 
     res.json({ success: true, score });
