@@ -20,6 +20,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import PasswordChangeModal from '@/components/PasswordChangeModal.jsx';
@@ -54,6 +55,7 @@ const SettingsPage = () => {
     location: currentUser?.location || '',
     bio: currentUser?.bio || '',
     profession: currentUser?.profession || '',
+    serviceRadius: currentUser?.serviceRadius || '',
     instagramHandle: currentUser?.instagramHandle || '',
     youtubeChannel: currentUser?.youtubeChannel || '',
     tiktokHandle: currentUser?.tiktokHandle || '',
@@ -243,6 +245,7 @@ const SettingsPage = () => {
       if (currentUser.userType === 'contractor') {
         formData.append('bio', profileData.bio);
         formData.append('profession', profileData.profession);
+        formData.append('serviceRadius', profileData.serviceRadius);
         workExampleFiles.forEach(file => formData.append('workExamples', file));
         removedWorkExamples.forEach(name => formData.append('workExamples-', name));
         // Geocode location to coordinates
@@ -596,6 +599,27 @@ const SettingsPage = () => {
                                 className="bg-input border-border text-foreground min-h-[120px] rounded-lg"
                                 placeholder={t('settings.bio_placeholder')}
                               />
+                            </div>
+
+                            <div className="space-y-2 md:col-span-2">
+                              <Label>Service Area</Label>
+                              <p className="text-xs text-muted-foreground -mt-1">How far are you willing to travel for jobs?</p>
+                              <Select
+                                value={profileData.serviceRadius}
+                                onValueChange={val => setProfileData({ ...profileData, serviceRadius: val })}
+                              >
+                                <SelectTrigger className="bg-input border-border text-foreground rounded-lg">
+                                  <SelectValue placeholder="Select service area..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="5">Within 5 km</SelectItem>
+                                  <SelectItem value="10">Within 10 km</SelectItem>
+                                  <SelectItem value="25">Within 25 km</SelectItem>
+                                  <SelectItem value="50">Within 50 km</SelectItem>
+                                  <SelectItem value="100">Within 100 km</SelectItem>
+                                  <SelectItem value="lithuania">🇱🇹 All Lithuania</SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
 
                             <div className="space-y-3 md:col-span-2">

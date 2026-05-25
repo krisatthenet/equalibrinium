@@ -8,6 +8,12 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
 const ORANGE = '#f97316';
 
+// Lithuania geographic constants
+const LT_CENTER = { lat: 55.1694, lng: 23.8813 };
+const LT_BOUNDS = {
+  north: 56.45, south: 53.89, east: 26.85, west: 20.95,
+};
+
 const GoogleMapsIntegration = ({
   tickets = [],
   radius,
@@ -42,8 +48,8 @@ const GoogleMapsIntegration = ({
   useEffect(() => {
     if (isLoaded && mapRef.current && !mapInstance) {
       const map = initMap(mapRef.current, {
-        center: userLocation || { lat: 54.6872, lng: 25.2797 },
-        zoom: 11,
+        center: userLocation || LT_CENTER,
+        zoom: userLocation ? 11 : 7,
         disableDefaultUI: false,
         styles: [
           { elementType: 'geometry', stylers: [{ color: '#1e293b' }] },
@@ -184,6 +190,14 @@ const GoogleMapsIntegration = ({
     }
   };
 
+  const fitLithuania = () => {
+    if (!mapInstance || !window.google) return;
+    mapInstance.fitBounds(new window.google.maps.LatLngBounds(
+      { lat: LT_BOUNDS.south, lng: LT_BOUNDS.west },
+      { lat: LT_BOUNDS.north, lng: LT_BOUNDS.east },
+    ));
+  };
+
   if (!isLoaded) {
     return (
       <div className="w-full h-[500px] bg-muted rounded-xl animate-pulse flex items-center justify-center text-muted-foreground">
@@ -206,6 +220,17 @@ const GoogleMapsIntegration = ({
         title="My Location"
       >
         <Navigation className="h-5 w-5 text-primary" />
+      </Button>
+
+      {/* All Lithuania button */}
+      <Button
+        variant="secondary"
+        size="sm"
+        className="absolute bottom-6 right-16 shadow-lg rounded-full bg-background hover:bg-muted z-10 text-xs px-3 h-9"
+        onClick={fitLithuania}
+        title="View all Lithuania"
+      >
+        🇱🇹 Lithuania
       </Button>
 
 

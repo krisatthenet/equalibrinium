@@ -1,10 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation } from 'lucide-react';
+
+const deg2rad = d => d * (Math.PI / 180);
+const haversine = (lat1, lon1, lat2, lon2) => {
+  const R = 6371;
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PlanBadge from '@/components/PlanBadge.jsx';
@@ -144,6 +153,17 @@ const ContractorDashboard = () => {
     return `${m}min`;
   };
   const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1) : null;
+
+  const nearbyTickets = useMemo(() => {
+    if (!contractorProfile?.latitude || !contractorProfile?.longitude) return [];
+    const lat = Number(contractorProfile.latitude);
+    const lng = Number(contractorProfile.longitude);
+    return openTickets
+      .filter(t => t.latitude && t.longitude)
+      .map(t => ({ ...t, _dist: haversine(lat, lng, Number(t.latitude), Number(t.longitude)) }))
+      .sort((a, b) => a._dist - b._dist)
+      .slice(0, 10);
+  }, [contractorProfile, openTickets]);
 
   const handleMarkFinished = async (ticketId) => {
     setFinishingId(ticketId);
@@ -638,6 +658,62 @@ const ContractorDashboard = () => {
                     <Button size="sm" asChild className="shrink-0">
                       <a href="/settings?tab=payment">Upgrade</a>
                     </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Nearby Jobs section */}
+            <Card className="bg-card border-border rounded-2xl mb-8">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Navigation className="h-5 w-5 text-primary" />
+                  Nearby Jobs
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div>
+                ) : !contractorProfile?.latitude ? (
+                  <div className="text-center py-8">
+                    <Navigation className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground mb-3">Add your location in Settings to see jobs near you.</p>
+                    <Button variant="outline" asChild className="rounded-xl">
+                      <Link to="/settings">Update Location</Link>
+                    </Button>
+                  </div>
+                ) : nearbyTickets.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Navigation className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                    <p className="text-muted-foreground">No open jobs nearby with coordinates yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {nearbyTickets.map(ticket => (
+                      <div key={ticket.id} className="border border-border rounded-xl p-4 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <h3 className="font-semibold text-foreground">{ticket.expand?.categoryId?.name || t('auction.service_request')}</h3>
+                              <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
+                                <Navigation className="h-3 w-3 mr-1" />
+                                {ticket._dist < 1 ? `${Math.round(ticket._dist * 1000)} m` : `${ticket._dist.toFixed(1)} km`}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket.description}</p>
+                            <div className="flex flex-wrap gap-3 text-sm">
+                              {ticket.budget && <span className="font-medium text-primary">€{ticket.budget}</span>}
+                              {ticket.location && (
+                                <span className="text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" /> {ticket.location}</span>
+                              )}
+                            </div>
+                          </div>
+                          <Button size="sm" asChild className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg shrink-0">
+                            <Link to={`/auction-ticket/${ticket.id}`}>{t('auction.view_details')}</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
