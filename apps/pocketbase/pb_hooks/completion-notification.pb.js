@@ -27,26 +27,32 @@ onRecordAfterUpdateSuccess((e) => {
         const clientEmail = client.get('email');
         const clientName = client.get('name') || 'Client';
 
+        const reviewUrl = `https://workbee.space/dashboard?tab=completed&review=${ticket.id}`;
+
         const msg = new MailerMessage({
             from: { address: 'kasparas@workbee.space', name: 'WorkBee' },
             to: [{ address: clientEmail }],
-            subject: `Work completed: ${categoryName} — Please review`,
+            subject: `Work completed: ${categoryName} — Leave a review`,
             html: `
-<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f9fafb;border-radius:12px;">
-  <h2 style="color:#059669;margin-bottom:8px;">Work has been marked as completed!</h2>
-  <p style="color:#374151;">Hi <strong>${clientName}</strong>,</p>
-  <p style="color:#374151;"><strong>${contractorName}</strong> has marked the following job as finished:</p>
-  <p style="background:#f0fdf4;border-left:4px solid #059669;padding:12px 16px;border-radius:6px;font-weight:600;color:#065f46;">${categoryName}</p>
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#0a0a0a;border-radius:12px;border:1px solid #1f1f1f;">
+  <div style="text-align:center;margin-bottom:24px;">
+    <span style="display:inline-block;background:#facc15;color:#000;font-weight:700;font-size:18px;padding:6px 16px;border-radius:9999px;letter-spacing:-0.5px;">WorkBee</span>
+  </div>
+  <h2 style="color:#4ade80;margin-bottom:8px;font-size:22px;">Job marked as complete ✓</h2>
+  <p style="color:#e5e5e5;">Hi <strong>${clientName}</strong>,</p>
+  <p style="color:#a3a3a3;"><strong style="color:#e5e5e5;">${contractorName}</strong> has marked your job as finished:</p>
+  <p style="background:#052e16;border-left:4px solid #4ade80;padding:12px 16px;border-radius:6px;font-weight:600;color:#4ade80;margin:16px 0;">${categoryName}</p>
 
-  <h3 style="color:#374151;margin-top:24px;">Next steps</h3>
-  <ol style="color:#374151;line-height:2;">
-    <li>Review the completed work</li>
-    <li>Arrange final payment with the contractor</li>
-    <li>Leave a review to help others find great contractors</li>
-  </ol>
+  <p style="color:#a3a3a3;margin-top:16px;">Reviews are the backbone of WorkBee — they help other clients find great contractors and reward professionals who do excellent work.</p>
 
-  <p style="color:#374151;margin-top:24px;">Thank you for using WorkBee!</p>
-  <p style="color:#6b7280;font-size:13px;margin-top:32px;">— WorkBee Team</p>
+  <div style="text-align:center;margin:28px 0;">
+    <a href="${reviewUrl}" style="display:inline-block;background:#facc15;color:#000;font-weight:700;font-size:15px;padding:14px 32px;border-radius:9999px;text-decoration:none;">
+      ⭐ Leave a Review
+    </a>
+  </div>
+
+  <p style="color:#737373;font-size:13px;margin-top:32px;border-top:1px solid #1f1f1f;padding-top:16px;">If you have any issues with the completed work, you can raise a dispute from your <a href="https://workbee.space/dashboard?tab=completed" style="color:#facc15;">dashboard</a>.</p>
+  <p style="color:#525252;font-size:12px;">— WorkBee Team</p>
 </div>`
         });
 

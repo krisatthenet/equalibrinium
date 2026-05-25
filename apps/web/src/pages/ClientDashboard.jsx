@@ -182,8 +182,23 @@ const ClientDashboard = () => {
   const togglePanel = (panel) => setActivePanel(prev => prev === panel ? null : panel);
 
   useEffect(() => {
-    if (searchParams.get('tab') === 'messages') setActivePanel('messages');
+    const tab = searchParams.get('tab');
+    if (tab === 'messages') setActivePanel('messages');
+    if (tab === 'completed') setActivePanel('completed');
   }, [searchParams]);
+
+  // Auto-open review modal when ?review=<ticketId> is in the URL
+  useEffect(() => {
+    const reviewTicketId = searchParams.get('review');
+    if (!reviewTicketId || loading) return;
+    const ticket = tickets.find(t => t.id === reviewTicketId);
+    if (!ticket || existingReviews[reviewTicketId]) return;
+    const bid = acceptedBids[reviewTicketId];
+    if (!bid) return;
+    const contractor = contractors[bid.masterId];
+    if (!contractor) return;
+    setReviewTarget({ contractorId: contractor.id, contractorName: contractor.name, ticketId: reviewTicketId });
+  }, [searchParams, loading, tickets, acceptedBids, contractors, existingReviews]);
 
   const statCards = [
     {
