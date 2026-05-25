@@ -17,6 +17,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import ProfessionSelector from '@/components/ProfessionSelector.jsx';
 import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
+import SocialAuthButtons from '@/components/SocialAuthButtons.jsx';
 
 const RegistrationPage = () => {
   const { t } = useTranslation();
@@ -168,6 +169,18 @@ const RegistrationPage = () => {
                   <p className="text-center text-muted-foreground mb-6 font-medium">
                     {t('auth.choose_type')}
                   </p>
+
+                  <SocialAuthButtons createData={refCode ? { referredByCode: refCode } : {}} />
+
+                  <div className="relative my-2">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-border" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-card px-2 text-muted-foreground">Or register with email</span>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <Button
                       variant="outline"

@@ -1,6 +1,13 @@
 Options -MultiViews
 
-Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://maps.googleapis.com https://cdn-reach.hostinger.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.railway.app https://*.up.railway.app https://*.workbee.space https://ipapi.co https://www.google.com https://maps.googleapis.com https://maps.gstatic.com; frame-src https://www.google.com https://recaptcha.google.com; object-src 'none'; upgrade-insecure-requests"
+# Allow social media scrapers through any bot protection
+SetEnvIfNoCase User-Agent "facebookexternalhit" social_bot
+SetEnvIfNoCase User-Agent "Twitterbot" social_bot
+SetEnvIfNoCase User-Agent "LinkedInBot" social_bot
+SetEnvIfNoCase User-Agent "Slackbot" social_bot
+SetEnvIfNoCase User-Agent "WhatsApp" social_bot
+
+Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com https://www.gstatic.com https://maps.googleapis.com https://cdn-reach.hostinger.com https://snap.licdn.com https://platform.linkedin.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob: https://px.ads.linkedin.com; connect-src 'self' https://*.railway.app https://*.up.railway.app https://*.workbee.space https://ipapi.co https://www.google.com https://maps.googleapis.com https://maps.gstatic.com https://www.linkedin.com; frame-src https://www.google.com https://recaptcha.google.com; object-src 'none'; upgrade-insecure-requests"
 
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f

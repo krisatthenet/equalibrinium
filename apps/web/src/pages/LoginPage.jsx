@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, ShieldCheck, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
+import SocialAuthButtons from '@/components/SocialAuthButtons.jsx';
 
 const LoginPage = () => {
   const { t } = useTranslation();
@@ -164,6 +165,17 @@ const LoginPage = () => {
                     >
                       {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {t('auth.logging_in')}</> : t('auth.login_btn')}
                     </Button>
+
+                    <div className="relative my-2">
+                      <div className="absolute inset-0 flex items-center">
+                        <span className="w-full border-t border-border" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                      </div>
+                    </div>
+
+                    <SocialAuthButtons />
 
                     <p className="text-center text-sm text-muted-foreground mt-4">
                       {t('auth.no_account')}{' '}
