@@ -79,7 +79,7 @@ const Header = () => {
               <BetaBadge />
               <div className="hidden lg:flex items-center gap-1.5 bg-muted/60 border border-border px-2.5 py-1 rounded-full text-xs text-muted-foreground">
                 <VytisIcon className="w-4 h-4 shrink-0" />
-                <span>Proud to be from LTU</span>
+                <span>Proud to be Lithuanian</span>
               </div>
             </div>
 
