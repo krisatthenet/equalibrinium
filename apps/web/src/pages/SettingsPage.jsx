@@ -57,8 +57,11 @@ const SettingsPage = () => {
     profession: currentUser?.profession || '',
     serviceRadius: currentUser?.serviceRadius || '',
     instagramHandle: currentUser?.instagramHandle || '',
+    instagramFollowers: currentUser?.instagramFollowers ?? '',
     youtubeChannel: currentUser?.youtubeChannel || '',
+    youtubeFollowers: currentUser?.youtubeFollowers ?? '',
     tiktokHandle: currentUser?.tiktokHandle || '',
+    tiktokFollowers: currentUser?.tiktokFollowers ?? '',
     contentNiche: currentUser?.contentNiche || '',
     influencerBio: currentUser?.influencerBio || ''
   });
@@ -232,8 +235,11 @@ const SettingsPage = () => {
       
       if (currentUser.userType === 'influencer') {
         formData.append('instagramHandle', profileData.instagramHandle);
+        formData.append('instagramFollowers', parseInt(profileData.instagramFollowers) || 0);
         formData.append('youtubeChannel', profileData.youtubeChannel);
+        formData.append('youtubeFollowers', parseInt(profileData.youtubeFollowers) || 0);
         formData.append('tiktokHandle', profileData.tiktokHandle);
+        formData.append('tiktokFollowers', parseInt(profileData.tiktokFollowers) || 0);
         formData.append('contentNiche', profileData.contentNiche);
         formData.append('influencerBio', profileData.influencerBio);
       }
@@ -705,37 +711,61 @@ const SettingsPage = () => {
                           <>
                             <div className="space-y-2">
                               <Label htmlFor="instagramHandle">{t('auth.instagram')}</Label>
-                              <Input 
+                              <Input
                                 id="instagramHandle" name="instagramHandle" value={profileData.instagramHandle} onChange={handleProfileChange}
                                 className="bg-input border-border text-foreground rounded-lg" placeholder="@username"
                               />
                             </div>
                             <div className="space-y-2">
+                              <Label htmlFor="instagramFollowers">{t('auth.followers')} (Instagram)</Label>
+                              <Input
+                                id="instagramFollowers" name="instagramFollowers" type="number" min="0"
+                                value={profileData.instagramFollowers} onChange={handleProfileChange}
+                                className="bg-input border-border text-foreground rounded-lg" placeholder="0"
+                              />
+                            </div>
+                            <div className="space-y-2">
                               <Label htmlFor="youtubeChannel">{t('auth.youtube')}</Label>
-                              <Input 
+                              <Input
                                 id="youtubeChannel" name="youtubeChannel" value={profileData.youtubeChannel} onChange={handleProfileChange}
                                 className="bg-input border-border text-foreground rounded-lg" placeholder="Channel URL"
                               />
                             </div>
                             <div className="space-y-2">
+                              <Label htmlFor="youtubeFollowers">{t('auth.followers')} (YouTube)</Label>
+                              <Input
+                                id="youtubeFollowers" name="youtubeFollowers" type="number" min="0"
+                                value={profileData.youtubeFollowers} onChange={handleProfileChange}
+                                className="bg-input border-border text-foreground rounded-lg" placeholder="0"
+                              />
+                            </div>
+                            <div className="space-y-2">
                               <Label htmlFor="tiktokHandle">{t('auth.tiktok')}</Label>
-                              <Input 
+                              <Input
                                 id="tiktokHandle" name="tiktokHandle" value={profileData.tiktokHandle} onChange={handleProfileChange}
                                 className="bg-input border-border text-foreground rounded-lg" placeholder="@username"
                               />
                             </div>
                             <div className="space-y-2">
+                              <Label htmlFor="tiktokFollowers">{t('auth.followers')} (TikTok)</Label>
+                              <Input
+                                id="tiktokFollowers" name="tiktokFollowers" type="number" min="0"
+                                value={profileData.tiktokFollowers} onChange={handleProfileChange}
+                                className="bg-input border-border text-foreground rounded-lg" placeholder="0"
+                              />
+                            </div>
+                            <div className="space-y-2">
                               <Label htmlFor="contentNiche">{t('auth.niche')}</Label>
-                              <Input 
+                              <Input
                                 id="contentNiche" name="contentNiche" value={profileData.contentNiche} onChange={handleProfileChange}
                                 className="bg-input border-border text-foreground rounded-lg" placeholder="e.g. Tech, Beauty"
                               />
                             </div>
                             <div className="space-y-2 md:col-span-2">
                               <Label htmlFor="influencerBio">{t('auth.bio')}</Label>
-                              <Textarea 
+                              <Textarea
                                 id="influencerBio" name="influencerBio" value={profileData.influencerBio} onChange={handleProfileChange}
-                                className="bg-input border-border text-foreground min-h-[120px] rounded-lg" 
+                                className="bg-input border-border text-foreground min-h-[120px] rounded-lg"
                                 placeholder="Tell brands about your audience..."
                               />
                             </div>
