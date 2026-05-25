@@ -106,7 +106,7 @@ const AdminSupportPage = () => {
   }, []);
 
   useEffect(() => {
-    if (tab === 'cs') fetchCsTickets();
+    if (tab === 'cs' || tab === 'disputes') fetchCsTickets();
   }, [tab, fetchCsTickets]);
 
   const updateCsStatus = async (id, status) => {
@@ -178,7 +178,8 @@ const AdminSupportPage = () => {
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const csFiltered = csTickets.filter(t => csFilter === 'all' || t.status === csFilter);
+  const csFiltered = csTickets.filter(t => t.source !== 'dispute' && (csFilter === 'all' || t.status === csFilter));
+  const disputeTickets = csTickets.filter(t => t.source === 'dispute');
 
   return (
     <>
@@ -186,20 +187,25 @@ const AdminSupportPage = () => {
       <div className="space-y-6">
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">Customer Support</h1>
+            <h1 className="text-2xl font-bold text-foreground">Customer Support</h1>
             <p className="text-sm text-muted-foreground mt-0.5">Manage users, tickets, and CS inbox</p>
           </div>
           <div className="flex gap-1 bg-[hsl(var(--admin-border))]/40 rounded-lg p-1">
-            {[['users','Users & Tickets'],['cs','CS Inbox']].map(([key, label]) => (
+            {[['users','Users & Tickets'],['cs','CS Inbox'],['disputes','Disputes']].map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => setTab(key)}
                 className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === key ? 'bg-[hsl(var(--admin-primary))]/15 text-[hsl(var(--admin-primary))]' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 {label}
-                {key === 'cs' && csTickets.filter(t => t.status === 'open').length > 0 && (
+                {key === 'cs' && csTickets.filter(t => t.status === 'open' && t.source !== 'dispute').length > 0 && (
                   <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold">
-                    {csTickets.filter(t => t.status === 'open').length}
+                    {csTickets.filter(t => t.status === 'open' && t.source !== 'dispute').length}
+                  </span>
+                )}
+                {key === 'disputes' && csTickets.filter(t => t.source === 'dispute' && t.status === 'open').length > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-bold">
+                    {csTickets.filter(t => t.source === 'dispute' && t.status === 'open').length}
                   </span>
                 )}
               </button>
@@ -213,13 +219,13 @@ const AdminSupportPage = () => {
           <div className="admin-card p-5">
             <p className="text-xs text-muted-foreground mb-1">Total Users</p>
             {loading ? <Skeleton className="h-8 w-16 bg-[hsl(var(--admin-border))]" /> : (
-              <p className="text-3xl font-bold text-white">{users.length}</p>
+              <p className="text-3xl font-bold text-foreground">{users.length}</p>
             )}
           </div>
           <div className="admin-card p-5">
             <p className="text-xs text-muted-foreground mb-1">Open / In-Progress Tickets</p>
             {loading ? <Skeleton className="h-8 w-16 bg-[hsl(var(--admin-border))]" /> : (
-              <p className="text-3xl font-bold text-white">{openTickets.length}</p>
+              <p className="text-3xl font-bold text-foreground">{openTickets.length}</p>
             )}
           </div>
           <div className="admin-card p-5">
@@ -234,7 +240,7 @@ const AdminSupportPage = () => {
         <div className="admin-card p-6">
           <div className="flex items-center gap-2 mb-4">
             <UserCircle className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
-            <h2 className="font-semibold text-white">User Lookup</h2>
+            <h2 className="font-semibold text-foreground">User Lookup</h2>
           </div>
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -242,7 +248,7 @@ const AdminSupportPage = () => {
               placeholder="Search by name or email…"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9 bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-white placeholder:text-muted-foreground"
+              className="pl-9 bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-foreground placeholder:text-muted-foreground"
             />
           </div>
 
@@ -256,11 +262,11 @@ const AdminSupportPage = () => {
                   className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[hsl(var(--admin-border))] transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-8 w-8 rounded-full bg-[hsl(var(--admin-border))] flex items-center justify-center text-sm font-bold text-white shrink-0">
+                    <div className="h-8 w-8 rounded-full bg-[hsl(var(--admin-border))] flex items-center justify-center text-sm font-bold text-foreground shrink-0">
                       {(user.name || user.email || '?').charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{user.name || '—'}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{user.name || '—'}</p>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                     <Badge variant="outline" className="text-xs capitalize shrink-0 border-[hsl(var(--admin-border))] text-muted-foreground">
@@ -274,7 +280,7 @@ const AdminSupportPage = () => {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                       onClick={() => openUserModal(user)}
                       title="View details"
                     >
@@ -303,7 +309,7 @@ const AdminSupportPage = () => {
         <div className="admin-card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Ticket className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
-            <h2 className="font-semibold text-white">Open Tickets</h2>
+            <h2 className="font-semibold text-foreground">Open Tickets</h2>
             {!loading && openTickets.length > 0 && (
               <span className="ml-auto text-xs text-muted-foreground">{openTickets.length} active</span>
             )}
@@ -320,7 +326,7 @@ const AdminSupportPage = () => {
                   className="flex items-center justify-between px-3 py-2.5 rounded-lg border border-[hsl(var(--admin-border))]"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-white truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {ticket.expand?.categoryId?.name || 'Service request'}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -337,6 +343,53 @@ const AdminSupportPage = () => {
         </div>
         </>}
 
+        {tab === 'disputes' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {Object.entries(CS_STATUS).map(([key, { label, cls }]) => (
+                <div key={key} className="admin-card p-4">
+                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                  <p className="text-2xl font-bold text-foreground">{disputeTickets.filter(t => t.status === key).length}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="admin-card overflow-hidden">
+              {csLoading ? (
+                <div className="p-6 space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 w-full bg-[hsl(var(--admin-border))]" />)}</div>
+              ) : disputeTickets.length === 0 ? (
+                <p className="p-8 text-center text-sm text-muted-foreground">No disputes raised</p>
+              ) : (
+                <div className="divide-y divide-[hsl(var(--admin-border))]/50">
+                  {disputeTickets.map(ticket => {
+                    const st = CS_STATUS[ticket.status] || CS_STATUS.open;
+                    const StIcon = st.icon;
+                    return (
+                      <div
+                        key={ticket.id}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-[hsl(var(--admin-border))]/30 cursor-pointer transition-colors"
+                        onClick={() => { setSelectedCsTicket(ticket); setReplyText(ticket.response || ''); setCsModalOpen(true); }}
+                      >
+                        <AlertTriangle className="h-4 w-4 text-orange-400 shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-foreground truncate">{ticket.subject}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {ticket.name || ticket.email} · Ticket {ticket.ticketId?.slice(-8) || '—'} · {new Date(ticket.created).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant="outline" className="text-xs bg-orange-500/15 text-orange-400 border-orange-500/25">Dispute</Badge>
+                          <Badge variant="outline" className={`text-xs ${st.cls}`}>{st.label}</Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {tab === 'cs' && (
           <div className="space-y-4">
             {/* CS summary */}
@@ -344,7 +397,7 @@ const AdminSupportPage = () => {
               {Object.entries(CS_STATUS).map(([key, { label, cls }]) => (
                 <div key={key} className="admin-card p-4">
                   <p className="text-xs text-muted-foreground mb-1">{label}</p>
-                  <p className="text-2xl font-bold text-white">{csTickets.filter(t => t.status === key).length}</p>
+                  <p className="text-2xl font-bold text-foreground">{csTickets.filter(t => t.status === key).length}</p>
                 </div>
               ))}
             </div>
@@ -383,7 +436,7 @@ const AdminSupportPage = () => {
                           <StIcon className={`h-4 w-4 ${st.cls.split(' ')[1]}`} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-white truncate">{ticket.subject}</p>
+                          <p className="text-sm font-medium text-foreground truncate">{ticket.subject}</p>
                           <p className="text-xs text-muted-foreground truncate">
                             {ticket.name || ticket.email} · {ticket.source || 'widget'} · {new Date(ticket.created).toLocaleDateString()}
                           </p>
@@ -404,7 +457,7 @@ const AdminSupportPage = () => {
 
       {/* User detail modal */}
       <Dialog open={userModalOpen} onOpenChange={setUserModalOpen}>
-        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-white max-w-md">
+        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-foreground max-w-md">
           <DialogHeader>
             <DialogTitle>User Details</DialogTitle>
           </DialogHeader>
@@ -458,7 +511,7 @@ const AdminSupportPage = () => {
 
       {/* CS ticket detail modal */}
       <Dialog open={csModalOpen} onOpenChange={v => { setCsModalOpen(v); if (!v) setSelectedCsTicket(null); }}>
-        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-white max-w-lg">
+        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-foreground max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-base">{selectedCsTicket?.subject}</DialogTitle>
           </DialogHeader>
@@ -490,7 +543,7 @@ const AdminSupportPage = () => {
                   onChange={e => setReplyText(e.target.value)}
                   placeholder="Type your reply or internal note…"
                   rows={3}
-                  className="mt-1 bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-white placeholder:text-muted-foreground resize-none"
+                  className="mt-1 bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-foreground placeholder:text-muted-foreground resize-none"
                 />
               </div>
               <div className="flex items-center gap-2 flex-wrap">
@@ -517,7 +570,7 @@ const AdminSupportPage = () => {
 
       {/* Ban modal */}
       <Dialog open={banModalOpen} onOpenChange={setBanModalOpen}>
-        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-white max-w-sm">
+        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-foreground max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-red-400" />
@@ -531,12 +584,12 @@ const AdminSupportPage = () => {
           </DialogHeader>
           {!banTarget?.banned && (
             <div className="space-y-2">
-              <Label className="text-white text-sm">Reason (internal)</Label>
+              <Label className="text-foreground text-sm">Reason (internal)</Label>
               <Textarea
                 value={banReason}
                 onChange={e => setBanReason(e.target.value)}
                 placeholder="Optional note for the team…"
-                className="bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-white placeholder:text-muted-foreground resize-none"
+                className="bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-foreground placeholder:text-muted-foreground resize-none"
                 rows={3}
               />
             </div>

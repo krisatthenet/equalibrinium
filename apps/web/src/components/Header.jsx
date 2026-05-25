@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { getUserImageUrl } from '@/lib/userImage';
-import { Menu, X, User, LogOut, LayoutDashboard, Settings, Heart } from 'lucide-react';
+import useUnreadCount from '@/hooks/useUnreadCount.js';
+import { Menu, X, User, LogOut, LayoutDashboard, Settings, Heart, MessageCircle } from 'lucide-react';
+import NotificationsBell from './NotificationsBell.jsx';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -36,6 +38,7 @@ const Header = () => {
   };
 
   const avatarUrl = getUserImageUrl(currentUser, { thumb: '100x100' });
+  const unreadCount = useUnreadCount(isAuthenticated ? currentUser?.id : null);
 
   return (
     <>
@@ -79,6 +82,18 @@ const Header = () => {
                   </Button>
                 </>
               ) : (
+                <>
+                <NotificationsBell userId={currentUser?.id} />
+                <Link to={getDashboardLink() + '?tab=messages'} className="relative">
+                  <Button variant="ghost" size="icon" className="rounded-full text-foreground hover:bg-muted" aria-label="Messages">
+                    <MessageCircle className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="flex items-center gap-3 text-foreground hover:bg-muted hover:text-foreground font-medium h-auto py-2 px-3 rounded-full border border-transparent hover:border-border transition-all">
@@ -120,10 +135,12 @@ const Header = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+                </>
               )}
             </div>
 
             <div className="md:hidden flex items-center gap-2">
+              {isAuthenticated && <NotificationsBell userId={currentUser?.id} />}
               <LanguageSelector />
               <button
                 className="text-foreground hover:text-primary transition-colors"
@@ -174,6 +191,17 @@ const Header = () => {
                       <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-muted font-medium">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         {t('header.dashboard')}
+                      </Button>
+                    </Link>
+                    <Link to={getDashboardLink() + '?tab=messages'} onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-muted font-medium relative">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Messages
+                        {unreadCount > 0 && (
+                          <span className="ml-auto min-w-[20px] h-5 px-1 bg-primary text-primary-foreground text-[11px] font-bold rounded-full flex items-center justify-center">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                          </span>
+                        )}
                       </Button>
                     </Link>
                     {userType === 'client' && (

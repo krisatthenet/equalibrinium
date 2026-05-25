@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import GoogleMapsIntegration from '@/components/GoogleMapsIntegration.jsx';
+import VerifiedBadge from '@/components/VerifiedBadge.jsx';
 
 const deg2rad = d => d * (Math.PI / 180);
 const haversine = (lat1, lon1, lat2, lon2) => {
@@ -264,6 +265,11 @@ const ContractorsSearchPage = () => {
                             </div>
                             <CardContent className="p-6 flex flex-col flex-1">
                               <h3 className="font-semibold text-xl mb-1 text-foreground">{contractor.name}</h3>
+                              {(contractor.idVerified || contractor.phoneVerified) && (
+                                <div className="mb-1.5">
+                                  <VerifiedBadge idVerified={contractor.idVerified} phoneVerified={contractor.phoneVerified} size="xs" />
+                                </div>
+                              )}
                               {contractor.profession && (
                                 <p className="text-sm text-primary font-medium mb-2">{contractor.profession}</p>
                               )}

@@ -18,7 +18,7 @@ const StatCard = ({ label, value, icon: Icon, sub, loading }) => (
       </div>
     </div>
     {loading ? <Skeleton className="h-8 w-24 bg-[hsl(var(--admin-border))]" /> : (
-      <p className="text-3xl font-bold text-white">{value}</p>
+      <p className="text-3xl font-bold text-foreground">{value}</p>
     )}
     {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
   </div>
@@ -108,7 +108,7 @@ const AdminMarketingPage = () => {
       <Helmet><title>Marketing — Admin</title></Helmet>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Marketing</h1>
+          <h1 className="text-2xl font-bold text-foreground">Marketing</h1>
           <p className="text-sm text-muted-foreground mt-0.5">User growth, acquisition, and referrals</p>
         </div>
 
@@ -123,7 +123,7 @@ const AdminMarketingPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Signups by month */}
           <div className="admin-card p-6">
-            <h2 className="font-semibold text-white mb-4">Signups — Last 6 Months</h2>
+            <h2 className="font-semibold text-foreground mb-4">Signups — Last 6 Months</h2>
             {loading ? <Skeleton className="h-48 w-full bg-[hsl(var(--admin-border))]" /> : (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={signupsByMonth} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
@@ -143,7 +143,7 @@ const AdminMarketingPage = () => {
 
           {/* User type distribution */}
           <div className="admin-card p-6">
-            <h2 className="font-semibold text-white mb-4">User Types</h2>
+            <h2 className="font-semibold text-foreground mb-4">User Types</h2>
             {loading ? <Skeleton className="h-48 w-full bg-[hsl(var(--admin-border))]" /> : (
               <div className="flex items-center gap-6">
                 <ResponsiveContainer width="50%" height={180}>
@@ -164,7 +164,7 @@ const AdminMarketingPage = () => {
                         <div className="h-2.5 w-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
                         <span className="capitalize text-muted-foreground">{d.name}</span>
                       </div>
-                      <span className="font-medium text-white">{d.value}</span>
+                      <span className="font-medium text-foreground">{d.value}</span>
                     </div>
                   ))}
                 </div>
@@ -177,7 +177,7 @@ const AdminMarketingPage = () => {
         <div className="admin-card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Share2 className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
-            <h2 className="font-semibold text-white">Top Referrers</h2>
+            <h2 className="font-semibold text-foreground">Top Referrers</h2>
           </div>
           {loading ? (
             <div className="space-y-3">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-10 w-full bg-[hsl(var(--admin-border))]" />)}</div>
@@ -189,7 +189,7 @@ const AdminMarketingPage = () => {
                 <div key={i} className="flex items-center justify-between py-2 border-b border-[hsl(var(--admin-border))] last:border-0">
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground w-5 text-right">#{i + 1}</span>
-                    <span className="text-sm text-white font-medium">{r.name}</span>
+                    <span className="text-sm text-foreground font-medium">{r.name}</span>
                   </div>
                   <span className="text-sm font-bold text-[hsl(var(--admin-primary))]">{r.count} referral{r.count !== 1 ? 's' : ''}</span>
                 </div>

@@ -41,6 +41,7 @@ const OAuthOnboardingPage = React.lazy(() => import('@/pages/OAuthOnboardingPage
 const VerifyEmailPage = React.lazy(() => import('@/pages/VerifyEmailPage.jsx'));
 const NotFoundPage = React.lazy(() => import('@/pages/NotFoundPage.jsx'));
 const PricingPage = React.lazy(() => import('@/pages/PricingPage.jsx'));
+const CategoryLandingPage = React.lazy(() => import('@/pages/CategoryLandingPage.jsx'));
 
 // Admin pages
 const AdminLoginPage = React.lazy(() => import('@/pages/admin/AdminLoginPage.jsx'));
@@ -212,6 +213,9 @@ const AppRoutes = () => {
           <Route path="/admin/finance" element={<AdminRoute><AdminFinancePage /></AdminRoute>} />
           <Route path="/admin/invoices" element={<AdminRoute><AdminInvoicesPage /></AdminRoute>} />
           <Route path="/admin/board" element={<AdminRoute><AdminBoardPage /></AdminRoute>} />
+
+          {/* Category landing pages — /plumbers-vilnius, /electricians-lithuania etc. */}
+          <Route path="/:categorySlug" element={<CategoryLandingPage />} />
 
           {/* Catch-all 404 */}
           <Route path="*" element={<NotFoundPage />} />

@@ -121,7 +121,7 @@ const AdminFinancePage = () => {
 
       <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Finance</h1>
+          <h1 className="text-2xl font-bold text-foreground">Finance</h1>
           <p className="text-muted-foreground text-sm mt-0.5">Budgets, expenses — {period}</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
@@ -134,11 +134,11 @@ const AdminFinancePage = () => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="admin-card p-5">
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><Wallet className="h-3.5 w-3.5" />Total Allocated</p>
-            <p className="text-2xl font-bold text-white">€{totalAllocated.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-foreground">€{totalAllocated.toLocaleString()}</p>
           </div>
           <div className="admin-card p-5">
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><Receipt className="h-3.5 w-3.5" />Total Spent</p>
-            <p className="text-2xl font-bold text-white">€{totalSpent.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-foreground">€{totalSpent.toLocaleString()}</p>
           </div>
           <div className="admin-card p-5">
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" />Remaining</p>
@@ -152,7 +152,7 @@ const AdminFinancePage = () => {
       {/* Budget bars */}
       {summary.length > 0 && (
         <div className="admin-card p-5 mb-6">
-          <p className="text-sm font-semibold text-white mb-4">Department Burn Rate — {period}</p>
+          <p className="text-sm font-semibold text-foreground mb-4">Department Burn Rate — {period}</p>
           <div className="space-y-3">
             {summary.map(({ dept, allocated, spent, currency }) => {
               const pct = allocated > 0 ? Math.min(100, Math.round(spent / allocated * 100)) : 100;

@@ -52,13 +52,13 @@
     --beta-bg: 45 98% 51%;
     --beta-text: 0 0% 0%;
 
-    /* Admin Panel Specific Tokens */
-    --admin-bg: 220 10% 4%;
-    --admin-card: 220 10% 8%;
-    --admin-border: 220 10% 15%;
-    --admin-sidebar: 220 10% 6%;
-    --admin-primary: 210 100% 60%;
-    --admin-primary-foreground: 0 0% 100%;
+    /* Admin Panel Specific Tokens — aliased to main design system */
+    --admin-bg: var(--background);
+    --admin-card: var(--card);
+    --admin-border: var(--border);
+    --admin-sidebar: var(--background);
+    --admin-primary: var(--primary);
+    --admin-primary-foreground: var(--primary-foreground);
     --admin-success: 142 71% 45%;
     --admin-warning: 38 92% 50%;
     --admin-danger: 348 83% 47%;
@@ -97,13 +97,13 @@
   
   /* Admin specific utilities */
   .admin-panel {
-    @apply bg-[hsl(var(--admin-bg))] text-foreground min-h-screen;
+    @apply bg-background text-foreground min-h-screen;
   }
   .admin-card {
-    @apply bg-[hsl(var(--admin-card))] border border-[hsl(var(--admin-border))] rounded-xl shadow-sm;
+    @apply bg-card border border-border rounded-2xl shadow-sm;
   }
   .admin-input {
-    @apply bg-[hsl(var(--admin-bg))] border-[hsl(var(--admin-border))] text-foreground focus-visible:ring-[hsl(var(--admin-primary))];
+    @apply bg-input border-border text-foreground focus-visible:ring-ring;
   }
 
   /* Custom Animations */

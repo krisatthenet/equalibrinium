@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
-import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil, MessageCircle, AlertTriangle } from 'lucide-react';
+import ConversationsInbox from '@/components/ConversationsInbox.jsx';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PlanBadge from '@/components/PlanBadge.jsx';
@@ -27,6 +30,7 @@ const statusClass = (status) => {
 const ClientDashboard = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [acceptedBids, setAcceptedBids] = useState({}); // ticketId -> bid
   const [contractors, setContractors] = useState({}); // masterId -> user
@@ -40,6 +44,9 @@ const ClientDashboard = () => {
   const [reviewTarget, setReviewTarget] = useState(null); // { contractorId, contractorName, ticketId }
   const [markingDoneId, setMarkingDoneId] = useState(null);
   const [editingTicket, setEditingTicket] = useState(null);
+  const [disputingTicket, setDisputingTicket] = useState(null);
+  const [disputeReason, setDisputeReason] = useState('');
+  const [disputeLoading, setDisputeLoading] = useState(false);
 
   const fetchTickets = async () => {
     try {
@@ -141,7 +148,57 @@ const ClientDashboard = () => {
     }
   };
 
+  const handleRaiseDispute = async () => {
+    if (!disputingTicket || !disputeReason.trim()) return;
+    setDisputeLoading(true);
+    try {
+      const category = getCategoryName(disputingTicket);
+      await pb.collection('cs_tickets').create({
+        source: 'dispute',
+        priority: 'urgent',
+        status: 'open',
+        subject: `Dispute: ${category}`,
+        message: disputeReason.trim(),
+        ticketId: disputingTicket.id,
+        userId: currentUser.id,
+        name: currentUser.name || currentUser.email,
+        email: currentUser.email,
+      }, { $autoCancel: false });
+      await pb.collection('auction_tickets').update(disputingTicket.id, {
+        disputedAt: new Date().toISOString(),
+      }, { $autoCancel: false });
+      setTickets(prev => prev.map(t =>
+        t.id === disputingTicket.id ? { ...t, disputedAt: new Date().toISOString() } : t
+      ));
+      setDisputingTicket(null);
+      setDisputeReason('');
+    } catch {
+      // silently ignore — admin email still queued
+    } finally {
+      setDisputeLoading(false);
+    }
+  };
+
   const togglePanel = (panel) => setActivePanel(prev => prev === panel ? null : panel);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'messages') setActivePanel('messages');
+    if (tab === 'completed') setActivePanel('completed');
+  }, [searchParams]);
+
+  // Auto-open review modal when ?review=<ticketId> is in the URL
+  useEffect(() => {
+    const reviewTicketId = searchParams.get('review');
+    if (!reviewTicketId || loading) return;
+    const ticket = tickets.find(t => t.id === reviewTicketId);
+    if (!ticket || existingReviews[reviewTicketId]) return;
+    const bid = acceptedBids[reviewTicketId];
+    if (!bid) return;
+    const contractor = contractors[bid.masterId];
+    if (!contractor) return;
+    setReviewTarget({ contractorId: contractor.id, contractorName: contractor.name, ticketId: reviewTicketId });
+  }, [searchParams, loading, tickets, acceptedBids, contractors, existingReviews]);
 
   const statCards = [
     {
@@ -202,6 +259,18 @@ const ClientDashboard = () => {
             <div className="flex items-center gap-1 text-muted-foreground shrink-0">
               <Star className="h-3 w-3 text-primary fill-primary" /> Reviewed
             </div>
+          )}
+          {ticket.disputedAt ? (
+            <span className="text-xs text-orange-400 flex items-center gap-1 shrink-0">
+              <AlertTriangle className="h-3 w-3" /> Dispute raised
+            </span>
+          ) : (
+            <button
+              className="text-xs text-muted-foreground hover:text-orange-400 underline underline-offset-2 transition-colors shrink-0"
+              onClick={() => { setDisputingTicket(ticket); setDisputeReason(''); }}
+            >
+              Raise dispute
+            </button>
           )}
         </div>
       );
@@ -298,6 +367,21 @@ const ClientDashboard = () => {
                 <Star className="h-4 w-4 mr-2" /> Leave a Review
               </Button>
             )}
+            {isCompleted && (
+              ticket.disputedAt ? (
+                <div className="flex items-center gap-1.5 text-xs text-orange-400 px-1">
+                  <AlertTriangle className="h-3.5 w-3.5" /> Dispute raised
+                </div>
+              ) : (
+                <Button
+                  variant="ghost"
+                  className="text-muted-foreground hover:text-orange-400 hover:bg-orange-400/10 rounded-xl text-sm"
+                  onClick={() => { setDisputingTicket(ticket); setDisputeReason(''); }}
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" /> Raise a Dispute
+                </Button>
+              )
+            )}
           </div>
         </div>
       </div>
@@ -334,6 +418,11 @@ const ClientDashboard = () => {
             <p className="text-muted-foreground">{t('dashboard.completed')} — 0</p>
           </div>
         ),
+    },
+    messages: {
+      title: 'Messages',
+      icon: <MessageCircle className="h-5 w-5 text-primary" />,
+      content: <ConversationsInbox />,
     },
   };
 
@@ -476,6 +565,47 @@ const ClientDashboard = () => {
         ticketId={reviewTarget?.ticketId}
         onSubmitted={() => { setReviewTarget(null); fetchTickets(); }}
       />
+
+      {/* Dispute modal */}
+      <Dialog open={!!disputingTicket} onOpenChange={open => { if (!open) { setDisputingTicket(null); setDisputeReason(''); } }}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-orange-400" />
+              Raise a Dispute
+            </DialogTitle>
+            <DialogDescription>
+              Describe the issue. Our team will review it and reach out within 24 hours.
+            </DialogDescription>
+          </DialogHeader>
+          {disputingTicket && (
+            <div className="space-y-4 pt-1">
+              <div className="text-sm text-muted-foreground bg-muted/40 rounded-xl px-4 py-3">
+                Job: <span className="font-medium text-foreground">{getCategoryName(disputingTicket)}</span>
+              </div>
+              <Textarea
+                placeholder="What went wrong? Be as specific as possible…"
+                value={disputeReason}
+                onChange={e => setDisputeReason(e.target.value)}
+                className="bg-input border-border text-foreground min-h-[120px] rounded-xl"
+              />
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="ghost" onClick={() => { setDisputingTicket(null); setDisputeReason(''); }} disabled={disputeLoading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRaiseDispute}
+              disabled={!disputeReason.trim() || disputeLoading}
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl"
+            >
+              {disputeLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <AlertTriangle className="h-4 w-4 mr-2" />}
+              Submit Dispute
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

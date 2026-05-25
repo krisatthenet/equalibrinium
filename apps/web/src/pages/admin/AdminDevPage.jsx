@@ -16,7 +16,7 @@ const StatusRow = ({ label, status, detail }) => (
   <div className="flex items-center justify-between py-3 border-b border-[hsl(var(--admin-border))] last:border-0">
     <div className="flex items-center gap-3">
       <StatusDot status={status} />
-      <span className="text-sm font-medium text-white">{label}</span>
+      <span className="text-sm font-medium text-foreground">{label}</span>
     </div>
     <span className={`text-xs font-mono px-2 py-0.5 rounded ${
       status === 'ok' ? 'bg-green-400/10 text-green-400' :
@@ -29,7 +29,7 @@ const StatusRow = ({ label, status, detail }) => (
 const StatCard = ({ label, value, sub }) => (
   <div className="admin-card p-5">
     <p className="text-xs text-muted-foreground mb-1">{label}</p>
-    <p className="text-2xl font-bold text-white">{value}</p>
+    <p className="text-2xl font-bold text-foreground">{value}</p>
     {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
   </div>
 );
@@ -122,7 +122,7 @@ const AdminDevPage = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Engineering</h1>
+            <h1 className="text-2xl font-bold text-foreground">Engineering</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               {lastChecked ? `Last checked ${lastChecked.toLocaleTimeString()}` : 'Running checks…'}
             </p>
@@ -132,7 +132,7 @@ const AdminDevPage = () => {
             size="sm"
             onClick={runChecks}
             disabled={loading}
-            className="border-[hsl(var(--admin-border))] text-white hover:bg-[hsl(var(--admin-border))]"
+            className="border-[hsl(var(--admin-border))] text-foreground hover:bg-[hsl(var(--admin-border))]"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -143,7 +143,7 @@ const AdminDevPage = () => {
         <div className="admin-card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Server className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
-            <h2 className="font-semibold text-white">Service Health</h2>
+            <h2 className="font-semibold text-foreground">Service Health</h2>
           </div>
           <StatusRow label="PocketBase" status={health.pocketbase} detail={healthDetails.pocketbase} />
           <StatusRow label="API Server" status={health.api} detail={healthDetails.api} />
@@ -154,7 +154,7 @@ const AdminDevPage = () => {
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Database className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
-            <h2 className="font-semibold text-white">Database</h2>
+            <h2 className="font-semibold text-foreground">Database</h2>
           </div>
           <div className="grid grid-cols-3 gap-4">
             <StatCard label="Users" value={dbStats?.users ?? '—'} />
@@ -167,7 +167,7 @@ const AdminDevPage = () => {
         <div className="admin-card p-6">
           <div className="flex items-center gap-2 mb-4">
             <Globe className="h-4 w-4 text-[hsl(var(--admin-primary))]" />
-            <h2 className="font-semibold text-white">Quick Links</h2>
+            <h2 className="font-semibold text-foreground">Quick Links</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
@@ -183,7 +183,7 @@ const AdminDevPage = () => {
                 href={url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between px-4 py-3 rounded-lg border border-[hsl(var(--admin-border))] hover:bg-[hsl(var(--admin-border))] transition-colors text-sm text-white"
+                className="flex items-center justify-between px-4 py-3 rounded-lg border border-[hsl(var(--admin-border))] hover:bg-[hsl(var(--admin-border))] transition-colors text-sm text-foreground"
               >
                 {label}
                 <ExternalLink className="h-3.5 w-3.5 text-muted-foreground ml-2 shrink-0" />
@@ -194,7 +194,7 @@ const AdminDevPage = () => {
 
         {/* Tech stack */}
         <div className="admin-card p-6">
-          <h2 className="font-semibold text-white mb-4">Stack</h2>
+          <h2 className="font-semibold text-foreground mb-4">Stack</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
             {[
               ['Frontend', 'React + Vite'],
@@ -206,7 +206,7 @@ const AdminDevPage = () => {
             ].map(([k, v]) => (
               <div key={k} className="bg-[hsl(var(--admin-border))]/40 rounded-lg px-3 py-2">
                 <p className="text-xs text-muted-foreground">{k}</p>
-                <p className="font-medium text-white mt-0.5">{v}</p>
+                <p className="font-medium text-foreground mt-0.5">{v}</p>
               </div>
             ))}
           </div>

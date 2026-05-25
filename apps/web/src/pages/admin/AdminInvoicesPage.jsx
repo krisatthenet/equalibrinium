@@ -94,7 +94,7 @@ const AdminInvoicesPage = () => {
 
       <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Invoices</h1>
+          <h1 className="text-2xl font-bold text-foreground">Invoices</h1>
           <p className="text-muted-foreground text-sm mt-0.5">Track incoming and outgoing invoices</p>
         </div>
         <Button onClick={() => setShowForm(true)} className="gap-2">
