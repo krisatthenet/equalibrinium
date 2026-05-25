@@ -509,6 +509,206 @@ router.get('/subscription-status', requirePbAuth, async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// POST /stripe/create-escrow
+// Body: { ticketId, bidId, contractorUserId }
+// Creates a Stripe Checkout Session with capture_method: 'manual' (authorize-only)
+// ---------------------------------------------------------------------------
+router.post('/create-escrow', requirePbAuth, async (req, res) => {
+  try {
+    const { ticketId, bidId, contractorUserId } = req.body;
+    const userId = req.pbUser.id;
+    if (!ticketId || !bidId) {
+      return res.status(400).json({ error: 'ticketId and bidId are required' });
+    }
+
+    const pb = await adminPb();
+
+    const ticket = await pb.collection('auction_tickets').getOne(ticketId).catch(() => null);
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    if (ticket.clientId !== userId) return res.status(403).json({ error: 'Forbidden' });
+    if (ticket.status !== 'In Progress') return res.status(400).json({ error: 'Ticket must be In Progress' });
+
+    const bid = await pb.collection('bids').getOne(bidId).catch(() => null);
+    if (!bid) return res.status(404).json({ error: 'Bid not found' });
+    if (bid.status !== 'accepted') return res.status(400).json({ error: 'Bid is not accepted' });
+
+    // Idempotency: return existing held escrow if already paid
+    const existing = await pb.collection('escrow_payments').getList(1, 1, {
+      filter: `ticketId = "${ticketId}" && (status = "held" || status = "released")`,
+    });
+    if (existing.items.length > 0) {
+      return res.status(409).json({ error: 'Escrow already exists for this ticket', escrow: existing.items[0] });
+    }
+
+    const amount = Number(bid.proposedRate);
+    if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid bid amount' });
+
+    const clientUser = await pb.collection('users').getOne(userId).catch(() => null);
+    let customerId;
+    if (clientUser) customerId = await getOrCreateStripeCustomer(pb, clientUser).catch(() => null);
+
+    const sessionParams = {
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'WorkBee Escrow — Service Payment' },
+          unit_amount: Math.round(amount * 100),
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      payment_intent_data: { capture_method: 'manual' },
+      success_url: `${FRONTEND_URL}/auction-ticket/${ticketId}?escrow=success`,
+      cancel_url:  `${FRONTEND_URL}/auction-ticket/${ticketId}?escrow=cancel`,
+      metadata: {
+        type: 'escrow',
+        ticketId,
+        bidId,
+        userId,
+        contractorUserId: contractorUserId || '',
+      },
+    };
+    if (customerId) sessionParams.customer = customerId;
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+    logger.info(`Escrow checkout session created: ${session.id} for ticket ${ticketId}`);
+    res.json({ url: session.url });
+  } catch (err) {
+    logger.error('create-escrow error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /stripe/release-escrow
+// Body: { ticketId }
+// Captures the PaymentIntent, optionally transfers to contractor, marks ticket Completed
+// ---------------------------------------------------------------------------
+router.post('/release-escrow', requirePbAuth, async (req, res) => {
+  try {
+    const { ticketId } = req.body;
+    const userId = req.pbUser.id;
+    if (!ticketId) return res.status(400).json({ error: 'ticketId is required' });
+
+    const pb = await adminPb();
+
+    const ticket = await pb.collection('auction_tickets').getOne(ticketId).catch(() => null);
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    if (ticket.clientId !== userId) return res.status(403).json({ error: 'Forbidden' });
+
+    const escrows = await pb.collection('escrow_payments').getList(1, 1, {
+      filter: `ticketId = "${ticketId}" && status = "held"`,
+    });
+    if (!escrows.items.length) return res.status(404).json({ error: 'No held escrow found for this ticket' });
+    const escrow = escrows.items[0];
+
+    const pi = await stripe.paymentIntents.retrieve(escrow.stripePaymentIntentId);
+
+    // Build capture params — optionally transfer to contractor's Stripe account
+    let captureParams = {};
+    let contractorStripeAccountId;
+    try {
+      const contractor = await pb.collection('users').getOne(escrow.contractorId);
+      if (contractor.stripeAccountId && contractor.stripeOnboarded) {
+        contractorStripeAccountId = contractor.stripeAccountId;
+        const fee = Math.round(escrow.amount * PLATFORM_FEE_PCT * 100);
+        captureParams = {
+          application_fee_amount: fee,
+          transfer_data: { destination: contractorStripeAccountId },
+        };
+      }
+    } catch (_) {}
+
+    await stripe.paymentIntents.capture(escrow.stripePaymentIntentId, captureParams);
+
+    // Credit contractor balance
+    const contractorPayout = escrow.amount * (1 - PLATFORM_FEE_PCT);
+    try {
+      const contractor = await pb.collection('users').getOne(escrow.contractorId);
+      const currentBalance = Number(contractor.balance) || 0;
+      await pb.collection('users').update(escrow.contractorId, {
+        balance: parseFloat((currentBalance + contractorPayout).toFixed(2)),
+      });
+    } catch (_) {}
+
+    // Record payment + update statuses
+    await pb.collection('payments').create({
+      ticketId,
+      userId,
+      amount: escrow.amount,
+      paymentMethod: 'stripe',
+      paymentOption: 'escrow',
+      status: 'completed',
+      transactionId: escrow.stripePaymentIntentId,
+    }).catch(() => {});
+
+    await pb.collection('escrow_payments').update(escrow.id, { status: 'released' });
+    await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' });
+
+    logger.info(`Escrow released: ticket ${ticketId}, €${escrow.amount} captured`);
+    res.json({ success: true });
+  } catch (err) {
+    logger.error('release-escrow error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /stripe/refund-escrow
+// Body: { ticketId }
+// Cancels the uncaptured PaymentIntent (full auth reversal — no charge)
+// ---------------------------------------------------------------------------
+router.post('/refund-escrow', requirePbAuth, async (req, res) => {
+  try {
+    const { ticketId } = req.body;
+    const userId = req.pbUser.id;
+    if (!ticketId) return res.status(400).json({ error: 'ticketId is required' });
+
+    const pb = await adminPb();
+
+    const ticket = await pb.collection('auction_tickets').getOne(ticketId).catch(() => null);
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    if (ticket.clientId !== userId) return res.status(403).json({ error: 'Forbidden' });
+
+    const escrows = await pb.collection('escrow_payments').getList(1, 1, {
+      filter: `ticketId = "${ticketId}" && status = "held"`,
+    });
+    if (!escrows.items.length) return res.status(404).json({ error: 'No held escrow found for this ticket' });
+    const escrow = escrows.items[0];
+
+    await stripe.paymentIntents.cancel(escrow.stripePaymentIntentId);
+    await pb.collection('escrow_payments').update(escrow.id, { status: 'refunded' });
+    await pb.collection('auction_tickets').update(ticketId, { status: 'Open' });
+
+    logger.info(`Escrow refunded (auth cancelled): ticket ${ticketId}`);
+    res.json({ success: true });
+  } catch (err) {
+    logger.error('refund-escrow error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /stripe/escrow-status?ticketId=...
+router.get('/escrow-status', requirePbAuth, async (req, res) => {
+  try {
+    const { ticketId } = req.query;
+    if (!ticketId) return res.status(400).json({ error: 'ticketId is required' });
+
+    const pb = await adminPb();
+    const escrows = await pb.collection('escrow_payments').getList(1, 1, {
+      filter: `ticketId = "${ticketId}"`,
+      sort: '-created',
+    });
+    if (!escrows.items.length) return res.json({ escrow: null });
+
+    const e = escrows.items[0];
+    res.json({ escrow: { id: e.id, status: e.status, amount: e.amount, contractorId: e.contractorId } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /stripe/webhook  — Stripe webhook (raw body, verified by signature)
 // ---------------------------------------------------------------------------
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
@@ -526,6 +726,42 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object;
     logger.info(`Processing checkout.session.completed: ${session.id}`);
+
+    // --- Escrow hold (authorize-only payment) ---
+    if (session.metadata?.type === 'escrow') {
+      const { ticketId, bidId, userId, contractorUserId } = session.metadata;
+      if (ticketId && bidId && userId) {
+        try {
+          const pb = await adminPb();
+
+          // Idempotency: skip if already recorded
+          const existing = await pb.collection('escrow_payments').getList(1, 1, {
+            filter: `stripeSessionId = "${session.id}"`,
+          });
+          if (existing.items.length === 0) {
+            const pi = await stripe.checkout.sessions.retrieve(session.id, { expand: ['payment_intent'] });
+            const paymentIntentId = typeof pi.payment_intent === 'string'
+              ? pi.payment_intent
+              : pi.payment_intent?.id;
+
+            await pb.collection('escrow_payments').create({
+              ticketId,
+              bidId,
+              clientId: userId,
+              contractorId: contractorUserId || '',
+              amount: (session.amount_total || 0) / 100,
+              stripePaymentIntentId: paymentIntentId || '',
+              stripeSessionId: session.id,
+              status: 'held',
+            });
+            logger.info(`Escrow held: ticket ${ticketId}, PI=${paymentIntentId}`);
+          }
+        } catch (err) {
+          logger.error('Escrow webhook error:', err);
+        }
+      }
+      return res.json({ received: true });
+    }
 
     // --- Featured listing boost ---
     if (session.metadata?.type === 'boost') {

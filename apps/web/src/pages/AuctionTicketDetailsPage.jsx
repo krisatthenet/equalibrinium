@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil, MessageCircle } from 'lucide-react';
+import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil, MessageCircle, Lock, Unlock } from 'lucide-react';
 import BidComparisonView from '@/components/BidComparisonView.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ import VerifiedBadge from '@/components/VerifiedBadge.jsx';
 
 const AuctionTicketDetailsPage = () => {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const { toast } = useToast();
@@ -36,6 +37,8 @@ const AuctionTicketDetailsPage = () => {
   const [contractorContact, setContractorContact] = useState(null);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [escrow, setEscrow] = useState(null);
+  const [escrowLoading, setEscrowLoading] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -90,9 +93,29 @@ const AuctionTicketDetailsPage = () => {
     }
   };
 
+  const fetchEscrow = async () => {
+    try {
+      const resp = await apiServerClient.fetch(`/stripe/escrow-status?ticketId=${id}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        setEscrow(data.escrow);
+      }
+    } catch (_) {}
+  };
+
   useEffect(() => {
     fetchData();
+    if (searchParams.get('escrow') === 'success') {
+      toast({ title: "Payment authorized", description: "Funds are held in escrow. Release them when the job is done." });
+      setSearchParams({}, { replace: true });
+    }
   }, [id]);
+
+  useEffect(() => {
+    if (ticket?.status === 'In Progress' || ticket?.status === 'Completed') {
+      fetchEscrow();
+    }
+  }, [ticket?.status]);
 
   const handleAcceptBid = async (bidId) => {
     try {
@@ -123,6 +146,78 @@ const AuctionTicketDetailsPage = () => {
       navigate(`/auction-ticket/${id}/payment`);
     } catch (error) {
       toast({ title: "Error", description: "Could not mark as completed.", variant: "destructive" });
+    }
+  };
+
+  const handlePayEscrow = async () => {
+    if (!acceptedBid) return;
+    setEscrowLoading(true);
+    try {
+      const resp = await apiServerClient.fetch('/stripe/create-escrow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ticketId: id,
+          bidId: acceptedBid.id,
+          contractorUserId: acceptedBid.masterId,
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        toast({ title: "Error", description: data.error || "Could not start escrow payment.", variant: "destructive" });
+        return;
+      }
+      window.location.href = data.url;
+    } catch {
+      toast({ title: "Error", description: "Could not start escrow payment.", variant: "destructive" });
+    } finally {
+      setEscrowLoading(false);
+    }
+  };
+
+  const handleReleaseEscrow = async () => {
+    setEscrowLoading(true);
+    try {
+      const resp = await apiServerClient.fetch('/stripe/release-escrow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: id }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        toast({ title: "Error", description: data.error || "Could not release payment.", variant: "destructive" });
+        return;
+      }
+      toast({ title: "Payment released", description: "The contractor has been paid. Ticket marked as Completed." });
+      fetchData();
+      setEscrow(prev => prev ? { ...prev, status: 'released' } : prev);
+    } catch {
+      toast({ title: "Error", description: "Could not release payment.", variant: "destructive" });
+    } finally {
+      setEscrowLoading(false);
+    }
+  };
+
+  const handleRefundEscrow = async () => {
+    setEscrowLoading(true);
+    try {
+      const resp = await apiServerClient.fetch('/stripe/refund-escrow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticketId: id }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        toast({ title: "Error", description: data.error || "Could not refund escrow.", variant: "destructive" });
+        return;
+      }
+      toast({ title: "Escrow refunded", description: "The authorization was cancelled. No charge was made." });
+      fetchData();
+      setEscrow(null);
+    } catch {
+      toast({ title: "Error", description: "Could not refund escrow.", variant: "destructive" });
+    } finally {
+      setEscrowLoading(false);
     }
   };
 
@@ -359,14 +454,46 @@ const AuctionTicketDetailsPage = () => {
                         <p className="text-sm text-muted-foreground">{ticket.durationEstimate || t('auction.not_specified')}</p>
                       </div>
                     </div>
-                    {isClient && ticket.status === 'In Progress' && (
+                    {isClient && ticket.status === 'In Progress' && !escrow && (
                       <Button
-                        onClick={handleMarkCompleted}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl mt-2"
+                        onClick={handlePayEscrow}
+                        disabled={escrowLoading || !acceptedBid}
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl mt-2"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        {t('auction.mark_completed')}
+                        <Lock className="h-4 w-4 mr-2" />
+                        {escrowLoading ? 'Redirecting…' : `Pay €${acceptedBid?.proposedRate || ''} into Escrow`}
                       </Button>
+                    )}
+                    {isClient && ticket.status === 'In Progress' && escrow?.status === 'held' && (
+                      <div className="space-y-2 mt-2">
+                        <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                          <Lock className="h-3.5 w-3.5 shrink-0" />
+                          €{escrow.amount} held in escrow — release when job is done
+                        </div>
+                        <Button
+                          onClick={handleReleaseEscrow}
+                          disabled={escrowLoading}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                        >
+                          <Unlock className="h-4 w-4 mr-2" />
+                          {escrowLoading ? 'Processing…' : 'Release Payment to Contractor'}
+                        </Button>
+                        <Button
+                          onClick={handleRefundEscrow}
+                          disabled={escrowLoading}
+                          variant="outline"
+                          className="w-full rounded-xl border-destructive text-destructive hover:bg-destructive/10"
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          {escrowLoading ? 'Processing…' : 'Cancel & Refund Escrow'}
+                        </Button>
+                      </div>
+                    )}
+                    {escrow?.status === 'released' && (
+                      <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 mt-2">
+                        <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                        Payment of €{escrow.amount} released to contractor
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -456,6 +583,13 @@ const AuctionTicketDetailsPage = () => {
                     </Card>
                   );
                 })()}
+
+                {!isClient && ticket.status === 'In Progress' && myBid?.status === 'accepted' && escrow?.status === 'held' && (
+                  <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                    <Lock className="h-3.5 w-3.5 shrink-0" />
+                    €{escrow.amount} is held in escrow — you'll be paid once the client releases it
+                  </div>
+                )}
 
                 {ticket.status === 'In Progress' && myBid?.status === 'accepted' && ticket.expand?.clientId && (
                   <Card className="bg-card border-green-500/30 border rounded-2xl">
