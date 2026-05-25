@@ -40,7 +40,7 @@ const FacebookIcon = () => (
 
 const PROVIDERS = [
   { id: 'google',   name: 'Google',   Icon: GoogleIcon   },
-  { id: 'apple',    name: 'Apple',    Icon: AppleIcon    },
+  { id: 'apple',    name: 'Apple',    Icon: AppleIcon,   comingSoon: true },
   { id: 'github',   name: 'GitHub',   Icon: GitHubIcon   },
   { id: 'twitter',  name: 'X',        Icon: XIcon        },
   { id: 'facebook', name: 'Facebook', Icon: FacebookIcon },
@@ -80,22 +80,28 @@ const SocialAuthButtons = ({ createData = {} }) => {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-5 gap-2">
-        {PROVIDERS.map(({ id, name, Icon }) => (
-          <Button
-            key={id}
-            type="button"
-            variant="outline"
-            disabled={!!loadingProvider}
-            onClick={() => handleProvider(id)}
-            title={`Continue with ${name}`}
-            aria-label={`Continue with ${name}`}
-            className="h-10 px-2 border-border hover:bg-accent transition-colors rounded-lg flex items-center justify-center"
-          >
-            {loadingProvider === id
-              ? <Loader2 className="h-4 w-4 animate-spin" />
-              : <Icon />
-            }
-          </Button>
+        {PROVIDERS.map(({ id, name, Icon, comingSoon }) => (
+          <div key={id} className="relative">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!!loadingProvider || comingSoon}
+              onClick={() => !comingSoon && handleProvider(id)}
+              title={comingSoon ? `${name} — coming soon` : `Continue with ${name}`}
+              aria-label={comingSoon ? `${name} — coming soon` : `Continue with ${name}`}
+              className={`h-10 w-full px-2 border-border transition-colors rounded-lg flex items-center justify-center ${comingSoon ? 'opacity-40 cursor-not-allowed' : 'hover:bg-accent'}`}
+            >
+              {loadingProvider === id
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <Icon />
+              }
+            </Button>
+            {comingSoon && (
+              <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] leading-none bg-muted text-muted-foreground px-1 py-0.5 rounded whitespace-nowrap">
+                soon
+              </span>
+            )}
+          </div>
         ))}
       </div>
       {error && (
