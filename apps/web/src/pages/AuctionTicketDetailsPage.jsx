@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Helmet } from 'react-helmet';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import { getUserImageUrl } from '@/lib/userImage';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Star, Download, Phone, Mail, Pencil, MessageCircle, Lock, Unlock } from 'lucide-react';
+import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Download, Phone, Mail, Pencil, MessageCircle, Lock, Unlock, Camera, Plus, X, Loader2 } from 'lucide-react';
 import BidComparisonView from '@/components/BidComparisonView.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,14 @@ const AuctionTicketDetailsPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [escrow, setEscrow] = useState(null);
   const [escrowLoading, setEscrowLoading] = useState(false);
+  const [completionDialog, setCompletionDialog] = useState(false);
+  const [completionFiles, setCompletionFiles] = useState([]);
+  const [completionPreviews, setCompletionPreviews] = useState([]);
+  const [portfolioTitle, setPortfolioTitle] = useState('');
+  const [portfolioDesc, setPortfolioDesc] = useState('');
+  const [completionLoading, setCompletionLoading] = useState(false);
+  const [portfolioItem, setPortfolioItem] = useState(null);
+  const completionInputRef = useRef(null);
 
   const fetchData = async () => {
     try {
@@ -115,7 +123,12 @@ const AuctionTicketDetailsPage = () => {
     if (ticket?.status === 'In Progress' || ticket?.status === 'Completed') {
       fetchEscrow();
     }
-  }, [ticket?.status]);
+    if (ticket?.portfolioItemId) {
+      pb.collection('portfolio_items').getOne(ticket.portfolioItemId, { $autoCancel: false })
+        .then(item => setPortfolioItem(item))
+        .catch(() => {});
+    }
+  }, [ticket?.status, ticket?.portfolioItemId]);
 
   const handleAcceptBid = async (bidId) => {
     try {
@@ -218,6 +231,52 @@ const AuctionTicketDetailsPage = () => {
       toast({ title: "Error", description: "Could not refund escrow.", variant: "destructive" });
     } finally {
       setEscrowLoading(false);
+    }
+  };
+
+  const handleMarkComplete = async () => {
+    if (!completionFiles.length) {
+      toast({ title: 'Photos required', description: 'Upload at least one completion photo.', variant: 'destructive' });
+      return;
+    }
+    if (!portfolioTitle.trim()) {
+      toast({ title: 'Title required', description: 'Add a short project title.', variant: 'destructive' });
+      return;
+    }
+    setCompletionLoading(true);
+    try {
+      // 1. Create portfolio_items record with the completion photos as afterPhotos
+      const formData = new FormData();
+      formData.append('contractorId', currentUser.id);
+      formData.append('title', portfolioTitle.trim());
+      if (portfolioDesc.trim()) formData.append('description', portfolioDesc.trim());
+      completionFiles.forEach(f => formData.append('afterPhotos', f));
+      const item = await pb.collection('portfolio_items').create(formData, { $autoCancel: false });
+
+      // 2. Tell the API to link the portfolio item to the ticket and set contractorMarkedDone
+      const resp = await apiServerClient.fetch(`/tickets/${id}/mark-complete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ portfolioItemId: item.id }),
+      });
+      if (!resp.ok) {
+        const data = await resp.json();
+        throw new Error(data.error || 'Failed to mark complete');
+      }
+
+      setPortfolioItem(item);
+      completionPreviews.forEach(u => URL.revokeObjectURL(u));
+      setCompletionFiles([]);
+      setCompletionPreviews([]);
+      setPortfolioTitle('');
+      setPortfolioDesc('');
+      setCompletionDialog(false);
+      toast({ title: 'Job marked complete', description: 'Your completion photos have been submitted. The client will be notified to release payment.' });
+      fetchData();
+    } catch (err) {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    } finally {
+      setCompletionLoading(false);
     }
   };
 
@@ -379,6 +438,40 @@ const AuctionTicketDetailsPage = () => {
                   </Card>
                 )}
 
+                {/* Completion photos — visible to both parties once contractor marks done */}
+                {portfolioItem && (portfolioItem.afterPhotos?.length > 0) && (
+                  <Card className="bg-card border-green-500/30 border rounded-2xl">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <Camera className="h-5 w-5 text-green-500" />
+                        Completion Photos
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        {portfolioItem.afterPhotos.map((photo, i) => (
+                          <a
+                            key={i}
+                            href={pb.files.getURL(portfolioItem, photo)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block aspect-video rounded-xl overflow-hidden border border-border hover:opacity-80 transition-opacity bg-muted"
+                          >
+                            <img
+                              src={pb.files.getURL(portfolioItem, photo, { thumb: '400x300' })}
+                              alt={`Completion ${i + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                          </a>
+                        ))}
+                      </div>
+                      {portfolioItem.description && (
+                        <p className="text-sm text-muted-foreground mt-3">{portfolioItem.description}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 {isClient && (
                   <Card className="bg-card border-border rounded-2xl">
                     <CardHeader>
@@ -464,6 +557,13 @@ const AuctionTicketDetailsPage = () => {
                         {escrowLoading ? 'Redirecting…' : `Pay €${acceptedBid?.proposedRate || ''} into Escrow`}
                       </Button>
                     )}
+                    {isClient && ticket.contractorMarkedDone && (
+                      <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 mt-2">
+                        <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                        The contractor has marked this job complete — review their photos below, then release payment.
+                      </div>
+                    )}
+
                     {isClient && ticket.status === 'In Progress' && escrow?.status === 'held' && (
                       <div className="space-y-2 mt-2">
                         <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
@@ -591,6 +691,27 @@ const AuctionTicketDetailsPage = () => {
                   </div>
                 )}
 
+                {/* Contractor: Mark as Complete */}
+                {!isClient && ticket.status === 'In Progress' && myBid?.status === 'accepted' && !ticket.contractorMarkedDone && (
+                  <Button
+                    onClick={() => {
+                      setPortfolioTitle(categoryName || 'Completed Job');
+                      setCompletionDialog(true);
+                    }}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Mark Job as Complete
+                  </Button>
+                )}
+
+                {!isClient && ticket.contractorMarkedDone && (
+                  <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2">
+                    <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+                    You've marked this job complete — waiting for client to release payment
+                  </div>
+                )}
+
                 {ticket.status === 'In Progress' && myBid?.status === 'accepted' && ticket.expand?.clientId && (
                   <Card className="bg-card border-green-500/30 border rounded-2xl">
                     <CardContent className="pt-4 space-y-2">
@@ -617,6 +738,131 @@ const AuctionTicketDetailsPage = () => {
 
         <Footer />
       </div>
+
+      {/* Mark Job Complete dialog */}
+      <Dialog open={completionDialog} onOpenChange={(open) => {
+        if (!open) {
+          completionPreviews.forEach(u => URL.revokeObjectURL(u));
+          setCompletionFiles([]);
+          setCompletionPreviews([]);
+        }
+        setCompletionDialog(open);
+      }}>
+        <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5 text-green-500" />
+              Mark Job as Complete
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <p className="text-sm text-muted-foreground">
+              Upload completion photos — they'll be shown to the client as proof of work and added to your portfolio automatically.
+            </p>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">Project title *</label>
+              <input
+                type="text"
+                value={portfolioTitle}
+                onChange={e => setPortfolioTitle(e.target.value)}
+                placeholder="e.g. Kitchen Renovation"
+                className="mt-1.5 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">Notes (optional)</label>
+              <textarea
+                value={portfolioDesc}
+                onChange={e => setPortfolioDesc(e.target.value)}
+                placeholder="Materials used, work done, anything the client should know..."
+                rows={3}
+                className="mt-1.5 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">Completion photos *</label>
+              <input
+                ref={completionInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={e => {
+                  const files = Array.from(e.target.files);
+                  if (!files.length) return;
+                  const previews = files.map(f => URL.createObjectURL(f));
+                  setCompletionFiles(prev => [...prev, ...files].slice(0, 10));
+                  setCompletionPreviews(prev => [...prev, ...previews].slice(0, 10));
+                  e.target.value = '';
+                }}
+              />
+              {completionPreviews.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {completionPreviews.map((url, i) => (
+                    <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden border border-border shrink-0">
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 shadow-md"
+                        onClick={() => {
+                          URL.revokeObjectURL(url);
+                          setCompletionFiles(f => f.filter((_, j) => j !== i));
+                          setCompletionPreviews(p => p.filter((_, j) => j !== i));
+                        }}
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                  {completionFiles.length < 10 && (
+                    <button
+                      type="button"
+                      className="w-16 h-16 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex items-center justify-center text-muted-foreground hover:text-primary transition-colors shrink-0"
+                      onClick={() => completionInputRef.current?.click()}
+                    >
+                      <Plus className="h-5 w-5" />
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="w-full py-8 rounded-xl border-2 border-dashed border-border hover:border-primary/40 flex flex-col items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm"
+                  onClick={() => completionInputRef.current?.click()}
+                >
+                  <Camera className="h-7 w-7" />
+                  <span>Upload completion photos (up to 10)</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setCompletionDialog(false)}
+                disabled={completionLoading}
+                className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleMarkComplete}
+                disabled={completionLoading}
+                className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {completionLoading
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
+                  : <><CheckCircle className="h-4 w-4" /> Submit & Mark Done</>
+                }
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

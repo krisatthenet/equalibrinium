@@ -19,6 +19,32 @@ import LaunchPartyBanner from './LaunchPartyBanner.jsx';
 import BetaBadge from './BetaBadge.jsx';
 import D20Icon from './D20Icon.jsx';
 
+const VytisIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 60 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {/* Shield */}
+    <path d="M4 4 H56 V54 Q30 78 30 78 Q30 78 4 54 Z" fill="#BE0032"/>
+    {/* Horse body */}
+    <ellipse cx="30" cy="52" rx="16" ry="8" fill="white" transform="rotate(-10 30 52)"/>
+    {/* Horse head/neck */}
+    <path d="M43,44 Q48,36 46,30 Q44,26 40,28 Q36,30 38,36 Q40,40 43,44" fill="white"/>
+    {/* Horse front legs */}
+    <line x1="38" y1="58" x2="34" y2="72" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    <line x1="44" y1="56" x2="48" y2="68" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    {/* Horse rear legs */}
+    <line x1="20" y1="58" x2="16" y2="72" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    <line x1="26" y1="60" x2="24" y2="72" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    {/* Knight torso */}
+    <rect x="26" y="30" width="12" height="16" rx="2" fill="white"/>
+    {/* Knight helmet */}
+    <rect x="28" y="20" width="10" height="12" rx="2" fill="white"/>
+    {/* Sword arm + sword */}
+    <line x1="36" y1="34" x2="50" y2="16" stroke="white" strokeWidth="3" strokeLinecap="round"/>
+    <line x1="44" y1="19" x2="56" y2="13" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    {/* Shield arm */}
+    <path d="M28,36 L18,42 L17,52 Q22,56 28,52 Z" fill="white"/>
+  </svg>
+);
+
 const Header = () => {
   const { t } = useTranslation();
   const { isAuthenticated, currentUser, logout, userType } = useAuth();
@@ -52,8 +78,8 @@ const Header = () => {
               </Link>
               <BetaBadge />
               <div className="hidden lg:flex items-center gap-1.5 bg-muted/60 border border-border px-2.5 py-1 rounded-full text-xs text-muted-foreground">
-                <span className="text-base leading-none">🇱🇹</span>
-                <span>Launching in Vilnius first</span>
+                <VytisIcon className="w-4 h-4 shrink-0" />
+                <span>Proud to be from LTU</span>
               </div>
             </div>
 

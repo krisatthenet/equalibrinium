@@ -9,6 +9,7 @@ import recaptchaRouter from './recaptcha.js';
 import twilioRouter from './twilio.js';
 import reachRouter from './reach.js';
 import chatRouter from './chat.js';
+import ticketsRouter from './tickets.js';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ export default () => {
   router.use('/twilio', twilioRouter);
   router.use('/reach', reachRouter);
   router.use('/chat', chatRouter);
+  router.use('/tickets', ticketsRouter);
 
   return router;
 };
