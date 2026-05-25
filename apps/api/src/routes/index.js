@@ -14,6 +14,7 @@ const router = Router();
 
 export default () => {
   router.get('/health', healthCheck);
+  router.get('/api/health', healthCheck); // Railway dashboard healthcheck alias
   router.use('/auth', authRouter);
   router.use('/contacts', contactsRouter);
   router.use('/stripe', stripeRouter);
