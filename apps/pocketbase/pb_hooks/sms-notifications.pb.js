@@ -180,6 +180,39 @@ onRecordAfterCreateSuccess((e) => {
 }, 'auction_tickets');
 
 // ---------------------------------------------------------------------------
+// Bid placed → SMS to client
+// ---------------------------------------------------------------------------
+onRecordAfterCreateSuccess((e) => {
+    const bid = e.record;
+
+    try {
+        const ticket = $app.findRecordById('auction_tickets', bid.get('ticketId'));
+        const clientId = ticket.get('clientId');
+        if (!clientId) return;
+
+        const client = $app.findRecordById('users', clientId);
+        const phone = client.get('phone');
+        if (!phone) return;
+
+        let categoryName = 'paslaugos';
+        try {
+            const category = $app.findRecordById('categories', ticket.get('categoryId'));
+            categoryName = category.get('name') || categoryName;
+        } catch (_) {}
+
+        const rate = bid.get('proposedRate');
+        const contractorName = (() => {
+            try { return $app.findRecordById('users', bid.get('masterId')).get('name') || 'Meistras'; } catch (_) { return 'Meistras'; }
+        })();
+
+        sendSms(phone, `WorkBee: ${contractorName} pateikė pasiūlymą €${rate} už ${categoryName}. Peržiūrėk ir priimk sprendimą: workbee.space`);
+        sendPush(clientId, `Naujas pasiūlymas: €${rate}`, `${contractorName} — ${categoryName}`, '/dashboard/client');
+    } catch (err) {
+        $app.logger().error('bid placed SMS failed', 'error', err.message, 'bidId', bid.id);
+    }
+}, 'bids');
+
+// ---------------------------------------------------------------------------
 // Bid accepted → SMS to contractor
 // ---------------------------------------------------------------------------
 onRecordAfterUpdateSuccess((e) => {
@@ -205,6 +238,46 @@ onRecordAfterUpdateSuccess((e) => {
         $app.logger().error('bid accepted SMS failed', 'error', err.message, 'bidId', bid.id);
     }
 }, 'bids');
+
+// ---------------------------------------------------------------------------
+// Contractor marks job done → SMS to client (release payment prompt)
+// ---------------------------------------------------------------------------
+onRecordAfterUpdateSuccess((e) => {
+    const ticket = e.record;
+    // Only fire once: when marked done and still in-progress (not after escrow release)
+    if (!ticket.get('contractorMarkedDone')) return;
+    if (ticket.get('status') !== 'In Progress') return;
+
+    try {
+        const clientId = ticket.get('clientId');
+        if (!clientId) return;
+
+        const client = $app.findRecordById('users', clientId);
+        const phone = client.get('phone');
+        if (!phone) return;
+
+        let categoryName = 'paslaugos';
+        try {
+            const category = $app.findRecordById('categories', ticket.get('categoryId'));
+            categoryName = category.get('name') || categoryName;
+        } catch (_) {}
+
+        const contractorName = (() => {
+            try {
+                const bids = $app.findAllRecords('bids',
+                    $dbx.exp('ticketId = {:id} AND status = "accepted"', { id: ticket.id })
+                );
+                if (bids.length > 0) return $app.findRecordById('users', bids[0].get('masterId')).get('name') || 'Meistras';
+            } catch (_) {}
+            return 'Meistras';
+        })();
+
+        sendSms(phone, `WorkBee: ${contractorName} pažymėjo darbą kaip atliktą (${categoryName}). Peržiūrėk nuotraukas ir paleisk mokėjimą: workbee.space`);
+        sendPush(clientId, 'Darbas atliktas! ✅', `${contractorName} pažymėjo ${categoryName} kaip atliktą. Patvirtink ir išleisk mokėjimą.`, `/auction-ticket/${ticket.id}`);
+    } catch (err) {
+        $app.logger().error('job complete SMS failed', 'error', err.message, 'ticketId', ticket.id);
+    }
+}, 'auction_tickets');
 
 // ---------------------------------------------------------------------------
 // Payment completed → SMS to contractor
