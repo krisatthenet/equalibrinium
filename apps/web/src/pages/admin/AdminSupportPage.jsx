@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Helmet } from 'react-helmet';
 import pb from '@/lib/pocketbaseClient';
 import AdminLayout from '@/components/AdminLayout.jsx';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Search, ShieldBan, ShieldCheck, Mail, Eye, Loader2, UserCircle, Ticket, AlertTriangle
+  Search, ShieldBan, ShieldCheck, Eye, Loader2, UserCircle, Ticket, AlertTriangle,
+  MessageSquare, CheckCircle2, Clock, XCircle, ChevronDown, Send
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -23,13 +24,37 @@ const statusColor = {
   Cancelled: 'bg-red-500/15 text-red-400 border-red-500/20',
 };
 
+const CS_STATUS = {
+  open:        { label: 'Open',        icon: Clock,         cls: 'bg-blue-500/15 text-blue-400 border-blue-500/20' },
+  in_progress: { label: 'In Progress', icon: MessageSquare, cls: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/20' },
+  resolved:    { label: 'Resolved',    icon: CheckCircle2,  cls: 'bg-green-500/15 text-green-400 border-green-500/20' },
+  closed:      { label: 'Closed',      icon: XCircle,       cls: 'bg-muted text-muted-foreground border-border' },
+};
+
+const CS_PRIORITY = {
+  low:    'bg-muted text-muted-foreground border-border',
+  normal: 'bg-blue-500/15 text-blue-400 border-blue-500/20',
+  high:   'bg-orange-500/15 text-orange-400 border-orange-500/20',
+  urgent: 'bg-red-500/15 text-red-400 border-red-500/20',
+};
+
 const AdminSupportPage = () => {
   const { toast } = useToast();
+  const [tab, setTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [openTickets, setOpenTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // CS tickets state
+  const [csTickets, setCsTickets] = useState([]);
+  const [csLoading, setCsLoading] = useState(false);
+  const [csFilter, setCsFilter] = useState('open');
+  const [selectedCsTicket, setSelectedCsTicket] = useState(null);
+  const [csModalOpen, setCsModalOpen] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [replyLoading, setReplyLoading] = useState(false);
 
   // User detail modal
   const [selectedUser, setSelectedUser] = useState(null);
@@ -64,6 +89,50 @@ const AdminSupportPage = () => {
     };
     load();
   }, []);
+
+  const fetchCsTickets = useCallback(async () => {
+    setCsLoading(true);
+    try {
+      const data = await pb.collection('cs_tickets').getFullList({
+        sort: '-created',
+        $autoCancel: false,
+      });
+      setCsTickets(data);
+    } catch (e) {
+      toast({ title: 'Error', description: 'Failed to load CS tickets.', variant: 'destructive' });
+    } finally {
+      setCsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === 'cs') fetchCsTickets();
+  }, [tab, fetchCsTickets]);
+
+  const updateCsStatus = async (id, status) => {
+    await pb.collection('cs_tickets').update(id, { status }, { $autoCancel: false });
+    setCsTickets(prev => prev.map(t => t.id === id ? { ...t, status } : t));
+    if (selectedCsTicket?.id === id) setSelectedCsTicket(prev => ({ ...prev, status }));
+  };
+
+  const sendReply = async () => {
+    if (!replyText.trim() || !selectedCsTicket) return;
+    setReplyLoading(true);
+    try {
+      await pb.collection('cs_tickets').update(selectedCsTicket.id, {
+        response: replyText,
+        status: 'in_progress',
+      }, { $autoCancel: false });
+      setSelectedCsTicket(prev => ({ ...prev, response: replyText, status: 'in_progress' }));
+      setCsTickets(prev => prev.map(t => t.id === selectedCsTicket.id ? { ...t, response: replyText, status: 'in_progress' } : t));
+      setReplyText('');
+      toast({ title: 'Reply saved' });
+    } catch (e) {
+      toast({ title: 'Error', description: e.message, variant: 'destructive' });
+    } finally {
+      setReplyLoading(false);
+    }
+  };
 
   const openUserModal = async (user) => {
     setSelectedUser(user);
@@ -109,15 +178,36 @@ const AdminSupportPage = () => {
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const csFiltered = csTickets.filter(t => csFilter === 'all' || t.status === csFilter);
+
   return (
     <>
       <Helmet><title>Support — Admin</title></Helmet>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Customer Support</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">Search users, view activity, manage accounts</p>
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Customer Support</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Manage users, tickets, and CS inbox</p>
+          </div>
+          <div className="flex gap-1 bg-[hsl(var(--admin-border))]/40 rounded-lg p-1">
+            {[['users','Users & Tickets'],['cs','CS Inbox']].map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === key ? 'bg-[hsl(var(--admin-primary))]/15 text-[hsl(var(--admin-primary))]' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {label}
+                {key === 'cs' && csTickets.filter(t => t.status === 'open').length > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center w-4 h-4 rounded-full bg-red-500 text-white text-[10px] font-bold">
+                    {csTickets.filter(t => t.status === 'open').length}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {tab === 'users' && <>
         {/* Summary cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="admin-card p-5">
@@ -245,6 +335,71 @@ const AdminSupportPage = () => {
             </div>
           )}
         </div>
+        </>}
+
+        {tab === 'cs' && (
+          <div className="space-y-4">
+            {/* CS summary */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {Object.entries(CS_STATUS).map(([key, { label, cls }]) => (
+                <div key={key} className="admin-card p-4">
+                  <p className="text-xs text-muted-foreground mb-1">{label}</p>
+                  <p className="text-2xl font-bold text-white">{csTickets.filter(t => t.status === key).length}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Filter row */}
+            <div className="flex gap-1 flex-wrap">
+              {['all', ...Object.keys(CS_STATUS)].map(s => (
+                <button
+                  key={s}
+                  onClick={() => setCsFilter(s)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors border ${csFilter === s ? 'bg-[hsl(var(--admin-primary))]/15 text-[hsl(var(--admin-primary))] border-[hsl(var(--admin-primary))]/30' : 'border-[hsl(var(--admin-border))] text-muted-foreground hover:text-foreground'}`}
+                >
+                  {s === 'all' ? 'All' : CS_STATUS[s].label}
+                </button>
+              ))}
+            </div>
+
+            {/* Ticket list */}
+            <div className="admin-card overflow-hidden">
+              {csLoading ? (
+                <div className="p-6 space-y-3">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-14 w-full bg-[hsl(var(--admin-border))]" />)}</div>
+              ) : csFiltered.length === 0 ? (
+                <p className="p-8 text-center text-sm text-muted-foreground">No tickets found</p>
+              ) : (
+                <div className="divide-y divide-[hsl(var(--admin-border))]/50">
+                  {csFiltered.map(ticket => {
+                    const st = CS_STATUS[ticket.status] || CS_STATUS.open;
+                    const StIcon = st.icon;
+                    return (
+                      <div
+                        key={ticket.id}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-[hsl(var(--admin-border))]/30 cursor-pointer transition-colors"
+                        onClick={() => { setSelectedCsTicket(ticket); setReplyText(ticket.response || ''); setCsModalOpen(true); }}
+                      >
+                        <div className="shrink-0">
+                          <StIcon className={`h-4 w-4 ${st.cls.split(' ')[1]}`} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-white truncate">{ticket.subject}</p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {ticket.name || ticket.email} · {ticket.source || 'widget'} · {new Date(ticket.created).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant="outline" className={`text-xs ${CS_PRIORITY[ticket.priority] || ''}`}>{ticket.priority}</Badge>
+                          <Badge variant="outline" className={`text-xs ${st.cls}`}>{st.label}</Badge>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* User detail modal */}
@@ -295,6 +450,65 @@ const AdminSupportPage = () => {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* CS ticket detail modal */}
+      <Dialog open={csModalOpen} onOpenChange={v => { setCsModalOpen(v); if (!v) setSelectedCsTicket(null); }}>
+        <DialogContent className="bg-[hsl(var(--admin-sidebar))] border-[hsl(var(--admin-border))] text-white max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-base">{selectedCsTicket?.subject}</DialogTitle>
+          </DialogHeader>
+          {selectedCsTicket && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                {[
+                  ['From', selectedCsTicket.name || '—'],
+                  ['Email', selectedCsTicket.email || '—'],
+                  ['Phone', selectedCsTicket.phone || '—'],
+                  ['Source', selectedCsTicket.source || 'widget'],
+                  ['Priority', selectedCsTicket.priority],
+                  ['Created', new Date(selectedCsTicket.created).toLocaleString()],
+                ].map(([k, v]) => (
+                  <div key={k} className="bg-[hsl(var(--admin-border))]/40 rounded-lg px-3 py-2">
+                    <p className="text-muted-foreground mb-0.5">{k}</p>
+                    <p className="font-medium text-sm capitalize">{v}</p>
+                  </div>
+                ))}
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Message</Label>
+                <div className="mt-1 bg-[hsl(var(--admin-border))]/30 rounded-lg px-3 py-2 text-sm text-foreground whitespace-pre-wrap">{selectedCsTicket.message}</div>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Reply / Response</Label>
+                <Textarea
+                  value={replyText}
+                  onChange={e => setReplyText(e.target.value)}
+                  placeholder="Type your reply or internal note…"
+                  rows={3}
+                  className="mt-1 bg-[hsl(var(--admin-border))]/50 border-[hsl(var(--admin-border))] text-white placeholder:text-muted-foreground resize-none"
+                />
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button size="sm" onClick={sendReply} disabled={replyLoading || !replyText.trim()} className="gap-1.5">
+                  {replyLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  Save Reply
+                </Button>
+                {Object.entries(CS_STATUS).map(([key, { label }]) => (
+                  selectedCsTicket.status !== key && (
+                    <button
+                      key={key}
+                      onClick={() => updateCsStatus(selectedCsTicket.id, key)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${CS_STATUS[key].cls}`}
+                    >
+                      → {label}
+                    </button>
+                  )
+                ))}
               </div>
             </div>
           )}

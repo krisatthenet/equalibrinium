@@ -7,6 +7,7 @@ migrate((app) => {
 
   const already = col.fields.getByName("type");
   if (already) return;
+  if (col.fields.getByName("type")) return;
 
   col.fields.add(new SelectField({
     name:   "type",
@@ -20,5 +21,9 @@ migrate((app) => {
     const col = app.findCollectionByNameOrId("availability");
     col.fields.removeByName("type");
     app.save(col);
+    if (col.fields.getByName("type")) {
+      col.fields.removeByName("type");
+      app.save(col);
+    }
   } catch (_) {}
 });

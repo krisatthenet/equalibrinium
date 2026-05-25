@@ -38,6 +38,7 @@ import ReviewsCarousel from '@/components/ReviewsCarousel.jsx';
 import FireworksIntro from '@/components/FireworksIntro.jsx';
 import LeadCapturePopup from '@/components/LeadCapturePopup.jsx';
 import BoilioBanner from '@/components/BoilioBanner.jsx';
+import ChatWidget from '@/components/ChatWidget.jsx';
 
 const CONFETTI_COLORS = [
   '#ff4444','#ff8800','#ffdd00','#44cc44','#44aaff','#cc44ff','#ff44cc','#fff','#ffd700',
@@ -475,6 +476,7 @@ const HomePage = () => {
 
         <Footer />
       </div>
+      <ChatWidget />
     </>
   );
 };

@@ -51,6 +51,9 @@ const AdminReviewsPage = React.lazy(() => import('@/pages/admin/AdminReviewsPage
 const AdminDevPage = React.lazy(() => import('@/pages/admin/AdminDevPage.jsx'));
 const AdminMarketingPage = React.lazy(() => import('@/pages/admin/AdminMarketingPage.jsx'));
 const AdminSupportPage = React.lazy(() => import('@/pages/admin/AdminSupportPage.jsx'));
+const AdminFinancePage = React.lazy(() => import('@/pages/admin/AdminFinancePage.jsx'));
+const AdminInvoicesPage = React.lazy(() => import('@/pages/admin/AdminInvoicesPage.jsx'));
+const AdminBoardPage = React.lazy(() => import('@/pages/admin/AdminBoardPage.jsx'));
 
 class ErrorBoundary extends Component {
   state = { hasError: false };
@@ -200,6 +203,9 @@ const AppRoutes = () => {
           <Route path="/admin/dev" element={<AdminRoute><AdminDevPage /></AdminRoute>} />
           <Route path="/admin/marketing" element={<AdminRoute><AdminMarketingPage /></AdminRoute>} />
           <Route path="/admin/support" element={<AdminRoute><AdminSupportPage /></AdminRoute>} />
+          <Route path="/admin/finance" element={<AdminRoute><AdminFinancePage /></AdminRoute>} />
+          <Route path="/admin/invoices" element={<AdminRoute><AdminInvoicesPage /></AdminRoute>} />
+          <Route path="/admin/board" element={<AdminRoute><AdminBoardPage /></AdminRoute>} />
 
           {/* Catch-all 404 */}
           <Route path="*" element={<NotFoundPage />} />
