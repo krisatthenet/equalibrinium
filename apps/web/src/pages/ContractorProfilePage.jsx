@@ -20,6 +20,7 @@ import AuctionTicketForm from '@/components/AuctionTicketForm.jsx';
 import PlanBadge from '@/components/PlanBadge.jsx';
 import VerifiedBadge from '@/components/VerifiedBadge.jsx';
 import AvailabilityPicker from '@/components/AvailabilityPicker.jsx';
+import PortfolioGallery from '@/components/PortfolioGallery.jsx';
 import { getEffectivePlan, isInTrial } from '@/lib/plans';
 
 const ContractorProfilePage = () => {
@@ -294,6 +295,8 @@ const ContractorProfilePage = () => {
                     </CardContent>
                   </Card>
                 )}
+
+                <PortfolioGallery contractorId={contractor.id} />
 
                 {contractor.workExamples?.length > 0 && (
                   <Card className="bg-card border-border rounded-2xl">

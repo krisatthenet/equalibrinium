@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle, Zap, ShieldCheck, ArrowUpRight } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle, Zap, ShieldCheck, ArrowUpRight, Images, Plus } from 'lucide-react';
 import apiServerClient from '@/lib/apiServerClient.js';
 import ConversationsInbox from '@/components/ConversationsInbox.jsx';
 
@@ -27,6 +27,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications.js';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import ContractorAvailability from '@/components/ContractorAvailability.jsx';
+import PortfolioManager from '@/components/PortfolioManager.jsx';
 
 const StarRating = ({ value }) => (
   <div className="flex gap-0.5">
@@ -57,6 +58,7 @@ const ContractorDashboard = () => {
   const [totalContractors, setTotalContractors] = useState(null);
   const [showAvailability, setShowAvailability] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
+  const [portfolioOpen, setPortfolioOpen] = useState(false);
   const { permission, requestPermission } = usePushNotifications(currentUser?.id);
 
   useEffect(() => {
@@ -659,6 +661,26 @@ const ContractorDashboard = () => {
                 </Card>
               );
             })()}
+
+            {/* Portfolio section */}
+            <Card className="bg-card border-border rounded-2xl mb-6">
+              <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4">
+                <CardTitle className="flex items-center gap-2">
+                  <Images className="h-5 w-5 text-primary" />
+                  Portfolio
+                </CardTitle>
+                <Button size="sm" variant="outline" className="rounded-xl shrink-0" onClick={() => setPortfolioOpen(true)}>
+                  <Plus className="h-4 w-4 mr-1.5" /> Add project
+                </Button>
+              </CardHeader>
+              <CardContent>
+                <PortfolioManager
+                  contractorId={currentUser?.id}
+                  dialogOpen={portfolioOpen}
+                  onDialogOpenChange={setPortfolioOpen}
+                />
+              </CardContent>
+            </Card>
 
             {activePanel && panels[activePanel] && (
               <Card className="bg-card border-border rounded-2xl mb-8">
