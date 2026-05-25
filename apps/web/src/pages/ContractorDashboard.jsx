@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle } from 'lucide-react';
+import ConversationsInbox from '@/components/ConversationsInbox.jsx';
 
 const deg2rad = d => d * (Math.PI / 180);
 const haversine = (lat1, lon1, lat2, lon2) => {
@@ -37,6 +38,7 @@ const ContractorDashboard = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
   const [openTickets, setOpenTickets] = useState([]);
   const [directRequests, setDirectRequests] = useState([]);
   const [myBids, setMyBids] = useState([]);
@@ -216,6 +218,10 @@ const ContractorDashboard = () => {
   };
 
   const togglePanel = (panel) => setActivePanel(prev => prev === panel ? null : panel);
+
+  useEffect(() => {
+    if (searchParams.get('tab') === 'messages') setActivePanel('messages');
+  }, [searchParams]);
 
   const statCards = [
     {
@@ -496,6 +502,11 @@ const ContractorDashboard = () => {
           <p className="text-muted-foreground">{t('dashboard.completed')} — 0</p>
         </div>
       ),
+    },
+    messages: {
+      title: 'Messages',
+      icon: <MessageCircle className="h-5 w-5 text-primary" />,
+      content: <ConversationsInbox />,
     },
   };
 

@@ -441,7 +441,14 @@ const AuctionTicketDetailsPage = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
-                      <ChatPanel ticketId={ticket.id} />
+                      <ChatPanel
+                        ticketId={ticket.id}
+                        receiverId={
+                          isClient
+                            ? (acceptedBid?.masterId || '')
+                            : (ticket.clientId || '')
+                        }
+                      />
                     </CardContent>
                   </Card>
                 )}

@@ -1,17 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import pb from '@/lib/pocketbaseClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2, MessageCircle } from 'lucide-react';
 
-const ChatPanel = ({ ticketId }) => {
+const ChatPanel = ({ ticketId, receiverId }) => {
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
+
+  const markRead = useCallback(async (msgs) => {
+    if (!currentUser) return;
+    const unread = msgs.filter(m => m.receiverId === currentUser.id && !m.read);
+    await Promise.all(
+      unread.map(m => pb.collection('messages').update(m.id, { read: true }, { $autoCancel: false }).catch(() => {}))
+    );
+  }, [currentUser]);
 
   useEffect(() => {
     if (!ticketId || !currentUser) return;
@@ -23,19 +31,29 @@ const ChatPanel = ({ ticketId }) => {
     }).then(msgs => {
       setMessages(msgs);
       setLoading(false);
+      markRead(msgs);
       setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'instant' }), 30);
     }).catch(() => setLoading(false));
 
+    let unsub;
     pb.collection('messages').subscribe('*', (e) => {
       if (e.record.ticketId !== ticketId) return;
       if (e.action === 'create') {
-        setMessages(prev => prev.find(m => m.id === e.record.id) ? prev : [...prev, e.record]);
-        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 30);
+        setMessages(prev => {
+          if (prev.find(m => m.id === e.record.id)) return prev;
+          const next = [...prev, e.record];
+          markRead([e.record]);
+          setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 30);
+          return next;
+        });
       }
-    }, { $autoCancel: false }).catch(() => {});
+      if (e.action === 'update') {
+        setMessages(prev => prev.map(m => m.id === e.record.id ? e.record : m));
+      }
+    }, { $autoCancel: false }).then(fn => { unsub = fn; }).catch(() => {});
 
-    return () => { pb.collection('messages').unsubscribe('*'); };
-  }, [ticketId, currentUser]);
+    return () => { if (unsub) unsub(); };
+  }, [ticketId, currentUser, markRead]);
 
   const send = async () => {
     const trimmed = text.trim();
@@ -47,7 +65,9 @@ const ChatPanel = ({ ticketId }) => {
         ticketId,
         senderId: currentUser.id,
         senderName: currentUser.name || currentUser.email,
+        receiverId: receiverId || '',
         text: trimmed,
+        read: false,
       }, { $autoCancel: false });
     } catch {
       setText(trimmed);
@@ -58,7 +78,6 @@ const ChatPanel = ({ ticketId }) => {
 
   return (
     <div className="flex flex-col h-80">
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {loading ? (
           <div className="flex items-center justify-center h-full">
@@ -94,7 +113,6 @@ const ChatPanel = ({ ticketId }) => {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div className="flex gap-2 px-3 pb-3 pt-2 border-t border-border">
         <Input
           value={text}

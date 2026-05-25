@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { getUserImageUrl } from '@/lib/userImage';
-import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Plus, Settings, MapPin, CreditCard, Star, User, Loader2, Pencil, MessageCircle } from 'lucide-react';
+import ConversationsInbox from '@/components/ConversationsInbox.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import PlanBadge from '@/components/PlanBadge.jsx';
@@ -27,6 +28,7 @@ const statusClass = (status) => {
 const ClientDashboard = () => {
   const { t } = useTranslation();
   const { currentUser } = useAuth();
+  const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [acceptedBids, setAcceptedBids] = useState({}); // ticketId -> bid
   const [contractors, setContractors] = useState({}); // masterId -> user
@@ -142,6 +144,10 @@ const ClientDashboard = () => {
   };
 
   const togglePanel = (panel) => setActivePanel(prev => prev === panel ? null : panel);
+
+  useEffect(() => {
+    if (searchParams.get('tab') === 'messages') setActivePanel('messages');
+  }, [searchParams]);
 
   const statCards = [
     {
@@ -334,6 +340,11 @@ const ClientDashboard = () => {
             <p className="text-muted-foreground">{t('dashboard.completed')} — 0</p>
           </div>
         ),
+    },
+    messages: {
+      title: 'Messages',
+      icon: <MessageCircle className="h-5 w-5 text-primary" />,
+      content: <ConversationsInbox />,
     },
   };
 
