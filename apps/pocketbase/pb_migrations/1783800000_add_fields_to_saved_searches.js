@@ -8,21 +8,11 @@ migrate((app) => {
 
     const fieldNames = col.fields.getAll().map(f => f.name);
 
-    if (!fieldNames.includes("userId")) {
-      col.fields.add(new TextField({ name: "userId", required: true }));
-    }
-    if (!fieldNames.includes("label")) {
-      col.fields.add(new TextField({ name: "label", required: true }));
-    }
-    if (!fieldNames.includes("categoryId")) {
-      col.fields.add(new TextField({ name: "categoryId", required: false }));
-    }
-    if (!fieldNames.includes("location")) {
-      col.fields.add(new TextField({ name: "location", required: false }));
-    }
-    if (!fieldNames.includes("keyword")) {
-      col.fields.add(new TextField({ name: "keyword", required: false }));
-    }
+    try { col.fields.getByName("userId");     } catch(_) { col.fields.add(new TextField({ name: "userId"     })); }
+    try { col.fields.getByName("label");      } catch(_) { col.fields.add(new TextField({ name: "label"      })); }
+    try { col.fields.getByName("categoryId"); } catch(_) { col.fields.add(new TextField({ name: "categoryId" })); }
+    try { col.fields.getByName("location");   } catch(_) { col.fields.add(new TextField({ name: "location"   })); }
+    try { col.fields.getByName("keyword");    } catch(_) { col.fields.add(new TextField({ name: "keyword"    })); }
 
     app.save(col);
     console.log("saved_searches: fields added");
