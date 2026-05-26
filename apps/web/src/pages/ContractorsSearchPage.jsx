@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
-import pb from '@/lib/pocketbaseClient.js';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 import GoogleMapsIntegration from '@/components/GoogleMapsIntegration.jsx';
@@ -178,8 +177,8 @@ const ContractorsSearchPage = () => {
       // Paid plan contractors always appear first
       const planRank = { ultra: 0, premium: 1, elite: 2, vip: 3, standard: 4 };
       const pa = planRank[a.plan] ?? 4;
-      const pb = planRank[b.plan] ?? 4;
-      if (pa !== pb) return pa - pb;
+      const rankB = planRank[b.plan] ?? 4;
+      if (pa !== rankB) return pa - rankB;
 
       if (radius !== 'any' && radius !== 'lithuania' && userLocation) {
         const da = getDistance(a) ?? Infinity;
