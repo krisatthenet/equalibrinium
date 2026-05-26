@@ -59,8 +59,8 @@ function createNotification(userId, type, title, body, link) {
 // New contractor joins → notify clients whose saved searches match
 onRecordAfterCreateSuccess((e) => {
   const contractor = e.record;
-  if (contractor.collection().name !== 'users') return;
-  if (contractor.get('userType') !== 'contractor') return;
+  if (contractor.collection().name !== 'users') { return e.next(); }
+  if (contractor.get('userType') !== 'contractor') { return e.next(); }
 
   const contractorName     = contractor.get('name')        || 'A contractor';
   const contractorLocation = (contractor.get('location')   || '').toLowerCase();
@@ -113,4 +113,6 @@ onRecordAfterCreateSuccess((e) => {
   } catch (err) {
     $app.logger().error('saved-search-alerts hook failed', 'error', err.message);
   }
+
+  return e.next();
 });
