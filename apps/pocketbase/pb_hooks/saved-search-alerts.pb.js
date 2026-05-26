@@ -101,6 +101,19 @@ onRecordAfterCreateSuccess((e) => {
 
       const label = search.get('label') || 'your search';
 
+      // DEBUG: write canary before notification
+      try {
+        const dbgCol = $app.findCollectionByNameOrId('notifications');
+        const dbgRec = new Record(dbgCol);
+        dbgRec.set('userId', 'SSA_' + contractor.id.slice(0,8));
+        dbgRec.set('type',   'dispute_update');
+        dbgRec.set('title',  'SSA reached: clientId=' + clientId + ' label=' + label);
+        dbgRec.set('body',   '');
+        dbgRec.set('link',   '');
+        dbgRec.set('read',   false);
+        $app.save(dbgRec);
+      } catch (dbgErr) { $app.logger().error('SSA debug write failed', 'error', String(dbgErr)); }
+
       try {
         const client = $app.findRecordById('users', clientId);
         const phone  = client.get('phone');
