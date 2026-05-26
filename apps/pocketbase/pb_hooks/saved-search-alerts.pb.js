@@ -58,8 +58,6 @@ function createNotification(userId, type, title, body, link) {
 
 // New contractor joins → notify clients whose saved searches match
 onRecordAfterCreateSuccess((e) => {
-  e.next();
-
   const contractor = e.record;
   if (contractor.collection().name !== 'users') return;
   if (contractor.get('userType') !== 'contractor') return;
