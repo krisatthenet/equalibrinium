@@ -18,31 +18,36 @@ const {
   stripeSubsUpdate,
   stripeTransfersCreate,
   stripeWebhooksConstruct,
+  stripePaymentIntentsRetrieve,
+  stripePaymentIntentsCapture,
 } = vi.hoisted(() => ({
-  stripeCheckoutCreate:     vi.fn(),
-  stripeCheckoutRetrieve:   vi.fn(),
-  stripeAccountsCreate:     vi.fn(),
-  stripeAccountsRetrieve:   vi.fn(),
-  stripeAccountsLogin:      vi.fn(),
-  stripeAccountLinksCreate: vi.fn(),
-  stripeCustomersCreate:    vi.fn(),
-  stripeCustomersList:      vi.fn(),
-  stripeSubsRetrieve:       vi.fn(),
-  stripeSubsUpdate:         vi.fn(),
-  stripeTransfersCreate:    vi.fn(),
-  stripeWebhooksConstruct:  vi.fn(),
+  stripeCheckoutCreate:          vi.fn(),
+  stripeCheckoutRetrieve:        vi.fn(),
+  stripeAccountsCreate:          vi.fn(),
+  stripeAccountsRetrieve:        vi.fn(),
+  stripeAccountsLogin:           vi.fn(),
+  stripeAccountLinksCreate:      vi.fn(),
+  stripeCustomersCreate:         vi.fn(),
+  stripeCustomersList:           vi.fn(),
+  stripeSubsRetrieve:            vi.fn(),
+  stripeSubsUpdate:              vi.fn(),
+  stripeTransfersCreate:         vi.fn(),
+  stripeWebhooksConstruct:       vi.fn(),
+  stripePaymentIntentsRetrieve:  vi.fn(),
+  stripePaymentIntentsCapture:   vi.fn(),
 }));
 
 vi.mock('stripe', () => ({
   default: function Stripe() {
     return {
-      checkout:      { sessions:   { create: stripeCheckoutCreate,   retrieve: stripeCheckoutRetrieve } },
-      accounts:      { create: stripeAccountsCreate, retrieve: stripeAccountsRetrieve, createLoginLink: stripeAccountsLogin },
-      accountLinks:  { create: stripeAccountLinksCreate },
-      customers:     { create: stripeCustomersCreate, list: stripeCustomersList },
-      subscriptions: { retrieve: stripeSubsRetrieve, update: stripeSubsUpdate },
-      transfers:     { create: stripeTransfersCreate },
-      webhooks:      { constructEvent: stripeWebhooksConstruct },
+      checkout:       { sessions:        { create: stripeCheckoutCreate, retrieve: stripeCheckoutRetrieve } },
+      accounts:       { create: stripeAccountsCreate, retrieve: stripeAccountsRetrieve, createLoginLink: stripeAccountsLogin },
+      accountLinks:   { create: stripeAccountLinksCreate },
+      customers:      { create: stripeCustomersCreate, list: stripeCustomersList },
+      subscriptions:  { retrieve: stripeSubsRetrieve, update: stripeSubsUpdate },
+      transfers:      { create: stripeTransfersCreate },
+      webhooks:       { constructEvent: stripeWebhooksConstruct },
+      paymentIntents: { retrieve: stripePaymentIntentsRetrieve, capture: stripePaymentIntentsCapture },
     };
   },
 }));
@@ -96,6 +101,8 @@ vi.mock('../middleware/pbAuth.js', () => ({
 // Fixtures
 // ---------------------------------------------------------------------------
 const TICKET              = { id: 'ticket-1', clientId: 'user-1', budget: 100, acceptedBidId: null, status: 'Open' };
+const TICKET_RECURRING    = { ...TICKET, recurring: true, recurringFrequency: 'monthly', description: 'Clean gutters', categoryId: 'cat-1', location: 'Vilnius', latitude: 54.69, longitude: 25.28, durationEstimate: '2h' };
+const ESCROW              = { id: 'escrow-1', ticketId: 'ticket-1', contractorId: 'contractor-1', stripePaymentIntentId: 'pi_test', amount: 100, status: 'held' };
 const BID                 = { id: 'bid-1', proposedRate: 80, masterId: 'contractor-1' };
 const CONTRACTOR_NO_STRIPE = { id: 'contractor-1', stripeAccountId: null,    stripeOnboarded: false, balance: 0   };
 const CONTRACTOR_STRIPE    = { id: 'contractor-1', stripeAccountId: 'acct_123', stripeOnboarded: true,  balance: 50  };
@@ -194,7 +201,7 @@ describe('POST /stripe/create-checkout', () => {
     expect(res.status).toBe(200);
     const params = stripeCheckoutCreate.mock.calls[0][0];
     expect(params.payment_intent_data.transfer_data.destination).toBe('acct_123');
-    expect(params.payment_intent_data.application_fee_amount).toBe(500); // 5% of €100
+    expect(params.payment_intent_data.application_fee_amount).toBe(700); // 7% of €100
   });
 
   it('omits payment_intent_data when contractor has no Stripe account', async () => {
@@ -569,8 +576,8 @@ describe('POST /stripe/webhook', () => {
         expect.objectContaining({ ticketId: 'ticket-1', amount: 100, status: 'completed', transactionId: 'cs_done' }),
       );
       expect(pbCol.update).toHaveBeenCalledWith('ticket-1', { status: 'Completed' });
-      // 95% of €100 = €95 credited to contractor with €0 base → €95
-      expect(pbCol.update).toHaveBeenCalledWith('contractor-1', { balance: 95 });
+      // 93% of €100 = €93 credited to contractor with €0 base → €93
+      expect(pbCol.update).toHaveBeenCalledWith('contractor-1', { balance: 93 });
     });
 
     it('credits correct amount to contractor with existing balance', async () => {
@@ -581,7 +588,8 @@ describe('POST /stripe/webhook', () => {
       await postWebhook();
 
       // €50 + €95 = €145
-      expect(pbCol.update).toHaveBeenCalledWith('contractor-1', { balance: 145 });
+      // €50 + €93 = €143
+      expect(pbCol.update).toHaveBeenCalledWith('contractor-1', { balance: 143 });
     });
 
     it('skips duplicate payment (idempotency)', async () => {
@@ -615,7 +623,7 @@ describe('POST /stripe/webhook', () => {
 
       await postWebhook();
 
-      expect(pbCol.update).toHaveBeenCalledWith('contractor-1', { balance: 95 });
+      expect(pbCol.update).toHaveBeenCalledWith('contractor-1', { balance: 93 });
     });
   });
 
@@ -700,5 +708,135 @@ describe('POST /stripe/webhook', () => {
       expect(res.status).toBe(200);
       expect(pbCol.update).not.toHaveBeenCalled();
     });
+  });
+});
+
+// ===========================================================================
+// POST /stripe/release-escrow
+// ===========================================================================
+describe('POST /stripe/release-escrow', () => {
+  const app = createApp();
+  beforeEach(() => {
+    resetPbDefaults();
+    stripePaymentIntentsRetrieve.mockResolvedValue({ id: 'pi_test' });
+    stripePaymentIntentsCapture.mockResolvedValue({ id: 'pi_test', status: 'succeeded' });
+  });
+
+  it('returns 400 when ticketId is missing', async () => {
+    const res = await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/ticketId/i);
+  });
+
+  it('returns 404 when ticket does not exist', async () => {
+    pbCol.getOne.mockResolvedValueOnce(null);
+    const res = await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'bad' });
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 403 when ticket belongs to a different user', async () => {
+    pbCol.getOne.mockResolvedValueOnce({ ...TICKET, clientId: 'other' });
+    const res = await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'ticket-1' });
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 404 when no held escrow exists', async () => {
+    pbCol.getOne.mockResolvedValueOnce(TICKET);
+    pbCol.getList.mockResolvedValueOnce({ items: [] });
+    const res = await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'ticket-1' });
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/escrow/i);
+  });
+
+  it('captures payment, updates escrow and ticket status', async () => {
+    pbCol.getOne
+      .mockResolvedValueOnce(TICKET)                    // ticket
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE)       // contractor (no Stripe — simple capture)
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE);      // contractor balance update
+    pbCol.getList.mockResolvedValueOnce({ items: [ESCROW] });
+
+    const res = await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'ticket-1' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(stripePaymentIntentsCapture).toHaveBeenCalledWith('pi_test', {});
+    expect(pbCol.update).toHaveBeenCalledWith('escrow-1', { status: 'released' });
+    expect(pbCol.update).toHaveBeenCalledWith('ticket-1', { status: 'Completed' });
+  });
+
+  it('adds application_fee_amount and transfer_data when contractor is Stripe-onboarded', async () => {
+    pbCol.getOne
+      .mockResolvedValueOnce(TICKET)
+      .mockResolvedValueOnce(CONTRACTOR_STRIPE)   // contractor Stripe lookup
+      .mockResolvedValueOnce(CONTRACTOR_STRIPE);  // balance update
+    pbCol.getList.mockResolvedValueOnce({ items: [ESCROW] });
+
+    await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'ticket-1' });
+
+    const captureArgs = stripePaymentIntentsCapture.mock.calls[0];
+    expect(captureArgs[1].transfer_data.destination).toBe('acct_123');
+    expect(captureArgs[1].application_fee_amount).toBeGreaterThan(0);
+  });
+
+  it('does NOT auto-create a new ticket when recurring is false', async () => {
+    pbCol.getOne
+      .mockResolvedValueOnce(TICKET)               // non-recurring ticket
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE)
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE);
+    pbCol.getList.mockResolvedValueOnce({ items: [ESCROW] });
+
+    await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'ticket-1' });
+
+    // only calls: payments.create + escrow update + ticket update + balance update = no extra create for ticket
+    const ticketCreates = pbCol.create.mock.calls.filter(
+      ([data]) => data && data.status === 'Open' && data.recurring === true
+    );
+    expect(ticketCreates).toHaveLength(0);
+  });
+
+  it('auto-creates a new Open ticket when recurring is true', async () => {
+    pbCol.getOne
+      .mockResolvedValueOnce(TICKET_RECURRING)     // recurring ticket
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE)
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE);
+    pbCol.getList.mockResolvedValueOnce({ items: [ESCROW] });
+    pbCol.create.mockResolvedValue({ id: 'ticket-2' }); // new ticket + notification
+
+    const res = await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'ticket-1' });
+
+    expect(res.status).toBe(200);
+    const newTicketCall = pbCol.create.mock.calls.find(
+      ([data]) => data && data.status === 'Open' && data.recurring === true
+    );
+    expect(newTicketCall).toBeDefined();
+    const [newTicketData] = newTicketCall;
+    expect(newTicketData.clientId).toBe('user-1');
+    expect(newTicketData.categoryId).toBe('cat-1');
+    expect(newTicketData.description).toBe('Clean gutters');
+    expect(newTicketData.recurringFrequency).toBe('monthly');
+    expect(newTicketData.location).toBe('Vilnius');
+  });
+
+  it('sends a recurring_job in-app notification after auto-creating next ticket', async () => {
+    pbCol.getOne
+      .mockResolvedValueOnce(TICKET_RECURRING)
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE)
+      .mockResolvedValueOnce(CONTRACTOR_NO_STRIPE);
+    pbCol.getList.mockResolvedValueOnce({ items: [ESCROW] });
+    pbCol.create
+      .mockResolvedValueOnce({})           // payments.create
+      .mockResolvedValueOnce({ id: 'ticket-2' })  // new ticket
+      .mockResolvedValueOnce({});          // notification
+
+    await request(app).post('/stripe/release-escrow').set('Authorization', 'Bearer tok').send({ ticketId: 'ticket-1' });
+
+    const notifCall = pbCol.create.mock.calls.find(
+      ([data]) => data && data.type === 'recurring_job'
+    );
+    expect(notifCall).toBeDefined();
+    const [notifData] = notifCall;
+    expect(notifData.userId).toBe('user-1');
+    expect(notifData.link).toContain('ticket-2');
+    expect(notifData.read).toBe(false);
   });
 });
