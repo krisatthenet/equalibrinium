@@ -62,7 +62,6 @@
   // New contractor joins → notify clients whose saved searches match
   onRecordAfterCreateSuccess((e) => {
     const contractor = e.record;
-    if (contractor.collection().name !== 'users') { return e.next(); }
     if (contractor.get('userType') !== 'contractor') { return e.next(); }
 
     const contractorName     = contractor.get('name')        || 'A contractor';
@@ -114,5 +113,5 @@
     }
 
     return e.next();
-  });
+  }, 'users');
 })();
