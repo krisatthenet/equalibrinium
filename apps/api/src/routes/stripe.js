@@ -649,6 +649,42 @@ router.post('/release-escrow', requirePbAuth, async (req, res) => {
     await pb.collection('auction_tickets').update(ticketId, { status: 'Completed' });
 
     logger.info(`Escrow released: ticket ${ticketId}, €${escrow.amount} captured, platform fee €${platformFee} (${(PLATFORM_FEE_PCT * 100).toFixed(0)}%)`);
+
+    // Auto-create next ticket for recurring jobs
+    if (ticket.recurring) {
+      try {
+        const nextData = {
+          clientId: ticket.clientId,
+          categoryId: ticket.categoryId,
+          description: ticket.description,
+          status: 'Open',
+          recurring: true,
+          recurringFrequency: ticket.recurringFrequency,
+        };
+        if (ticket.budget) nextData.budget = ticket.budget;
+        if (ticket.location) nextData.location = ticket.location;
+        if (ticket.latitude) nextData.latitude = ticket.latitude;
+        if (ticket.longitude) nextData.longitude = ticket.longitude;
+        if (ticket.durationEstimate) nextData.durationEstimate = ticket.durationEstimate;
+
+        const nextTicket = await pb.collection('auction_tickets').create(nextData);
+
+        // Notify client
+        await pb.collection('notifications').create({
+          userId: ticket.clientId,
+          type: 'recurring_job',
+          title: 'Recurring job re-posted',
+          body: `Your ${ticket.recurringFrequency} job has been automatically posted. Review or cancel it anytime.`,
+          link: `/tickets/${nextTicket.id}`,
+          read: false,
+        }).catch(() => {});
+
+        logger.info(`Recurring ticket auto-created: ${nextTicket.id} from ${ticketId} (${ticket.recurringFrequency})`);
+      } catch (err) {
+        logger.error('Failed to auto-create recurring ticket:', err);
+      }
+    }
+
     res.json({ success: true });
   } catch (err) {
     logger.error('release-escrow error:', err);

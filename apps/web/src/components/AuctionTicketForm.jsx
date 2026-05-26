@@ -3,12 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
 import { useToast } from '@/hooks/use-toast';
-import { UploadCloud, X, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { UploadCloud, X, FileText, Image as ImageIcon, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
 
 
@@ -32,7 +33,9 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
     description: initialData?.description || '',
     budget: initialData?.budget || '',
     durationEstimate: initialData?.durationEstimate || '',
-    location: initialData?.location || ''
+    location: initialData?.location || '',
+    recurring: initialData?.recurring || false,
+    recurringFrequency: initialData?.recurringFrequency || 'monthly',
   });
 
   const [files, setFiles] = useState([]);
@@ -162,6 +165,8 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
       if (formData.budget) submitData.append('budget', formData.budget);
       if (formData.durationEstimate) submitData.append('durationEstimate', formData.durationEstimate);
       if (formData.location) submitData.append('location', formData.location);
+      submitData.append('recurring', formData.recurring ? 'true' : 'false');
+      if (formData.recurring) submitData.append('recurringFrequency', formData.recurringFrequency);
 
       // Geocode location to coordinates if available
       if (formData.location && window.google?.maps?.Geocoder) {
@@ -280,6 +285,40 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
           className="bg-input border-border text-foreground rounded-lg"
         />
       </div>
+
+      {!assignedContractorId && (
+        <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 text-primary" />
+              <Label htmlFor="recurring" className="cursor-pointer font-medium">Repeat this job</Label>
+            </div>
+            <Switch
+              id="recurring"
+              checked={formData.recurring}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, recurring: checked }))}
+            />
+          </div>
+          {formData.recurring && (
+            <div className="space-y-1.5 pt-1">
+              <Label htmlFor="recurringFrequency" className="text-sm text-muted-foreground">Repeat every</Label>
+              <Select
+                value={formData.recurringFrequency}
+                onValueChange={(val) => setFormData(prev => ({ ...prev, recurringFrequency: val }))}
+              >
+                <SelectTrigger id="recurringFrequency" className="bg-input border-border border-l-2 border-l-primary text-foreground rounded-lg w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border">
+                  <SelectItem value="weekly">Week</SelectItem>
+                  <SelectItem value="monthly">Month</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">A new job will be posted automatically when this one is completed.</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="space-y-3">
         <Label>{t('upload.uploadImagesOrPdf')}</Label>

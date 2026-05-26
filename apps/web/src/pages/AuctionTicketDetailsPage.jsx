@@ -7,7 +7,7 @@ import { getUserImageUrl } from '@/lib/userImage';
 import apiServerClient from '@/lib/apiServerClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { useToast } from '@/hooks/use-toast';
-import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Download, Phone, Mail, Pencil, MessageCircle, Lock, Unlock, Camera, Plus, X, Loader2 } from 'lucide-react';
+import { MapPin, Clock, DollarSign, FileText, CheckCircle, XCircle, User, Download, Phone, Mail, Pencil, MessageCircle, Lock, Unlock, Camera, Plus, X, Loader2, RefreshCw } from 'lucide-react';
 import BidComparisonView from '@/components/BidComparisonView.jsx';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -316,7 +316,7 @@ const AuctionTicketDetailsPage = () => {
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <div className="flex items-center gap-3 mb-2">
+                <div className="flex items-center gap-3 mb-2 flex-wrap">
                   <h1 className="text-3xl font-bold text-foreground">
                     {categoryName ? t(`professions.${categoryName}`, { defaultValue: categoryName }) : t('auction.service_request')}
                   </h1>
@@ -328,6 +328,12 @@ const AuctionTicketDetailsPage = () => {
                   }>
                     {t(`auction.${ticket.status.toLowerCase().replace(' ', '_')}`, { defaultValue: ticket.status })}
                   </Badge>
+                  {ticket.recurring && (
+                    <Badge className="bg-primary/10 text-primary border-none flex items-center gap-1">
+                      <RefreshCw className="h-3 w-3" />
+                      {ticket.recurringFrequency === 'weekly' ? 'Weekly' : 'Monthly'}
+                    </Badge>
+                  )}
                 </div>
                 <p className="text-muted-foreground text-sm">
                   {t('auction.posted_on')} {new Date(ticket.created).toLocaleDateString()}
