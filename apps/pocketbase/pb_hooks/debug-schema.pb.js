@@ -2,6 +2,31 @@
 
 // Temporary debug endpoint — fully simulates saved-search-alerts hook for an Electrician in Vilnius.
 // DELETE after debugging.
+routerAdd("GET", "/debug/usertype-check", (c) => {
+  try {
+    // Find the test contractor and check how get('userType') behaves
+    const contractors = $app.findRecordsByFilter('users', 'userType = "contractor"', '-created', 1, 0);
+    if (!contractors || contractors.length === 0) {
+      return c.json(200, { error: 'no contractors found' });
+    }
+    const u = contractors[0];
+    const rawGet   = u.get('userType');
+    const strGet   = u.getString('userType');
+    const eqStr    = (rawGet === 'contractor');
+    const includes = (typeof rawGet === 'string') ? rawGet.includes('contractor') : String(rawGet).includes('contractor');
+    return c.json(200, {
+      id:          u.id,
+      name:        u.get('name'),
+      rawGet,
+      strGet,
+      eqStr,
+      rawType: typeof rawGet,
+    });
+  } catch (e) {
+    return c.json(500, { error: String(e) });
+  }
+});
+
 routerAdd("GET", "/debug/alert-simulate", (c) => {
   const log = [];
   try {
