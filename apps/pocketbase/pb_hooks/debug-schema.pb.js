@@ -2,7 +2,7 @@
 
 // Temporary debug endpoint — simulates the saved-search-alerts hook logic.
 // DELETE after debugging.
-routerAdd("GET", "/api/debug/alert-test", (c) => {
+routerAdd("GET", "/debug/alert-test", (c) => {
   try {
     // Step 1: How many saved searches?
     const searches = $app.findAllRecords('saved_searches', $dbx.exp('1=1'));
