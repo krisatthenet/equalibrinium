@@ -4,16 +4,23 @@
 // DELETE after debugging.
 routerAdd("GET", "/api/debug/schema", (c) => {
   try {
-    const ss = $app.db()
-      .newQuery("SELECT * FROM _collections WHERE name = 'saved_searches' LIMIT 1")
-      .one();
-    const msg = $app.db()
-      .newQuery("SELECT * FROM _collections WHERE name = 'messages' LIMIT 1")
-      .one();
+    // Query both collections via API (not raw SQL)
+    const ss  = $app.findCollectionByNameOrId("saved_searches");
+    const msg = $app.findCollectionByNameOrId("messages");
+
+    const colToObj = (col) => ({
+      id:          col.id,
+      name:        col.name,
+      listRule:    col.listRule,
+      viewRule:    col.viewRule,
+      createRule:  col.createRule,
+      fieldCount:  col.fields.length,
+      fieldNames:  col.fields.getAll ? col.fields.getAll().map(f => f.name) : [],
+    });
 
     return c.json(200, {
-      saved_searches: Object.fromEntries(ss.columnNames().map(k => [k, ss.get(k)])),
-      messages: Object.fromEntries(msg.columnNames().map(k => [k, msg.get(k)])),
+      saved_searches: colToObj(ss),
+      messages:       colToObj(msg),
     });
   } catch (e) {
     return c.json(500, { error: String(e) });
