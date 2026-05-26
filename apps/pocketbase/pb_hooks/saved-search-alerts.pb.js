@@ -59,6 +59,18 @@ function createNotification(userId, type, title, body, link) {
 // New contractor joins → notify clients whose saved searches match
 onRecordAfterCreateSuccess((e) => {
   const contractor = e.record;
+  // DEBUG: write canary notification to confirm hook fires
+  try {
+    const dbgCol = $app.findCollectionByNameOrId('notifications');
+    const dbgRec = new Record(dbgCol);
+    dbgRec.set('userId', 'hook_fired_' + contractor.id.slice(0, 6));
+    dbgRec.set('type',   'dispute_update');
+    dbgRec.set('title',  'hook_canary: userType=' + contractor.get('userType'));
+    dbgRec.set('body',   '');
+    dbgRec.set('link',   '');
+    dbgRec.set('read',   false);
+    $app.save(dbgRec);
+  } catch (_) {}
   if (contractor.get('userType') !== 'contractor') return;
 
   const contractorName     = contractor.get('name')       || 'A contractor';
