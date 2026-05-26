@@ -1,6 +1,8 @@
 /// <reference path="../pb_data/types.d.ts" />
 
 // All logic inlined — Goja callbacks only have access to globals, not IIFE/program scope.
+// VERSION: inline-cb28
+$app.logger().info('SSA hook loaded', 'version', 'inline-cb28');
 onRecordAfterCreateSuccess((e) => {
   const contractor = e.record;
   if (contractor.get('userType') !== 'contractor') { return e.next(); }
