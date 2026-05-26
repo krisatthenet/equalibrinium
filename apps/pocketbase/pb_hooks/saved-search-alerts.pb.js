@@ -57,17 +57,17 @@ function createNotification(userId, type, title, body, link) {
 }
 
 // New contractor joins → notify clients whose saved searches match
-// No collection filter — referrals.pb.js pattern, manual collection check below
 onRecordAfterCreateSuccess((e) => {
+  e.next();
+
   const contractor = e.record;
-  // Only process users collection records
-  if (contractor.collectionName !== 'users' && contractor.collection().name !== 'users') return;
+  if (contractor.collection().name !== 'users') return;
   if (contractor.get('userType') !== 'contractor') return;
 
-  const contractorName     = contractor.get('name')       || 'A contractor';
-  const contractorLocation = (contractor.get('location')  || '').toLowerCase();
-  const contractorProf     = (contractor.get('profession')|| '').toLowerCase();
-  const contractorBio      = (contractor.get('bio')       || '').toLowerCase();
+  const contractorName     = contractor.get('name')        || 'A contractor';
+  const contractorLocation = (contractor.get('location')   || '').toLowerCase();
+  const contractorProf     = (contractor.get('profession') || '').toLowerCase();
+  const contractorBio      = (contractor.get('bio')        || '').toLowerCase();
 
   try {
     const searches = $app.findAllRecords('saved_searches', $dbx.exp('1=1'));
@@ -100,19 +100,6 @@ onRecordAfterCreateSuccess((e) => {
       if (!kw && !loc && !catId) continue;
 
       const label = search.get('label') || 'your search';
-
-      // DEBUG: write canary before notification
-      try {
-        const dbgCol = $app.findCollectionByNameOrId('notifications');
-        const dbgRec = new Record(dbgCol);
-        dbgRec.set('userId', 'SSA_' + contractor.id.slice(0,8));
-        dbgRec.set('type',   'dispute_update');
-        dbgRec.set('title',  'SSA reached: clientId=' + clientId + ' label=' + label);
-        dbgRec.set('body',   '');
-        dbgRec.set('link',   '');
-        dbgRec.set('read',   false);
-        $app.save(dbgRec);
-      } catch (dbgErr) { $app.logger().error('SSA debug write failed', 'error', String(dbgErr)); }
 
       try {
         const client = $app.findRecordById('users', clientId);
