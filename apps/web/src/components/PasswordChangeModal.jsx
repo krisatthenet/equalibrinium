@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -9,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 const PasswordChangeModal = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -74,14 +76,14 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] bg-card border-border">
         <DialogHeader>
-          <DialogTitle>Change Password</DialogTitle>
+          <DialogTitle>{t('password_modal.title')}</DialogTitle>
           <DialogDescription>
-            Enter your current password and choose a new one.
+            {t('password_modal.description')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div className="space-y-2">
-            <Label htmlFor="oldPassword">Current Password</Label>
+            <Label htmlFor="oldPassword">{t('password_modal.current')}</Label>
             <Input
               id="oldPassword"
               name="oldPassword"
@@ -93,7 +95,7 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">New Password</Label>
+            <Label htmlFor="password">{t('password_modal.new_password')}</Label>
             <Input
               id="password"
               name="password"
@@ -106,7 +108,7 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="passwordConfirm">Confirm New Password</Label>
+            <Label htmlFor="passwordConfirm">{t('password_modal.confirm')}</Label>
             <Input
               id="passwordConfirm"
               name="passwordConfirm"
@@ -120,11 +122,11 @@ const PasswordChangeModal = ({ isOpen, onClose }) => {
           </div>
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              Cancel
+              {t('password_modal.cancel')}
             </Button>
             <Button type="submit" disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Password
+              {t('password_modal.save')}
             </Button>
           </DialogFooter>
         </form>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import ChatPanel from '@/components/ChatPanel.jsx';
@@ -6,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 const ConversationsInbox = () => {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const [threads, setThreads] = useState([]);
   const [ticketTitles, setTicketTitles] = useState({});
@@ -74,7 +76,7 @@ const ConversationsInbox = () => {
     return (
       <div className="py-12 flex flex-col items-center gap-2 text-muted-foreground">
         <MessageCircle className="h-10 w-10 opacity-20" />
-        <p className="text-sm">No conversations yet</p>
+        <p className="text-sm">{t('conversations.empty')}</p>
       </div>
     );
   }
@@ -111,7 +113,7 @@ const ConversationsInbox = () => {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
-                  {isOwn ? 'You: ' : `${lastMsg.senderName}: `}
+                  {isOwn ? `${t('conversations.you')}: ` : `${lastMsg.senderName}: `}
                   {lastMsg.text}
                 </p>
               </div>

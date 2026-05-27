@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Star, MapPin, ArrowUpDown, TrendingDown, Award, Navigation, BadgeCheck, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -15,13 +16,14 @@ const haversine = (lat1, lon1, lat2, lon2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
-const SORT_OPTIONS = [
-  { value: 'price',    label: 'Price',    icon: TrendingDown },
-  { value: 'rating',   label: 'Rating',   icon: Award },
-  { value: 'distance', label: 'Distance', icon: Navigation },
+const SORT_OPTION_KEYS = [
+  { value: 'price',    labelKey: 'bid_comparison.price',    icon: TrendingDown },
+  { value: 'rating',   labelKey: 'bid_comparison.rating',   icon: Award },
+  { value: 'distance', labelKey: 'bid_comparison.distance', icon: Navigation },
 ];
 
 const BidComparisonView = ({ bids, bidders, ticket, onAccept, canAccept }) => {
+  const { t } = useTranslation();
   const [sortBy, setSortBy] = useState('price');
 
   const enriched = useMemo(() => {
@@ -63,7 +65,7 @@ const BidComparisonView = ({ bids, bidders, ticket, onAccept, canAccept }) => {
         <span className="text-xs text-muted-foreground mr-1 flex items-center gap-1">
           <ArrowUpDown className="h-3 w-3" /> Sort by:
         </span>
-        {SORT_OPTIONS.map(({ value, label, icon: Icon }) => (
+        {SORT_OPTION_KEYS.map(({ value, labelKey, icon: Icon }) => (
           <button
             key={value}
             onClick={() => setSortBy(value)}
@@ -74,7 +76,7 @@ const BidComparisonView = ({ bids, bidders, ticket, onAccept, canAccept }) => {
             }`}
           >
             <Icon className="h-3 w-3" />
-            {label}
+            {t(labelKey)}
           </button>
         ))}
       </div>
@@ -108,10 +110,10 @@ const BidComparisonView = ({ bids, bidders, ticket, onAccept, canAccept }) => {
               {/* Highlight badges */}
               {(isCheapest || isBestRated || isNearest || isAccepted) && (
                 <div className="flex flex-wrap gap-1.5 -mb-1">
-                  {isAccepted  && <Badge className="bg-primary/20 text-primary border-none text-[10px] px-2 py-0.5">✓ Accepted</Badge>}
-                  {isCheapest  && !isAccepted && <Badge className="bg-green-500/15 text-green-400 border-none text-[10px] px-2 py-0.5">💰 Lowest price</Badge>}
-                  {isBestRated && !isAccepted && <Badge className="bg-yellow-500/15 text-yellow-400 border-none text-[10px] px-2 py-0.5">⭐ Highest rated</Badge>}
-                  {isNearest   && !isAccepted && <Badge className="bg-sky-500/15 text-sky-400 border-none text-[10px] px-2 py-0.5">📍 Nearest</Badge>}
+                  {isAccepted  && <Badge className="bg-primary/20 text-primary border-none text-[10px] px-2 py-0.5">{t('bid_comparison.accepted_badge')}</Badge>}
+                  {isCheapest  && !isAccepted && <Badge className="bg-green-500/15 text-green-400 border-none text-[10px] px-2 py-0.5">{t('bid_comparison.lowest_price')}</Badge>}
+                  {isBestRated && !isAccepted && <Badge className="bg-yellow-500/15 text-yellow-400 border-none text-[10px] px-2 py-0.5">{t('bid_comparison.highest_rated')}</Badge>}
+                  {isNearest   && !isAccepted && <Badge className="bg-sky-500/15 text-sky-400 border-none text-[10px] px-2 py-0.5">{t('bid_comparison.nearest')}</Badge>}
                 </div>
               )}
 
@@ -143,20 +145,20 @@ const BidComparisonView = ({ bids, bidders, ticket, onAccept, canAccept }) => {
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="bg-background rounded-xl py-2.5 px-1">
                   <p className="text-lg font-bold text-primary leading-none">€{bid.proposedRate}</p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Price</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{t('bid_comparison.price')}</p>
                 </div>
                 <div className="bg-background rounded-xl py-2.5 px-1">
                   <div className="flex items-center justify-center gap-0.5">
                     <Star className="h-3 w-3 fill-primary text-primary" />
                     <p className="text-lg font-bold text-foreground leading-none">{rating || '—'}</p>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-1">Rating</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{t('bid_comparison.rating')}</p>
                 </div>
                 <div className="bg-background rounded-xl py-2.5 px-1">
                   <p className="text-lg font-bold text-foreground leading-none">
                     {distance !== null ? `${distance.toFixed(0)} km` : '—'}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Distance</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">{t('bid_comparison.distance')}</p>
                 </div>
               </div>
 
@@ -179,7 +181,7 @@ const BidComparisonView = ({ bids, bidders, ticket, onAccept, canAccept }) => {
               <div className="flex gap-2 mt-auto pt-1">
                 <Link to={`/contractor/${bid.masterId}`} className="flex-1">
                   <Button variant="outline" size="sm" className="w-full border-border text-xs rounded-lg">
-                    View profile
+                    {t('bid_comparison.view_profile')}
                   </Button>
                 </Link>
                 {canAccept && bid.status === 'pending' && (
@@ -188,12 +190,12 @@ const BidComparisonView = ({ bids, bidders, ticket, onAccept, canAccept }) => {
                     onClick={() => onAccept(bid.id)}
                     className="flex-1 bg-primary text-primary-foreground hover:bg-primary/90 text-xs rounded-lg"
                   >
-                    Accept
+                    {t('bid_comparison.accept')}
                   </Button>
                 )}
                 {isAccepted && (
                   <div className="flex-1 flex items-center justify-center text-xs font-semibold text-primary">
-                    ✓ Hired
+                    {t('bid_comparison.hired')}
                   </div>
                 )}
               </div>

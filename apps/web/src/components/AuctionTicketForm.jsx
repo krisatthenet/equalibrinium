@@ -227,14 +227,14 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
             {categories.map(cat => (
               <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
             ))}
-            <SelectItem value="other">Other</SelectItem>
+            <SelectItem value="other">{t('auction_form.other')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {formData.categoryId === 'other' && (
         <div className="space-y-2">
-          <Label htmlFor="otherCategory">Describe your category *</Label>
+          <Label htmlFor="otherCategory">{t('auction_form.describe_category')} *</Label>
           <Input
             id="otherCategory" name="otherCategory"
             value={formData.otherCategory} onChange={handleChange}
@@ -291,7 +291,7 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <RefreshCw className="h-4 w-4 text-primary" />
-              <Label htmlFor="recurring" className="cursor-pointer font-medium">Repeat this job</Label>
+              <Label htmlFor="recurring" className="cursor-pointer font-medium">{t('auction_form.repeat_job')}</Label>
             </div>
             <Switch
               id="recurring"
@@ -301,7 +301,7 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
           </div>
           {formData.recurring && (
             <div className="space-y-1.5 pt-1">
-              <Label htmlFor="recurringFrequency" className="text-sm text-muted-foreground">Repeat every</Label>
+              <Label htmlFor="recurringFrequency" className="text-sm text-muted-foreground">{t('auction_form.repeat_every')}</Label>
               <Select
                 value={formData.recurringFrequency}
                 onValueChange={(val) => setFormData(prev => ({ ...prev, recurringFrequency: val }))}
@@ -310,11 +310,11 @@ const AuctionTicketForm = ({ onSuccess, onCancel, initialData = null, ticketId =
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-card border-border">
-                  <SelectItem value="weekly">Week</SelectItem>
-                  <SelectItem value="monthly">Month</SelectItem>
+                  <SelectItem value="weekly">{t('auction_form.week')}</SelectItem>
+                  <SelectItem value="monthly">{t('auction_form.month')}</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-muted-foreground">A new job will be posted automatically when this one is completed.</p>
+              <p className="text-xs text-muted-foreground">{t('auction_form.recurring_note')}</p>
             </div>
           )}
         </div>

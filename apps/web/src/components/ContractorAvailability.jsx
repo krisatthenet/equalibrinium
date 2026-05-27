@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient.js';
 import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ const PRESETS = {
 };
 
 const ContractorAvailability = ({ contractorId }) => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const kbToRef = useRef(null);
 
@@ -232,13 +234,13 @@ const ContractorAvailability = ({ contractorId }) => {
                 onClick={() => switchMode('single')}
                 className={`px-4 py-1.5 transition-colors ${selMode === 'single' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
               >
-                Single day
+                {t('availability.single_day')}
               </button>
               <button
                 onClick={() => switchMode('range')}
                 className={`px-4 py-1.5 transition-colors border-l border-border ${selMode === 'range' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
               >
-                Date range
+                {t('availability.date_range')}
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
@@ -346,7 +348,7 @@ const ContractorAvailability = ({ contractorId }) => {
                       : `${editingCount} dates  ·  ${editingDay.keys[0]} → ${editingDay.keys[editingCount - 1]}`}
                   </p>
                   {editingCount > 1 && (
-                    <p className="text-xs text-muted-foreground mt-0.5">All selected dates will get the same status</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{t('availability.all_dates_same_status')}</p>
                   )}
                 </div>
                 {editingHasExisting && (
@@ -356,7 +358,7 @@ const ContractorAvailability = ({ contractorId }) => {
                     onClick={handleRemove} disabled={saving}
                   >
                     <Trash2 className="h-3 w-3" />
-                    {editingCount > 1 ? 'Remove all' : 'Remove'}
+                    {editingCount > 1 ? t('availability.remove_all') : t('availability.remove')}
                   </Button>
                 )}
               </div>
@@ -421,7 +423,7 @@ const ContractorAvailability = ({ contractorId }) => {
                   onClick={() => { setEditingDay(null); setRangeSelection(undefined); }}
                   disabled={saving}
                 >
-                  Cancel
+                  {t('availability.cancel')}
                 </Button>
               </div>
             </div>
@@ -434,7 +436,7 @@ const ContractorAvailability = ({ contractorId }) => {
             <div>
               <p className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
                 <CalendarDays className="h-4 w-4 text-primary" />
-                Pending Requests
+                {t('availability.pending_requests')}
                 <Badge className="bg-primary/20 text-primary border-none ml-1">{pendingRequests.length}</Badge>
               </p>
               <div className="space-y-3">
@@ -443,11 +445,11 @@ const ContractorAvailability = ({ contractorId }) => {
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm text-foreground">{req.date}</span>
                       <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs">
-                        Pending
+                        {t('availability.pending')}
                       </Badge>
                     </div>
                     {req.clientName && (
-                      <p className="text-xs text-muted-foreground">From: <span className="text-foreground">{req.clientName}</span></p>
+                      <p className="text-xs text-muted-foreground">{t('availability.from_label')} <span className="text-foreground">{req.clientName}</span></p>
                     )}
                     {req.message && (
                       <p className="text-sm text-muted-foreground italic line-clamp-2">"{req.message}"</p>
@@ -461,7 +463,7 @@ const ContractorAvailability = ({ contractorId }) => {
                       >
                         {actioning === req.id
                           ? <Loader2 className="h-3 w-3 animate-spin" />
-                          : <><Check className="h-3 w-3 mr-1" />Confirm</>}
+                          : <><Check className="h-3 w-3 mr-1" />{t('availability.confirm')}</>}
                       </Button>
                       <Button
                         size="sm" variant="ghost"
@@ -469,7 +471,7 @@ const ContractorAvailability = ({ contractorId }) => {
                         onClick={() => handleAction(req.id, 'declined')}
                         disabled={actioning === req.id}
                       >
-                        <X className="h-3 w-3 mr-1" />Decline
+                        <X className="h-3 w-3 mr-1" />{t('availability.decline')}
                       </Button>
                     </div>
                   </div>
@@ -488,7 +490,7 @@ const ContractorAvailability = ({ contractorId }) => {
 
           {pastRequests.length > 0 && (
             <div>
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">History</p>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('availability.history')}</p>
               <div className="space-y-2">
                 {pastRequests.slice(0, 5).map(req => (
                   <div key={req.id} className="flex items-center justify-between text-sm border border-border rounded-lg px-3 py-2">

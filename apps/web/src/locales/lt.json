@@ -8,7 +8,10 @@
       "register": "Registruotis",
       "dashboard": "Skydelis",
       "settings": "Nustatymai",
-      "logout": "Atsijungti"
+      "logout": "Atsijungti",
+      "proud_lithuanian": "Didžiuojamės būdami lietuviai",
+      "favourites": "Mėgstami rangovai",
+      "messages": "Žinutės"
     },
     "banner": {
       "partners": "Ieškome partnerių",
@@ -341,6 +344,157 @@
       "terms_title": "Paslaugų teikimo sąlygos",
       "privacy_title": "Privatumo politika",
       "last_updated": "Paskutinį kartą atnaujinta: 2026 m. kovo 15 d."
+    },
+    "notifications": {
+      "title": "Pranešimai",
+      "mark_all_read": "Pažymėti visus kaip skaitytus",
+      "empty": "Kol kas pranešimų nėra"
+    },
+    "review": {
+      "title": "Palikite atsiliepimą",
+      "rate_experience": "Įvertinkite savo patirtį su",
+      "placeholder": "Pasidalinkite patirties detalėmis (neprivaloma)...",
+      "skip": "Praleisti",
+      "submit": "Pateikti atsiliepimą",
+      "select_rating": "Pasirinkite įvertinimą",
+      "contractor_not_found": "Nepavyko identifikuoti rangovo",
+      "submitted": "Atsiliepimas pateiktas!",
+      "failed": "Nepavyko pateikti atsiliepimo",
+      "poor": "Prasta",
+      "fair": "Vidutiniška",
+      "good": "Gera",
+      "very_good": "Labai gera",
+      "excellent": "Puiku"
+    },
+    "conversations": {
+      "loading": "Kraunami pokalbiai…",
+      "empty": "Pokalbių kol kas nėra",
+      "you": "Jūs"
+    },
+    "portfolio_gallery": {
+      "title": "Portfelis",
+      "before": "Prieš",
+      "after": "Po"
+    },
+    "availability": {
+      "single_day": "Viena diena",
+      "date_range": "Datų intervalas",
+      "all_dates_same_status": "Visos pasirinktos datos gaus tą patį statusą",
+      "remove_all": "Pašalinti visas",
+      "remove": "Pašalinti",
+      "cancel": "Atšaukti",
+      "pending_requests": "Laukiančios užklausos",
+      "pending": "Laukiama",
+      "confirm": "Patvirtinti",
+      "decline": "Atmesti",
+      "history": "Istorija",
+      "from_label": "Nuo:"
+    },
+    "auction_form": {
+      "other": "Kita",
+      "describe_category": "Aprašykite kategoriją",
+      "repeat_job": "Kartoti šį darbą",
+      "repeat_every": "Kartoti kas",
+      "week": "Savaitę",
+      "month": "Mėnesį",
+      "recurring_note": "Naujas darbas bus automatiškai paskelbtas, kai šis bus užbaigtas."
+    },
+    "password_modal": {
+      "title": "Pakeisti slaptažodį",
+      "description": "Įveskite dabartinį slaptažodį ir pasirinkite naują.",
+      "current": "Dabartinis slaptažodis",
+      "new_password": "Naujas slaptažodis",
+      "confirm": "Patvirtinkite naują slaptažodį",
+      "cancel": "Atšaukti",
+      "save": "Išsaugoti slaptažodį"
+    },
+    "bid_comparison": {
+      "price": "Kaina",
+      "rating": "Įvertinimas",
+      "distance": "Atstumas",
+      "view_profile": "Žiūrėti profilį",
+      "accept": "Priimti",
+      "hired": "✓ Pasamdytas",
+      "accepted_badge": "✓ Priimtas",
+      "lowest_price": "💰 Mažiausia kaina",
+      "highest_rated": "⭐ Geriausiai įvertintas",
+      "nearest": "📍 Artimiausias"
+    },
+    "portfolio_manager": {
+      "no_photo": "Nėra nuotraukos",
+      "add_project": "Pridėti projektą",
+      "dialog_title": "Pridėti portfelio projektą",
+      "project_title_label": "Projekto pavadinimas",
+      "description_label": "Aprašymas (neprivalomas)",
+      "before_photos_label": "Nuotraukos prieš (iki {{max}})",
+      "after_photos_label": "Nuotraukos po (iki {{max}})",
+      "save_project": "Išsaugoti projektą",
+      "uploading": "Įkeliama…",
+      "cancel": "Atšaukti",
+      "add_first_project": "Pridėti pirmą projektą",
+      "trust_signal": "Nuotraukos prieš ir po yra svarbiausias pasitikėjimo signalas naujiems klientams"
+    },
+    "favourites_page": {
+      "page_title": "Mėgstami rangovai - WorkBee",
+      "title": "Mėgstami rangovai",
+      "no_favourites": "Kol kas mėgstamų nėra",
+      "save_prompt": "Išsaugokite jums patikusius rangovus greitai prieigai.",
+      "browse_btn": "Naršyti rangovus"
+    },
+    "explore": {
+      "title": "Ieškoti",
+      "description": "Naršykite žemėlapį, atviras užklausas ir laisvus rangovus.",
+      "map_tab": "Žemėlapis",
+      "requests_tab": "Užklausos",
+      "contractors_tab": "Rangovai",
+      "all_categories": "Visos kategorijos",
+      "all_statuses": "Visos būsenos",
+      "clear": "Išvalyti",
+      "no_requests": "Užklausų nerasta",
+      "no_contractors": "Rangovų nerasta"
+    },
+    "settings_page": {
+      "service_area": "Aptarnavimo zona",
+      "service_area_desc": "Kaip toli esate pasirengę keliauti darbams?",
+      "service_area_placeholder": "Pasirinkite aptarnavimo zoną...",
+      "work_examples": "Darbo pavyzdžiai",
+      "work_examples_desc": "Įkelkite nuotraukas ar PDF failus iš ankstesnių darbų, kad galėtumėte juos rodyti savo profilyje."
+    },
+    "onboarding": {
+      "add_photo": "Pridėkite profilio nuotrauką",
+      "add_photo_desc": "Padėkite klientams asocijuoti veidą su jūsų vardu.",
+      "skip_for_now": "Praleisti dabar",
+      "continue": "Tęsti",
+      "tell_about": "Papasakokite apie save",
+      "tell_about_desc": "Tai rodoma jūsų viešame profilyje.",
+      "professional_title": "Profesinis pavadinimas",
+      "bio": "Biografija",
+      "show_work": "Parodykite savo darbus",
+      "show_work_desc": "Įkelkite atliktų darbų nuotraukas (iki 6). Neprivaloma.",
+      "your_location": "Jūsų vieta",
+      "social_channels": "Jūsų socialiniai kanalai",
+      "social_channels_desc": "Padėkite prekių ženklams suprasti jūsų auditoriją.",
+      "instagram_handle": "Instagram paskyra",
+      "youtube_channel": "YouTube kanalo URL",
+      "tiktok_handle": "TikTok paskyra",
+      "skip": "Praleisti",
+      "skip_setup": "Praleisti nustatymą — padarysiu vėliau",
+      "what_services": "Kokias paslaugas teikiate?",
+      "what_services_desc": "Pasirinkite visus tinkamus — klientai filtruoja pagal juos.",
+      "where_based": "Kur esate?",
+      "where_based_desc": "Naudojame tai, kad suderintume jus su artimais rangovais.",
+      "add_more_photos": "Pridėti daugiau nuotraukų",
+      "click_to_upload": "Spustelėkite, kad įkeltumėte nuotraukas",
+      "trial_heading": "7 dienos nemokamai 🐝",
+      "trial_desc": "Išbandykite WorkBee VIP nemokamai 7 dienas. Tada tik {price}/mėn. Atšaukite bet kada prieš pasibaigiant bandomajam laikotarpiui — be mokesčio.",
+      "no_charges": "Jokių mokesčių 7 dienas",
+      "start_trial": "Pradėti nemokamą bandomąjį laikotarpį — reikalinga kortelė",
+      "skip_to_dashboard": "Praleisti, nuvesti mane į valdymo skydelį",
+      "done_heading": "Viskas paruošta!",
+      "done_contractor": "Jūsų profilis aktyvus. Pradėkite siūlyti kainas ir auginkite savo verslą.",
+      "done_client": "Paskelbkite pirmą darbą ir gaukite pasiūlymus iš patikrintų rangovų.",
+      "done_influencer": "Jūsų influencerio profilis paruoštas. Prekių ženklai dabar gali jus atrasti.",
+      "go_to_dashboard": "Eiti į mano valdymo skydelį"
     }
   }
 }

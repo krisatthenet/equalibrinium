@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient';
 import { Plus, Trash2, Upload, X, Loader2, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,7 @@ const FileUploadZone = ({ side, files, previews, onAdd, onRemove, inputRef }) =>
 );
 
 const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpenChange: setExternalOpen }) => {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -203,10 +205,10 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
         <div className="text-center py-10 border-2 border-dashed border-border rounded-xl">
           <ImagePlus className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
           <p className="text-sm text-muted-foreground mb-4">
-            Before &amp; after photos are the #1 trust signal for new clients
+            {t('portfolio_manager.trust_signal')}
           </p>
           <Button size="sm" onClick={() => setDialogOpen(true)} className="rounded-xl">
-            <Plus className="h-4 w-4 mr-1.5" /> Add your first project
+            <Plus className="h-4 w-4 mr-1.5" /> {t('portfolio_manager.add_first_project')}
           </Button>
         </div>
       ) : (
@@ -220,7 +222,7 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
               >
                 {thumb
                   ? <img src={thumb} alt={item.title} className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">No photo</div>
+                  : <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">{t('portfolio_manager.no_photo')}</div>
                 }
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/50 transition-all flex items-end p-2 gap-1.5">
                   <p className="text-white text-xs font-semibold truncate flex-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -247,7 +249,7 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
             onClick={() => setDialogOpen(true)}
           >
             <Plus className="h-6 w-6" />
-            <span className="text-xs">Add project</span>
+            <span className="text-xs">{t('portfolio_manager.add_project')}</span>
           </button>
         </div>
       )}
@@ -258,11 +260,11 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
       >
         <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Add Portfolio Project</DialogTitle>
+            <DialogTitle>{t('portfolio_manager.dialog_title')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div>
-              <Label>Project title *</Label>
+              <Label>{t('portfolio_manager.project_title_label')} *</Label>
               <Input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
@@ -272,7 +274,7 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
             </div>
 
             <div>
-              <Label>Description (optional)</Label>
+              <Label>{t('portfolio_manager.description_label')}</Label>
               <Textarea
                 value={description}
                 onChange={e => setDescription(e.target.value)}
@@ -284,7 +286,7 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
             <div>
               <Label className="mb-1.5 flex items-center gap-2">
                 <span className="inline-block w-2 h-2 rounded-full bg-muted-foreground/60 shrink-0" />
-                Before photos (up to {MAX_FILES})
+                {t('portfolio_manager.before_photos_label', { max: MAX_FILES })}
               </Label>
               <FileUploadZone
                 side="before"
@@ -299,7 +301,7 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
             <div>
               <Label className="mb-1.5 flex items-center gap-2">
                 <span className="inline-block w-2 h-2 rounded-full bg-primary shrink-0" />
-                After photos (up to {MAX_FILES})
+                {t('portfolio_manager.after_photos_label', { max: MAX_FILES })}
               </Label>
               <FileUploadZone
                 side="after"
@@ -317,7 +319,7 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
                 onClick={() => { resetForm(); setDialogOpen(false); }}
                 disabled={saving}
               >
-                Cancel
+                {t('portfolio_manager.cancel')}
               </Button>
               <Button
                 onClick={handleSave}
@@ -325,8 +327,8 @@ const PortfolioManager = ({ contractorId, dialogOpen: externalOpen, onDialogOpen
                 className="bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {saving
-                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Uploading…</>
-                  : 'Save project'
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t('portfolio_manager.uploading')}</>
+                  : t('portfolio_manager.save_project')
                 }
               </Button>
             </div>

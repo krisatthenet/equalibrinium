@@ -40,11 +40,11 @@ const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractor
 
   const handleSubmit = async () => {
     if (!rating) {
-      toast({ title: 'Please select a rating', variant: 'destructive' });
+      toast({ title: t('review.select_rating'), variant: 'destructive' });
       return;
     }
     if (!resolvedContractorId) {
-      toast({ title: 'Could not identify contractor', variant: 'destructive' });
+      toast({ title: t('review.contractor_not_found'), variant: 'destructive' });
       return;
     }
     setLoading(true);
@@ -70,11 +70,11 @@ const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractor
         }, { $autoCancel: false });
       } catch (_) {}
 
-      toast({ title: 'Review submitted!' });
+      toast({ title: t('review.submitted') });
       if (onSubmitted) onSubmitted();
       onClose();
     } catch (err) {
-      toast({ title: 'Failed to submit review', description: err.message, variant: 'destructive' });
+      toast({ title: t('review.failed'), description: err.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -84,12 +84,12 @@ const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractor
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-card border-border max-w-md rounded-2xl">
         <DialogHeader>
-          <DialogTitle>Leave a Review</DialogTitle>
+          <DialogTitle>{t('review.title')}</DialogTitle>
         </DialogHeader>
         <div className="space-y-5 pt-2">
           {resolvedContractorName && (
             <p className="text-sm text-muted-foreground">
-              Rate your experience with <span className="font-semibold text-foreground">{resolvedContractorName}</span>
+              {t('review.rate_experience')} <span className="font-semibold text-foreground">{resolvedContractorName}</span>
             </p>
           )}
 
@@ -114,12 +114,12 @@ const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractor
           </div>
           {rating > 0 && (
             <p className="text-center text-sm text-muted-foreground">
-              {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating]}
+              {['', t('review.poor'), t('review.fair'), t('review.good'), t('review.very_good'), t('review.excellent')][rating]}
             </p>
           )}
 
           <Textarea
-            placeholder="Share details about your experience (optional)..."
+            placeholder={t('review.placeholder')}
             className="bg-input border-border border-l-2 border-l-primary rounded-lg min-h-[100px]"
             value={comment}
             onChange={e => setComment(e.target.value)}
@@ -127,7 +127,7 @@ const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractor
 
           <div className="flex gap-3 justify-end pt-2">
             <Button variant="outline" onClick={onClose} disabled={loading} className="rounded-xl">
-              Skip
+              {t('review.skip')}
             </Button>
             <Button
               onClick={handleSubmit}
@@ -135,7 +135,7 @@ const ReviewModal = ({ open, onClose, contractorId: contractorIdProp, contractor
               className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
             >
               {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Submit Review
+              {t('review.submit')}
             </Button>
           </div>
         </div>

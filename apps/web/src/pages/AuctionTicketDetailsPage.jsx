@@ -132,19 +132,13 @@ const AuctionTicketDetailsPage = () => {
 
   const handleAcceptBid = async (bidId) => {
     try {
+      // Only update the ticket — a server-side hook (bid-acceptance.pb.js) handles
+      // setting the accepted bid to "accepted" and rejecting all others, because
+      // the bids updateRule restricts direct client writes to the bid's masterId.
       await pb.collection('auction_tickets').update(id, {
         status: 'In Progress',
         acceptedBidId: bidId
       }, { $autoCancel: false });
-
-      await pb.collection('bids').update(bidId, {
-        status: 'accepted'
-      }, { $autoCancel: false });
-
-      const otherBids = bids.filter(b => b.id !== bidId);
-      for (const b of otherBids) {
-        await pb.collection('bids').update(b.id, { status: 'rejected' }, { $autoCancel: false });
-      }
 
       toast({ title: "Success", description: t('auction.bid_accepted') });
       fetchData();

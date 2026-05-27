@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
@@ -36,6 +37,7 @@ const ProgressBar = ({ current, total }) => (
 
 // ── Step: Photo ──────────────────────────────────────────────────────────────
 const PhotoStep = ({ user, onNext, onSkip, saving }) => {
+  const { t } = useTranslation();
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(getUserImageUrl(user, { thumb: '400x400' }) || null);
   const inputRef = useRef();
@@ -50,8 +52,8 @@ const PhotoStep = ({ user, onNext, onSkip, saving }) => {
   return (
     <div className="flex flex-col items-center gap-6">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-1">Add a profile photo</h2>
-        <p className="text-muted-foreground text-sm">Help clients put a face to your name.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">{t('onboarding.add_photo')}</h2>
+        <p className="text-muted-foreground text-sm">{t('onboarding.add_photo_desc')}</p>
       </div>
 
       <button
@@ -70,10 +72,10 @@ const PhotoStep = ({ user, onNext, onSkip, saving }) => {
 
       <div className="flex gap-3 w-full max-w-xs">
         <Button variant="outline" className="flex-1 rounded-xl" onClick={onSkip} disabled={saving}>
-          Skip for now
+          {t('onboarding.skip_for_now')}
         </Button>
         <Button className="flex-1 rounded-xl" onClick={() => onNext(file)} disabled={saving}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Continue'}
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : t('onboarding.continue')}
           {!saving && <ChevronRight className="h-4 w-4 ml-1" />}
         </Button>
       </div>
@@ -83,18 +85,19 @@ const PhotoStep = ({ user, onNext, onSkip, saving }) => {
 
 // ── Step: About ──────────────────────────────────────────────────────────────
 const AboutStep = ({ user, onNext, saving }) => {
+  const { t } = useTranslation();
   const [bio, setBio] = useState(user.bio || '');
   const [title, setTitle] = useState(user.title || '');
 
   return (
     <div className="flex flex-col gap-5 w-full">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-1">Tell us about yourself</h2>
-        <p className="text-muted-foreground text-sm">This shows on your public profile.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">{t('onboarding.tell_about')}</h2>
+        <p className="text-muted-foreground text-sm">{t('onboarding.tell_about_desc')}</p>
       </div>
       <div className="space-y-4">
         <div>
-          <Label className="text-sm font-medium mb-1.5 block">Professional title</Label>
+          <Label className="text-sm font-medium mb-1.5 block">{t('onboarding.professional_title')}</Label>
           <Input
             value={title}
             onChange={e => setTitle(e.target.value)}
@@ -103,7 +106,7 @@ const AboutStep = ({ user, onNext, saving }) => {
           />
         </div>
         <div>
-          <Label className="text-sm font-medium mb-1.5 block">Bio</Label>
+          <Label className="text-sm font-medium mb-1.5 block">{t('onboarding.bio')}</Label>
           <Textarea
             value={bio}
             onChange={e => setBio(e.target.value)}
@@ -114,7 +117,7 @@ const AboutStep = ({ user, onNext, saving }) => {
         </div>
       </div>
       <Button className="w-full rounded-xl" onClick={() => onNext({ bio, title })} disabled={saving}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{t('onboarding.continue')} <ChevronRight className="h-4 w-4 ml-1" /></>}
       </Button>
     </div>
   );
@@ -122,6 +125,7 @@ const AboutStep = ({ user, onNext, saving }) => {
 
 // ── Step: Categories ─────────────────────────────────────────────────────────
 const CategoriesStep = ({ user, onNext, saving }) => {
+  const { t } = useTranslation();
   const [allCats, setAllCats] = useState([]);
   const [selected, setSelected] = useState(user.categories || []);
 
@@ -136,8 +140,8 @@ const CategoriesStep = ({ user, onNext, saving }) => {
   return (
     <div className="flex flex-col gap-5 w-full">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-1">What services do you offer?</h2>
-        <p className="text-muted-foreground text-sm">Select all that apply — clients filter by these.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">{t('onboarding.what_services')}</h2>
+        <p className="text-muted-foreground text-sm">{t('onboarding.what_services_desc')}</p>
       </div>
       <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
         {allCats.map(cat => (
@@ -157,10 +161,10 @@ const CategoriesStep = ({ user, onNext, saving }) => {
       </div>
       <div className="flex gap-3">
         <Button variant="outline" className="flex-1 rounded-xl" onClick={() => onNext([])} disabled={saving}>
-          Skip
+          {t('onboarding.skip')}
         </Button>
         <Button className="flex-1 rounded-xl" onClick={() => onNext(selected)} disabled={saving || selected.length === 0}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>}
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{t('onboarding.continue')} <ChevronRight className="h-4 w-4 ml-1" /></>}
         </Button>
       </div>
     </div>
@@ -169,6 +173,7 @@ const CategoriesStep = ({ user, onNext, saving }) => {
 
 // ── Step: Portfolio ──────────────────────────────────────────────────────────
 const PortfolioStep = ({ onNext, onSkip, saving }) => {
+  const { t } = useTranslation();
   const [files, setFiles] = useState([]);
   const inputRef = useRef();
 
@@ -180,8 +185,8 @@ const PortfolioStep = ({ onNext, onSkip, saving }) => {
   return (
     <div className="flex flex-col gap-5 w-full">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-1">Show your work</h2>
-        <p className="text-muted-foreground text-sm">Upload photos of completed jobs (up to 6). Optional.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">{t('onboarding.show_work')}</h2>
+        <p className="text-muted-foreground text-sm">{t('onboarding.show_work_desc')}</p>
       </div>
 
       {files.length > 0 && (
@@ -200,16 +205,16 @@ const PortfolioStep = ({ onNext, onSkip, saving }) => {
         className="border-2 border-dashed border-border rounded-xl py-6 flex flex-col items-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
       >
         <Image className="w-7 h-7" />
-        <span className="text-sm">{files.length > 0 ? 'Add more photos' : 'Click to upload photos'}</span>
+        <span className="text-sm">{files.length > 0 ? t('onboarding.add_more_photos') : t('onboarding.click_to_upload')}</span>
       </button>
       <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFiles} />
 
       <div className="flex gap-3">
         <Button variant="outline" className="flex-1 rounded-xl" onClick={onSkip} disabled={saving}>
-          Skip
+          {t('onboarding.skip')}
         </Button>
         <Button className="flex-1 rounded-xl" onClick={() => onNext(files)} disabled={saving}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>}
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{t('onboarding.continue')} <ChevronRight className="h-4 w-4 ml-1" /></>}
         </Button>
       </div>
     </div>
@@ -218,16 +223,17 @@ const PortfolioStep = ({ onNext, onSkip, saving }) => {
 
 // ── Step: Location ───────────────────────────────────────────────────────────
 const LocationStep = ({ user, onNext, onSkip, saving }) => {
+  const { t } = useTranslation();
   const [location, setLocation] = useState(user.location || '');
 
   return (
     <div className="flex flex-col gap-5 w-full">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-1">Where are you based?</h2>
-        <p className="text-muted-foreground text-sm">We use this to match you with nearby contractors.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">{t('onboarding.where_based')}</h2>
+        <p className="text-muted-foreground text-sm">{t('onboarding.where_based_desc')}</p>
       </div>
       <div>
-        <Label className="text-sm font-medium mb-1.5 block">Your location</Label>
+        <Label className="text-sm font-medium mb-1.5 block">{t('onboarding.your_location')}</Label>
         <PlacesAutocompleteInput
           value={location}
           onChange={setLocation}
@@ -236,10 +242,10 @@ const LocationStep = ({ user, onNext, onSkip, saving }) => {
       </div>
       <div className="flex gap-3">
         <Button variant="outline" className="flex-1 rounded-xl" onClick={onSkip} disabled={saving}>
-          Skip
+          {t('onboarding.skip')}
         </Button>
         <Button className="flex-1 rounded-xl" onClick={() => onNext({ location })} disabled={saving}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>}
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{t('onboarding.continue')} <ChevronRight className="h-4 w-4 ml-1" /></>}
         </Button>
       </div>
     </div>
@@ -248,6 +254,7 @@ const LocationStep = ({ user, onNext, onSkip, saving }) => {
 
 // ── Step: Social (Influencer) ────────────────────────────────────────────────
 const SocialStep = ({ user, onNext, saving }) => {
+  const { t } = useTranslation();
   const [data, setData] = useState({
     instagramHandle: user.instagramHandle || '',
     youtubeChannel: user.youtubeChannel || '',
@@ -258,25 +265,25 @@ const SocialStep = ({ user, onNext, saving }) => {
   return (
     <div className="flex flex-col gap-5 w-full">
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-foreground mb-1">Your social channels</h2>
-        <p className="text-muted-foreground text-sm">Help brands understand your reach.</p>
+        <h2 className="text-2xl font-bold text-foreground mb-1">{t('onboarding.social_channels')}</h2>
+        <p className="text-muted-foreground text-sm">{t('onboarding.social_channels_desc')}</p>
       </div>
       <div className="space-y-3">
         <div>
-          <Label className="text-sm font-medium mb-1.5 block">Instagram handle</Label>
+          <Label className="text-sm font-medium mb-1.5 block">{t('onboarding.instagram_handle')}</Label>
           <Input value={data.instagramHandle} onChange={set('instagramHandle')} placeholder="@username" className="rounded-xl" />
         </div>
         <div>
-          <Label className="text-sm font-medium mb-1.5 block">YouTube channel URL</Label>
+          <Label className="text-sm font-medium mb-1.5 block">{t('onboarding.youtube_channel')}</Label>
           <Input value={data.youtubeChannel} onChange={set('youtubeChannel')} placeholder="https://youtube.com/…" className="rounded-xl" />
         </div>
         <div>
-          <Label className="text-sm font-medium mb-1.5 block">TikTok handle</Label>
+          <Label className="text-sm font-medium mb-1.5 block">{t('onboarding.tiktok_handle')}</Label>
           <Input value={data.tiktokHandle} onChange={set('tiktokHandle')} placeholder="@username" className="rounded-xl" />
         </div>
       </div>
       <Button className="w-full rounded-xl" onClick={() => onNext(data)} disabled={saving}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <>{t('onboarding.continue')} <ChevronRight className="h-4 w-4 ml-1" /></>}
       </Button>
     </div>
   );
@@ -297,6 +304,7 @@ const TRIAL_BENEFITS = {
 };
 
 const TrialStep = ({ userType, onSkip, onStartTrial }) => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const price = userType === 'contractor' ? '€9' : '€7';
   const benefits = TRIAL_BENEFITS[userType] || TRIAL_BENEFITS.client;
@@ -313,9 +321,9 @@ const TrialStep = ({ userType, onSkip, onStartTrial }) => {
         <img src="/logo.svg" alt="WorkBee" className="w-12 h-12" />
       </div>
       <div>
-        <h2 className="text-2xl font-bold text-foreground mb-2">7 days free, on us 🐝</h2>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{t('onboarding.trial_heading')}</h2>
         <p className="text-muted-foreground text-sm max-w-xs">
-          Try WorkBee VIP free for 7 days. Then just {price}/month. Cancel anytime before your trial ends — no charge.
+          {t('onboarding.trial_desc', { price })}
         </p>
       </div>
       <div className="w-full space-y-3">
@@ -328,7 +336,7 @@ const TrialStep = ({ userType, onSkip, onStartTrial }) => {
           ))}
           <div className="flex items-center gap-2.5 text-foreground">
             <CheckCircle className="w-4 h-4 text-primary shrink-0" />
-            No charges for 7 days
+            {t('onboarding.no_charges')}
           </div>
         </div>
         <Button
@@ -337,14 +345,14 @@ const TrialStep = ({ userType, onSkip, onStartTrial }) => {
           disabled={loading}
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-          Start free trial — card required
+          {t('onboarding.start_trial')}
         </Button>
         <button
           type="button"
           onClick={onSkip}
           className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors py-1"
         >
-          Skip, take me to my dashboard
+          {t('onboarding.skip_to_dashboard')}
         </button>
       </div>
     </div>
@@ -352,26 +360,29 @@ const TrialStep = ({ userType, onSkip, onStartTrial }) => {
 };
 
 // ── Step: Done ───────────────────────────────────────────────────────────────
-const DoneStep = ({ userType, onGo }) => (
-  <div className="flex flex-col items-center gap-6 text-center">
-    <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center">
-      <CheckCircle className="w-10 h-10 text-primary" />
+const DoneStep = ({ userType, onGo }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center gap-6 text-center">
+      <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center">
+        <CheckCircle className="w-10 h-10 text-primary" />
+      </div>
+      <div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">{t('onboarding.done_heading')}</h2>
+        <p className="text-muted-foreground text-sm max-w-xs">
+          {userType === 'contractor'
+            ? t('onboarding.done_contractor')
+            : userType === 'client'
+            ? t('onboarding.done_client')
+            : t('onboarding.done_influencer')}
+        </p>
+      </div>
+      <Button className="w-full max-w-xs rounded-xl text-base py-5" onClick={onGo}>
+        {t('onboarding.go_to_dashboard')}
+      </Button>
     </div>
-    <div>
-      <h2 className="text-2xl font-bold text-foreground mb-2">You're all set!</h2>
-      <p className="text-muted-foreground text-sm max-w-xs">
-        {userType === 'contractor'
-          ? 'Your profile is live. Start bidding on jobs and grow your business.'
-          : userType === 'client'
-          ? 'Post your first job and get offers from vetted contractors.'
-          : 'Your influencer profile is ready. Brands can now discover you.'}
-      </p>
-    </div>
-    <Button className="w-full max-w-xs rounded-xl text-base py-5" onClick={onGo}>
-      Go to my dashboard
-    </Button>
-  </div>
-);
+  );
+};
 
 // ── Main Onboarding Page ─────────────────────────────────────────────────────
 const getDashboardPath = () => {
@@ -384,6 +395,7 @@ const getDashboardPath = () => {
 };
 
 const OnboardingPage = () => {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -541,7 +553,7 @@ const OnboardingPage = () => {
             onClick={finish}
             className="w-full text-center text-xs text-muted-foreground hover:text-foreground mt-4 py-2 transition-colors"
           >
-            Skip setup — I'll do this later
+            {t('onboarding.skip_setup')}
           </button>
         )}
       </div>

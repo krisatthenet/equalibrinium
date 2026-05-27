@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import pb from '@/lib/pocketbaseClient';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const PortfolioGallery = ({ contractorId }) => {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState(null); // { item, beforeIdx, afterIdx }
@@ -23,7 +25,7 @@ const PortfolioGallery = ({ contractorId }) => {
   if (loading) {
     return (
       <Card className="bg-card border-border rounded-2xl">
-        <CardHeader><CardTitle>Portfolio</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('portfolio_gallery.title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {[...Array(2)].map((_, i) => <Skeleton key={i} className="aspect-video rounded-xl" />)}
@@ -53,7 +55,7 @@ const PortfolioGallery = ({ contractorId }) => {
   return (
     <>
       <Card className="bg-card border-border rounded-2xl">
-        <CardHeader><CardTitle>Portfolio</CardTitle></CardHeader>
+        <CardHeader><CardTitle>{t('portfolio_gallery.title')}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {items.map(item => {
@@ -73,23 +75,23 @@ const PortfolioGallery = ({ contractorId }) => {
                       <>
                         <img
                           src={beforeUrl}
-                          alt="Before"
+                          alt={t('portfolio_gallery.before')}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ clipPath: 'inset(0 50% 0 0)' }}
                         />
                         <img
                           src={afterUrl}
-                          alt="After"
+                          alt={t('portfolio_gallery.after')}
                           className="absolute inset-0 w-full h-full object-cover"
                           style={{ clipPath: 'inset(0 0 0 50%)' }}
                         />
                         {/* Divider line */}
                         <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/70 z-10" />
                         <span className="absolute bottom-2 left-2 z-10 bg-black/60 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
-                          Before
+                          {t('portfolio_gallery.before')}
                         </span>
                         <span className="absolute bottom-2 right-2 z-10 bg-primary/90 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
-                          After
+                          {t('portfolio_gallery.after')}
                         </span>
                       </>
                     ) : (
@@ -143,11 +145,11 @@ const PortfolioGallery = ({ contractorId }) => {
                 <div className="grid grid-cols-2 gap-4">
                   {/* Before panel */}
                   <div>
-                    <p className="text-center text-white/50 text-xs font-semibold uppercase tracking-widest mb-3">Before</p>
+                    <p className="text-center text-white/50 text-xs font-semibold uppercase tracking-widest mb-3">{t('portfolio_gallery.before')}</p>
                     <div className="relative">
                       <img
                         src={getUrl(lightbox.item, lightbox.item.beforePhotos[lightbox.beforeIdx])}
-                        alt="Before"
+                        alt={t('portfolio_gallery.before')}
                         className="w-full rounded-xl object-contain max-h-[65vh]"
                       />
                       {lightbox.item.beforePhotos.length > 1 && (
@@ -168,11 +170,11 @@ const PortfolioGallery = ({ contractorId }) => {
 
                   {/* After panel */}
                   <div>
-                    <p className="text-center text-primary text-xs font-semibold uppercase tracking-widest mb-3">After</p>
+                    <p className="text-center text-primary text-xs font-semibold uppercase tracking-widest mb-3">{t('portfolio_gallery.after')}</p>
                     <div className="relative">
                       <img
                         src={getUrl(lightbox.item, lightbox.item.afterPhotos[lightbox.afterIdx])}
-                        alt="After"
+                        alt={t('portfolio_gallery.after')}
                         className="w-full rounded-xl object-contain max-h-[65vh]"
                       />
                       {lightbox.item.afterPhotos.length > 1 && (

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PageMeta } from '@/components/PageMeta.jsx';
 import { Link, useSearchParams } from 'react-router-dom';
 import pb from '@/lib/pocketbaseClient.js';
@@ -28,6 +29,7 @@ const statusColor = {
 
 /* ═══════════════════════════════════════════════════════ */
 const LocatorPage = () => {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get('tab') || 'map';
 
@@ -77,14 +79,14 @@ const LocatorPage = () => {
   const setTab = (tab) => setSearchParams({ tab });
 
   /* ── filtered requests ── */
-  const filteredTickets = tickets.filter(t => {
+  const filteredTickets = tickets.filter(ticket => {
     const kw = reqKeyword.toLowerCase();
     const matchKw = !kw || [
-      t.description, t.location,
-      t.expand?.categoryId?.name
+      ticket.description, ticket.location,
+      ticket.expand?.categoryId?.name
     ].some(f => f?.toLowerCase().includes(kw));
-    const matchCat = reqCategory === 'all' || t.categoryId === reqCategory;
-    const matchStatus = reqStatus === 'all' || t.status === reqStatus;
+    const matchCat = reqCategory === 'all' || ticket.categoryId === reqCategory;
+    const matchStatus = reqStatus === 'all' || ticket.status === reqStatus;
     return matchKw && matchCat && matchStatus;
   });
 
@@ -101,7 +103,7 @@ const LocatorPage = () => {
   });
 
   /* ── map data: only open tickets ── */
-  const openTickets = tickets.filter(t => t.status === 'Open');
+  const openTickets = tickets.filter(ticket => ticket.status === 'Open');
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -113,8 +115,8 @@ const LocatorPage = () => {
         <div className="max-w-7xl mx-auto">
 
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground">Explore</h1>
-            <p className="text-muted-foreground mt-1">Browse the map, open requests, and available contractors.</p>
+            <h1 className="text-3xl font-bold text-foreground">{t('explore.title')}</h1>
+            <p className="text-muted-foreground mt-1">{t('explore.description')}</p>
           </div>
 
           <Tabs value={activeTab} onValueChange={setTab}>
@@ -177,7 +179,7 @@ const LocatorPage = () => {
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All categories</SelectItem>
+                    <SelectItem value="all">{t('explore.all_categories')}</SelectItem>
                     {categories.map(cat => (
                       <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                     ))}
@@ -188,17 +190,17 @@ const LocatorPage = () => {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All statuses</SelectItem>
-                    <SelectItem value="Open">Open</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    <SelectItem value="all">{t('explore.all_statuses')}</SelectItem>
+                    <SelectItem value="Open">{t('auction.open')}</SelectItem>
+                    <SelectItem value="In Progress">{t('auction.in_progress')}</SelectItem>
+                    <SelectItem value="Completed">{t('auction.completed')}</SelectItem>
+                    <SelectItem value="Cancelled">{t('auction.cancelled')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {(reqKeyword || reqCategory !== 'all' || reqStatus !== 'Open') && (
                   <Button variant="outline" className="rounded-xl h-11 px-4 shrink-0"
                     onClick={() => { setReqKeyword(''); setReqCategory('all'); setReqStatus('Open'); }}>
-                    <X className="h-4 w-4 mr-1" /> Clear
+                    <X className="h-4 w-4 mr-1" /> {t('explore.clear')}
                   </Button>
                 )}
               </div>
@@ -254,7 +256,7 @@ const LocatorPage = () => {
               ) : (
                 <div className="text-center py-16 bg-card border border-border rounded-2xl">
                   <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground text-lg">No requests found</p>
+                  <p className="text-muted-foreground text-lg">{t('explore.no_requests')}</p>
                 </div>
               )}
             </TabsContent>
@@ -284,7 +286,7 @@ const LocatorPage = () => {
                 {(conKeyword || conCity) && (
                   <Button variant="outline" className="rounded-xl h-11 px-4 shrink-0"
                     onClick={() => { setConKeyword(''); setConCity(''); }}>
-                    <X className="h-4 w-4 mr-1" /> Clear
+                    <X className="h-4 w-4 mr-1" /> {t('explore.clear')}
                   </Button>
                 )}
               </div>
@@ -358,7 +360,7 @@ const LocatorPage = () => {
                             <div className="mt-auto pt-3 border-t border-border flex items-center justify-between">
                               <span />
                               <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                View profile <ChevronRight className="h-3 w-3" />
+                                {t('bid_comparison.view_profile')} <ChevronRight className="h-3 w-3" />
                               </span>
                             </div>
                           </CardContent>
@@ -370,7 +372,7 @@ const LocatorPage = () => {
               ) : (
                 <div className="text-center py-16 bg-card border border-border rounded-2xl">
                   <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground text-lg">No contractors found</p>
+                  <p className="text-muted-foreground text-lg">{t('explore.no_contractors')}</p>
                 </div>
               )}
             </TabsContent>

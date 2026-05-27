@@ -608,14 +608,14 @@ const SettingsPage = () => {
                             </div>
 
                             <div className="space-y-2 md:col-span-2">
-                              <Label>Service Area</Label>
-                              <p className="text-xs text-muted-foreground -mt-1">How far are you willing to travel for jobs?</p>
+                              <Label>{t('settings_page.service_area')}</Label>
+                              <p className="text-xs text-muted-foreground -mt-1">{t('settings_page.service_area_desc')}</p>
                               <Select
                                 value={profileData.serviceRadius}
                                 onValueChange={val => setProfileData({ ...profileData, serviceRadius: val })}
                               >
                                 <SelectTrigger className="bg-input border-border text-foreground rounded-lg">
-                                  <SelectValue placeholder="Select service area..." />
+                                  <SelectValue placeholder={t('settings_page.service_area_placeholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="5">Within 5 km</SelectItem>
@@ -629,8 +629,8 @@ const SettingsPage = () => {
                             </div>
 
                             <div className="space-y-3 md:col-span-2">
-                              <Label>Work Examples</Label>
-                              <p className="text-xs text-muted-foreground -mt-1">Upload photos or PDFs of past work to showcase on your profile.</p>
+                              <Label>{t('settings_page.work_examples')}</Label>
+                              <p className="text-xs text-muted-foreground -mt-1">{t('settings_page.work_examples_desc')}</p>
 
                               {/* Existing examples */}
                               {existingWorkExamples.length > 0 && (

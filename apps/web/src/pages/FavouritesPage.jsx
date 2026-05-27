@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext.jsx';
@@ -14,6 +15,7 @@ import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
 
 const FavouritesPage = () => {
+  const { t } = useTranslation();
   const { currentUser } = useAuth();
   const { toast } = useToast();
   const [favourites, setFavourites] = useState([]);
@@ -65,14 +67,14 @@ const FavouritesPage = () => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Helmet>
-        <title>Favourite Contractors - WorkBee</title>
+        <title>{t('favourites_page.page_title')}</title>
       </Helmet>
       <Header />
       <main className="flex-1 py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
             <Heart className="h-7 w-7 text-rose-500 fill-rose-500" />
-            <h1 className="text-3xl font-bold text-foreground">Favourite Contractors</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('favourites_page.title')}</h1>
           </div>
 
           {loading ? (
@@ -82,10 +84,10 @@ const FavouritesPage = () => {
           ) : favourites.length === 0 ? (
             <div className="text-center py-20">
               <Heart className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-xl font-semibold text-foreground mb-2">No favourites yet</h2>
-              <p className="text-muted-foreground mb-6">Save contractors you like for quick access.</p>
+              <h2 className="text-xl font-semibold text-foreground mb-2">{t('favourites_page.no_favourites')}</h2>
+              <p className="text-muted-foreground mb-6">{t('favourites_page.save_prompt')}</p>
               <Button asChild className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl">
-                <Link to="/explore">Browse Contractors</Link>
+                <Link to="/explore">{t('favourites_page.browse_btn')}</Link>
               </Button>
             </div>
           ) : (

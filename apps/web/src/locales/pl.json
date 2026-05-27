@@ -8,7 +8,10 @@
       "register": "Zarejestruj się",
       "dashboard": "Panel",
       "settings": "Ustawienia",
-      "logout": "Wyloguj się"
+      "logout": "Wyloguj się",
+      "proud_lithuanian": "Dumni z bycia Litwinami",
+      "favourites": "Ulubieni wykonawcy",
+      "messages": "Wiadomości"
     },
     "banner": {
       "partners": "Szukamy partnerów",
@@ -341,6 +344,157 @@
       "terms_title": "Warunki korzystania",
       "privacy_title": "Polityka prywatności",
       "last_updated": "Ostatnia aktualizacja: 15 marca 2026 r."
+    },
+    "notifications": {
+      "title": "Powiadomienia",
+      "mark_all_read": "Oznacz wszystkie jako przeczytane",
+      "empty": "Brak powiadomień"
+    },
+    "review": {
+      "title": "Zostaw opinię",
+      "rate_experience": "Oceń swoje doświadczenie z",
+      "placeholder": "Podziel się szczegółami swojego doświadczenia (opcjonalnie)...",
+      "skip": "Pomiń",
+      "submit": "Prześlij opinię",
+      "select_rating": "Wybierz ocenę",
+      "contractor_not_found": "Nie można zidentyfikować wykonawcy",
+      "submitted": "Opinia przesłana!",
+      "failed": "Nie udało się przesłać opinii",
+      "poor": "Słaba",
+      "fair": "Przeciętna",
+      "good": "Dobra",
+      "very_good": "Bardzo dobra",
+      "excellent": "Doskonała"
+    },
+    "conversations": {
+      "loading": "Ładowanie rozmów…",
+      "empty": "Brak rozmów",
+      "you": "Ty"
+    },
+    "portfolio_gallery": {
+      "title": "Portfolio",
+      "before": "Przed",
+      "after": "Po"
+    },
+    "availability": {
+      "single_day": "Jeden dzień",
+      "date_range": "Zakres dat",
+      "all_dates_same_status": "Wszystkie wybrane daty otrzymają ten sam status",
+      "remove_all": "Usuń wszystkie",
+      "remove": "Usuń",
+      "cancel": "Anuluj",
+      "pending_requests": "Oczekujące prośby",
+      "pending": "Oczekuje",
+      "confirm": "Potwierdź",
+      "decline": "Odrzuć",
+      "history": "Historia",
+      "from_label": "Od:"
+    },
+    "auction_form": {
+      "other": "Inne",
+      "describe_category": "Opisz kategorię",
+      "repeat_job": "Powtarzaj tę pracę",
+      "repeat_every": "Powtarzaj co",
+      "week": "Tydzień",
+      "month": "Miesiąc",
+      "recurring_note": "Nowa praca zostanie automatycznie opublikowana po zakończeniu tej."
+    },
+    "password_modal": {
+      "title": "Zmień hasło",
+      "description": "Wpisz aktualne hasło i wybierz nowe.",
+      "current": "Aktualne hasło",
+      "new_password": "Nowe hasło",
+      "confirm": "Potwierdź nowe hasło",
+      "cancel": "Anuluj",
+      "save": "Zapisz hasło"
+    },
+    "bid_comparison": {
+      "price": "Cena",
+      "rating": "Ocena",
+      "distance": "Odległość",
+      "view_profile": "Zobacz profil",
+      "accept": "Akceptuj",
+      "hired": "✓ Zatrudniony",
+      "accepted_badge": "✓ Zaakceptowany",
+      "lowest_price": "💰 Najniższa cena",
+      "highest_rated": "⭐ Najwyżej oceniany",
+      "nearest": "📍 Najbliższy"
+    },
+    "portfolio_manager": {
+      "no_photo": "Brak zdjęcia",
+      "add_project": "Dodaj projekt",
+      "dialog_title": "Dodaj projekt do portfolio",
+      "project_title_label": "Tytuł projektu",
+      "description_label": "Opis (opcjonalnie)",
+      "before_photos_label": "Zdjęcia przed (do {{max}})",
+      "after_photos_label": "Zdjęcia po (do {{max}})",
+      "save_project": "Zapisz projekt",
+      "uploading": "Przesyłanie…",
+      "cancel": "Anuluj",
+      "add_first_project": "Dodaj pierwszy projekt",
+      "trust_signal": "Zdjęcia przed i po to #1 sygnał zaufania dla nowych klientów"
+    },
+    "favourites_page": {
+      "page_title": "Ulubieni wykonawcy - WorkBee",
+      "title": "Ulubieni wykonawcy",
+      "no_favourites": "Brak ulubionych",
+      "save_prompt": "Zapisz wykonawców, których lubisz, aby mieć szybki dostęp.",
+      "browse_btn": "Przeglądaj wykonawców"
+    },
+    "explore": {
+      "title": "Odkrywaj",
+      "description": "Przeglądaj mapę, otwarte zlecenia i dostępnych wykonawców.",
+      "map_tab": "Mapa",
+      "requests_tab": "Zlecenia",
+      "contractors_tab": "Wykonawcy",
+      "all_categories": "Wszystkie kategorie",
+      "all_statuses": "Wszystkie statusy",
+      "clear": "Wyczyść",
+      "no_requests": "Nie znaleziono zleceń",
+      "no_contractors": "Nie znaleziono wykonawców"
+    },
+    "settings_page": {
+      "service_area": "Obszar usług",
+      "service_area_desc": "Jak daleko jesteś gotowy podróżować do pracy?",
+      "service_area_placeholder": "Wybierz obszar usług...",
+      "work_examples": "Przykłady pracy",
+      "work_examples_desc": "Prześlij zdjęcia lub PDF z poprzednich prac, aby zaprezentować je na swoim profilu."
+    },
+    "onboarding": {
+      "add_photo": "Dodaj zdjęcie profilowe",
+      "add_photo_desc": "Pomóż klientom skojarzyć twarz z twoim imieniem.",
+      "skip_for_now": "Pomiń na teraz",
+      "continue": "Kontynuuj",
+      "tell_about": "Opowiedz o sobie",
+      "tell_about_desc": "To jest wyświetlane na twoim publicznym profilu.",
+      "professional_title": "Tytuł zawodowy",
+      "bio": "Biogram",
+      "show_work": "Pokaż swoją pracę",
+      "show_work_desc": "Prześlij zdjęcia ukończonych prac (do 6). Opcjonalnie.",
+      "your_location": "Twoja lokalizacja",
+      "social_channels": "Twoje kanały społecznościowe",
+      "social_channels_desc": "Pomóż markom zrozumieć twój zasięg.",
+      "instagram_handle": "Nazwa na Instagramie",
+      "youtube_channel": "URL kanału YouTube",
+      "tiktok_handle": "Nazwa na TikToku",
+      "skip": "Pomiń",
+      "skip_setup": "Pomiń konfigurację — zrobię to później",
+      "what_services": "Jakie usługi oferujesz?",
+      "what_services_desc": "Wybierz wszystkie pasujące — klienci filtrują według nich.",
+      "where_based": "Gdzie jesteś?",
+      "where_based_desc": "Używamy tego, aby dopasować cię do pobliskich wykonawców.",
+      "add_more_photos": "Dodaj więcej zdjęć",
+      "click_to_upload": "Kliknij, aby przesłać zdjęcia",
+      "trial_heading": "7 dni za darmo 🐝",
+      "trial_desc": "Wypróbuj WorkBee VIP za darmo przez 7 dni. Potem tylko {price}/miesiąc. Anuluj w dowolnym momencie przed końcem okresu próbnego — bez opłat.",
+      "no_charges": "Brak opłat przez 7 dni",
+      "start_trial": "Rozpocznij bezpłatny okres próbny — wymagana karta",
+      "skip_to_dashboard": "Pomiń, zabierz mnie do panelu",
+      "done_heading": "Wszystko gotowe!",
+      "done_contractor": "Twój profil jest aktywny. Zacznij składać oferty i rozwijaj swój biznes.",
+      "done_client": "Opublikuj pierwszą pracę i otrzymaj oferty od sprawdzonych wykonawców.",
+      "done_influencer": "Twój profil influencera jest gotowy. Marki mogą teraz cię odkryć.",
+      "go_to_dashboard": "Przejdź do mojego panelu"
     }
   }
 }

@@ -8,7 +8,10 @@
       "register": "Register",
       "dashboard": "Dashboard",
       "settings": "Settings",
-      "logout": "Logout"
+      "logout": "Logout",
+      "proud_lithuanian": "Proud to be Lithuanian",
+      "favourites": "Favourite Contractors",
+      "messages": "Messages"
     },
     "banner": {
       "partners": "We're looking for partners",
@@ -341,6 +344,157 @@
       "terms_title": "Terms of Service",
       "privacy_title": "Privacy Policy",
       "last_updated": "Last updated: March 15, 2026"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "mark_all_read": "Mark all read",
+      "empty": "No notifications yet"
+    },
+    "review": {
+      "title": "Leave a Review",
+      "rate_experience": "Rate your experience with",
+      "placeholder": "Share details about your experience (optional)...",
+      "skip": "Skip",
+      "submit": "Submit Review",
+      "select_rating": "Please select a rating",
+      "contractor_not_found": "Could not identify contractor",
+      "submitted": "Review submitted!",
+      "failed": "Failed to submit review",
+      "poor": "Poor",
+      "fair": "Fair",
+      "good": "Good",
+      "very_good": "Very Good",
+      "excellent": "Excellent"
+    },
+    "conversations": {
+      "loading": "Loading conversations…",
+      "empty": "No conversations yet",
+      "you": "You"
+    },
+    "portfolio_gallery": {
+      "title": "Portfolio",
+      "before": "Before",
+      "after": "After"
+    },
+    "availability": {
+      "single_day": "Single day",
+      "date_range": "Date range",
+      "all_dates_same_status": "All selected dates will get the same status",
+      "remove_all": "Remove all",
+      "remove": "Remove",
+      "cancel": "Cancel",
+      "pending_requests": "Pending Requests",
+      "pending": "Pending",
+      "confirm": "Confirm",
+      "decline": "Decline",
+      "history": "History",
+      "from_label": "From:"
+    },
+    "auction_form": {
+      "other": "Other",
+      "describe_category": "Describe your category",
+      "repeat_job": "Repeat this job",
+      "repeat_every": "Repeat every",
+      "week": "Week",
+      "month": "Month",
+      "recurring_note": "A new job will be posted automatically when this one is completed."
+    },
+    "password_modal": {
+      "title": "Change Password",
+      "description": "Enter your current password and choose a new one.",
+      "current": "Current Password",
+      "new_password": "New Password",
+      "confirm": "Confirm New Password",
+      "cancel": "Cancel",
+      "save": "Save Password"
+    },
+    "bid_comparison": {
+      "price": "Price",
+      "rating": "Rating",
+      "distance": "Distance",
+      "view_profile": "View profile",
+      "accept": "Accept",
+      "hired": "✓ Hired",
+      "accepted_badge": "✓ Accepted",
+      "lowest_price": "💰 Lowest price",
+      "highest_rated": "⭐ Highest rated",
+      "nearest": "📍 Nearest"
+    },
+    "portfolio_manager": {
+      "no_photo": "No photo",
+      "add_project": "Add project",
+      "dialog_title": "Add Portfolio Project",
+      "project_title_label": "Project title",
+      "description_label": "Description (optional)",
+      "before_photos_label": "Before photos (up to {{max}})",
+      "after_photos_label": "After photos (up to {{max}})",
+      "save_project": "Save project",
+      "uploading": "Uploading…",
+      "cancel": "Cancel",
+      "add_first_project": "Add your first project",
+      "trust_signal": "Before & after photos are the #1 trust signal for new clients"
+    },
+    "favourites_page": {
+      "page_title": "Favourite Contractors - WorkBee",
+      "title": "Favourite Contractors",
+      "no_favourites": "No favourites yet",
+      "save_prompt": "Save contractors you like for quick access.",
+      "browse_btn": "Browse Contractors"
+    },
+    "explore": {
+      "title": "Explore",
+      "description": "Browse the map, open requests, and available contractors.",
+      "map_tab": "Map",
+      "requests_tab": "Requests",
+      "contractors_tab": "Contractors",
+      "all_categories": "All categories",
+      "all_statuses": "All statuses",
+      "clear": "Clear",
+      "no_requests": "No requests found",
+      "no_contractors": "No contractors found"
+    },
+    "settings_page": {
+      "service_area": "Service Area",
+      "service_area_desc": "How far are you willing to travel for jobs?",
+      "service_area_placeholder": "Select service area...",
+      "work_examples": "Work Examples",
+      "work_examples_desc": "Upload photos or PDFs of past work to showcase on your profile."
+    },
+    "onboarding": {
+      "add_photo": "Add a profile photo",
+      "add_photo_desc": "Help clients put a face to your name.",
+      "skip_for_now": "Skip for now",
+      "continue": "Continue",
+      "tell_about": "Tell us about yourself",
+      "tell_about_desc": "This shows on your public profile.",
+      "professional_title": "Professional title",
+      "bio": "Bio",
+      "show_work": "Show your work",
+      "show_work_desc": "Upload photos of completed jobs (up to 6). Optional.",
+      "your_location": "Your location",
+      "social_channels": "Your social channels",
+      "social_channels_desc": "Help brands understand your reach.",
+      "instagram_handle": "Instagram handle",
+      "youtube_channel": "YouTube channel URL",
+      "tiktok_handle": "TikTok handle",
+      "skip": "Skip",
+      "skip_setup": "Skip setup — I'll do this later",
+      "what_services": "What services do you offer?",
+      "what_services_desc": "Select all that apply — clients filter by these.",
+      "where_based": "Where are you based?",
+      "where_based_desc": "We use this to match you with nearby contractors.",
+      "add_more_photos": "Add more photos",
+      "click_to_upload": "Click to upload photos",
+      "trial_heading": "7 days free, on us 🐝",
+      "trial_desc": "Try WorkBee VIP free for 7 days. Then just {price}/month. Cancel anytime before your trial ends — no charge.",
+      "no_charges": "No charges for 7 days",
+      "start_trial": "Start free trial — card required",
+      "skip_to_dashboard": "Skip, take me to my dashboard",
+      "done_heading": "You're all set!",
+      "done_contractor": "Your profile is live. Start bidding on jobs and grow your business.",
+      "done_client": "Post your first job and get offers from vetted contractors.",
+      "done_influencer": "Your influencer profile is ready. Brands can now discover you.",
+      "go_to_dashboard": "Go to my dashboard"
     }
   }
 }

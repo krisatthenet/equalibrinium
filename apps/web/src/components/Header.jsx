@@ -79,7 +79,7 @@ const Header = () => {
               <BetaBadge />
               <div className="hidden lg:flex items-center gap-1.5 bg-muted/60 border border-border px-2.5 py-1 rounded-full text-xs text-muted-foreground">
                 <VytisIcon className="w-4 h-4 shrink-0" />
-                <span>Proud to be Lithuanian</span>
+                <span>{t('header.proud_lithuanian')}</span>
               </div>
             </div>
 
@@ -144,7 +144,7 @@ const Header = () => {
                       <DropdownMenuItem asChild className="rounded-lg cursor-pointer">
                         <Link to="/favourites" className="flex items-center gap-2 py-2">
                           <Heart className="h-4 w-4 text-rose-500" />
-                          Favourite Contractors
+                          {t('header.favourites')}
                         </Link>
                       </DropdownMenuItem>
                     )}
@@ -222,7 +222,7 @@ const Header = () => {
                     <Link to={getDashboardLink() + '?tab=messages'} onClick={() => setMobileMenuOpen(false)}>
                       <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-muted font-medium relative">
                         <MessageCircle className="h-4 w-4 mr-2" />
-                        Messages
+                        {t('header.messages')}
                         {unreadCount > 0 && (
                           <span className="ml-auto min-w-[20px] h-5 px-1 bg-primary text-primary-foreground text-[11px] font-bold rounded-full flex items-center justify-center">
                             {unreadCount > 99 ? '99+' : unreadCount}
@@ -234,7 +234,7 @@ const Header = () => {
                       <Link to="/favourites" onClick={() => setMobileMenuOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start text-foreground hover:bg-muted font-medium">
                           <Heart className="h-4 w-4 mr-2 text-rose-500" />
-                          Favourite Contractors
+                          {t('header.favourites')}
                         </Button>
                       </Link>
                     )}

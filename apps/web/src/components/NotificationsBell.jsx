@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Bell, BellDot, Hammer, CheckCircle2, Gavel, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ const timeAgo = (dateStr) => {
 };
 
 const NotificationsBell = ({ userId }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications(userId);
 
@@ -48,10 +50,10 @@ const NotificationsBell = ({ userId }) => {
 
       <PopoverContent align="end" className="w-80 p-0 bg-card border-border rounded-2xl shadow-xl overflow-hidden">
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-          <span className="font-semibold text-sm text-foreground">Notifications</span>
+          <span className="font-semibold text-sm text-foreground">{t('notifications.title')}</span>
           {unreadCount > 0 && (
             <button onClick={markAllRead} className="text-xs text-primary hover:underline">
-              Mark all read
+              {t('notifications.mark_all_read')}
             </button>
           )}
         </div>
@@ -59,7 +61,7 @@ const NotificationsBell = ({ userId }) => {
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-10 px-4 text-center">
             <Bell className="h-8 w-8 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground">No notifications yet</p>
+            <p className="text-sm text-muted-foreground">{t('notifications.empty')}</p>
           </div>
         ) : (
           <ScrollArea className="max-h-[380px]">
