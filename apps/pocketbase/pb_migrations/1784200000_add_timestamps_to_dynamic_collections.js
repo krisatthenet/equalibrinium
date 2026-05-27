@@ -10,34 +10,23 @@ migrate((app) => {
     try {
       const col = app.findCollectionByNameOrId(name);
 
-      let hasCreated = false;
-      let hasUpdated = false;
-      for (const f of col.fields.all()) {
-        if (f.name === "created") hasCreated = true;
-        if (f.name === "updated") hasUpdated = true;
-      }
+      // Remove first in case of a partial prior run, then re-add.
+      try { col.fields.removeByName("created"); } catch (_) {}
+      try { col.fields.removeByName("updated"); } catch (_) {}
 
-      if (!hasCreated) {
-        col.fields.add(new AutodateField({
-          name:     "created",
-          onCreate: true,
-          onUpdate: false,
-        }));
-      }
-      if (!hasUpdated) {
-        col.fields.add(new AutodateField({
-          name:     "updated",
-          onCreate: true,
-          onUpdate: true,
-        }));
-      }
+      col.fields.add(new AutodateField({
+        name:     "created",
+        onCreate: true,
+        onUpdate: false,
+      }));
+      col.fields.add(new AutodateField({
+        name:     "updated",
+        onCreate: true,
+        onUpdate: true,
+      }));
 
-      if (!hasCreated || !hasUpdated) {
-        app.save(col);
-        console.log(name + ": created/updated autodate fields added");
-      } else {
-        console.log(name + ": created/updated already present, skipping");
-      }
+      app.save(col);
+      console.log(name + ": created/updated autodate fields added");
     } catch (err) {
       console.error("add-timestamps failed for " + name + ": " + err.message);
     }
