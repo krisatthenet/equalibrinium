@@ -5,11 +5,13 @@
   "private": true,
   "scripts": {
     "dev": "vite --host :: --port 3000",
-    "build": "node tools/generate-llms.js || true && node tools/generate-sitemap.js || true && vite build --outDir ../../dist/apps/web",
-    "build:hostinger": "node tools/generate-llms.js || true && node tools/generate-sitemap.js || true && vite build --outDir ../../dist --emptyOutDir",
+    "check:i18n": "node tools/check-translations.js",
+    "build": "npm run check:i18n && (node tools/generate-llms.js || true) && (node tools/generate-sitemap.js || true) && vite build --outDir ../../dist/apps/web",
+    "build:hostinger": "npm run check:i18n && (node tools/generate-llms.js || true) && (node tools/generate-sitemap.js || true) && vite build --outDir ../../dist --emptyOutDir",
     "start": "vite preview --outDir ../../dist/apps/web --host :: --port 3000",
     "lint": "eslint . --quiet",
     "lint:warn": "eslint .",
+    "pretest": "npm run check:i18n",
     "test": "vitest run",
     "test:watch": "vitest"
   },
