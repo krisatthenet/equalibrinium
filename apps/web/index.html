@@ -36,11 +36,8 @@
 
 		<title>WorkBee - Susisiekite su kvalifikuotais specialistais visiems jūsų namų tobulinimo poreikiams</title>
 
-		<!-- reCAPTCHA — needed before form submit, load async -->
-		<script src="https://www.google.com/recaptcha/enterprise.js?render=6LdAefcsAAAAAFYK74a9iG6gRxH3YGI6p32DqW12" async defer></script>
-
-		<!-- Google Ads — async, non-blocking -->
-		<script async src="https://www.googletagmanager.com/gtag/js?id=AW-1020962052"></script>
+		<!-- reCAPTCHA: NO static script — useRecaptchaEnterprise hook injects it
+		     lazily only on pages that need it (Login, Register, Contact). -->
 
 		<!-- Splash screen styles — inline so they render before any JS loads -->
 		<style>
@@ -73,13 +70,26 @@
 		</div>
 		<script type="module" src="/src/main.jsx"></script>
 
-		<!-- Tracking scripts deferred to end of body — don't block splash screen -->
+		<!-- Google Ads: stub dataLayer immediately so gtag() calls never fail,
+		     then load the actual gtag.js only when the browser is idle. -->
 		<script>
 			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
+			function gtag(){window.dataLayer.push(arguments);}
+			window.gtag = gtag;
 			gtag('js', new Date());
 			gtag('config', 'AW-1020962052');
 			gtag('event', 'conversion', {'send_to': 'AW-1020962052/gCWUCMHhm7McEITK6uYD', 'value': 1.0, 'currency': 'EUR'});
+			function _loadGtag() {
+				var s = document.createElement('script');
+				s.async = true;
+				s.src = 'https://www.googletagmanager.com/gtag/js?id=AW-1020962052';
+				document.head.appendChild(s);
+			}
+			if ('requestIdleCallback' in window) {
+				requestIdleCallback(_loadGtag, { timeout: 5000 });
+			} else {
+				setTimeout(_loadGtag, 3000);
+			}
 		</script>
 
 		<!-- LinkedIn Insight Tag -->
