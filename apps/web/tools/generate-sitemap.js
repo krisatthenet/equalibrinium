@@ -4,7 +4,8 @@ import fs from 'fs';
 import path from 'path';
 
 const BASE_URL = 'https://workbee.space';
-const POCKETBASE_URL = process.env.VITE_POCKETBASE_URL;
+// Use the server-side PocketBase URL (set on Railway); fall back to Vite's public var
+const POCKETBASE_URL = process.env.POCKETBASE_URL || process.env.VITE_POCKETBASE_URL;
 
 const STATIC_ROUTES = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
@@ -20,14 +21,37 @@ const STATIC_ROUTES = [
   { path: '/cookie-policy', priority: '0.3', changefreq: 'yearly' },
 ];
 
-async function fetchIds(collection, filter) {
+async function getAdminToken() {
+  if (!POCKETBASE_URL) return null;
+  const email = process.env.POCKETBASE_ADMIN_EMAIL;
+  const password = process.env.POCKETBASE_ADMIN_PASSWORD;
+  if (!email || !password) return null;
+  try {
+    const res = await fetch(`${POCKETBASE_URL}/api/collections/_superusers/auth-with-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identity: email, password }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.token || null;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchIds(collection, filter, token) {
   if (!POCKETBASE_URL) return [];
 
   try {
     const params = new URLSearchParams({ fields: 'id', perPage: '500' });
     if (filter) params.set('filter', filter);
 
-    const res = await fetch(`${POCKETBASE_URL}/api/collections/${collection}/records?${params}`);
+    const headers = token ? { Authorization: token } : {};
+    const res = await fetch(
+      `${POCKETBASE_URL}/api/collections/${collection}/records?${params}`,
+      { headers },
+    );
     if (!res.ok) return [];
 
     const data = await res.json();
@@ -48,9 +72,11 @@ function urlEntry({ loc, priority, changefreq }) {
 }
 
 async function main() {
+  const token = await getAdminToken();
+
   const [masterIds, contractorIds] = await Promise.all([
-    fetchIds('masters', ''),
-    fetchIds('users', 'userType = "contractor"'),
+    fetchIds('users', 'userType = "master"', token),
+    fetchIds('users', 'userType = "contractor"', token),
   ]);
 
   const entries = [

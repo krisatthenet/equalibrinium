@@ -749,7 +749,7 @@ router.get('/escrow-status', requirePbAuth, async (req, res) => {
 
 // POST /stripe/webhook  — Stripe webhook (raw body, verified by signature)
 // ---------------------------------------------------------------------------
-router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+router.post('/webhook', async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -986,7 +986,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
   if (event.type === 'invoice.payment_failed') {
     const invoice = event.data.object;
-    logger.warn(`Payment failed for customer ${invoice.customer}, subscription ${invoice.subscription}`);
+    const subInfo = invoice.subscription ? `subscription ${invoice.subscription}` : 'no subscription (standalone invoice)';
+    logger.warn(`Payment failed for customer ${invoice.customer}, ${subInfo}`);
   }
 
   res.json({ received: true });
