@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext.jsx';
 import pb from '@/lib/pocketbaseClient.js';
-import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle, Zap, ShieldCheck, ArrowUpRight, Images, Plus } from 'lucide-react';
+import { FileText, Clock, CheckCircle, Settings, MapPin, Star, Loader2, Send, Eye, TrendingUp, Trophy, CalendarDays, Navigation, MessageCircle, Zap, ShieldCheck, ArrowUpRight, Images, Plus, Gift, Copy, CheckCheck, Share2 } from 'lucide-react';
 import apiServerClient from '@/lib/apiServerClient.js';
 import ConversationsInbox from '@/components/ConversationsInbox.jsx';
 
@@ -59,6 +59,7 @@ const ContractorDashboard = () => {
   const [showAvailability, setShowAvailability] = useState(false);
   const [subLoading, setSubLoading] = useState(false);
   const [portfolioOpen, setPortfolioOpen] = useState(false);
+  const [referralCopied, setReferralCopied] = useState(false);
   const { permission, requestPermission } = usePushNotifications(currentUser?.id);
 
   useEffect(() => {
@@ -681,6 +682,51 @@ const ContractorDashboard = () => {
                 />
               </CardContent>
             </Card>
+
+            {/* Referral card */}
+            {(() => {
+              const code = contractorProfile?.referralCode || ('WB' + (currentUser?.id || '').slice(0, 6).toUpperCase());
+              const link = `https://workbee.space/register?ref=${code}`;
+              const waLink = `https://wa.me/?text=${encodeURIComponent('Join WorkBee — Lithuania\'s contractor marketplace. Use my link: ' + link)}`;
+              const tgLink = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Join WorkBee 🐝')}`;
+              return (
+                <Card className="bg-card border-primary/20 rounded-2xl mb-6">
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Gift className="h-4 w-4 text-primary" />
+                      <p className="font-semibold text-foreground text-sm">Earn €10 per referral</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Share your link — you get €10 credit and 30 extra days on your plan for every person who joins.
+                    </p>
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        readOnly
+                        value={link}
+                        className="flex-1 min-w-0 text-xs bg-input border border-border rounded-lg px-3 py-2 text-foreground font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { navigator.clipboard.writeText(link); setReferralCopied(true); setTimeout(() => setReferralCopied(false), 2000); }}
+                        className="shrink-0 p-2 rounded-lg border border-border hover:bg-muted transition-colors"
+                      >
+                        {referralCopied ? <CheckCheck className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
+                      </button>
+                    </div>
+                    <div className="flex gap-2">
+                      <a href={waLink} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] text-xs font-medium transition-colors border border-[#25D366]/20">
+                        <Share2 className="h-3 w-3" /> WhatsApp
+                      </a>
+                      <a href={tgLink} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2AABEE]/10 hover:bg-[#2AABEE]/20 text-[#2AABEE] text-xs font-medium transition-colors border border-[#2AABEE]/20">
+                        <Share2 className="h-3 w-3" /> Telegram
+                      </a>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
 
             {activePanel && panels[activePanel] && (
               <Card className="bg-card border-border rounded-2xl mb-8">

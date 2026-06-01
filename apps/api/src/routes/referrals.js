@@ -17,21 +17,36 @@ async function adminPb() {
   return pb;
 }
 
-// GET /referrals/stats — authenticated user's referral stats
+// GET /referrals/stats — authenticated user's referral stats + history
 router.get('/stats', requirePbAuth, async (req, res) => {
   try {
     const pb = await adminPb();
     const userId = req.pbUser.id;
     const user = await pb.collection('users').getOne(userId);
 
-    const referrals = await pb.collection('referrals').getList(1, 200, {
+    const referrals = await pb.collection('referrals').getList(1, 50, {
       filter: `referrerId = "${userId}"`,
+      sort: '-rewardedAt',
     });
 
+    // Enrich each referral with the referred user's name
+    const history = await Promise.all(
+      referrals.items.map(async (r) => {
+        let name = 'Unknown';
+        try {
+          const referred = await pb.collection('users').getOne(r.referredId, { fields: 'id,name' });
+          name = referred.name || 'Unknown';
+        } catch (_) {}
+        return { id: r.id, date: r.rewardedAt, name, earned: 10 };
+      })
+    );
+
     res.json({
-      referralCode: user.referralCode || '',
-      referralLink: `${FRONTEND_URL}/register?ref=${user.referralCode || ''}`,
+      referralCode:   user.referralCode || '',
+      referralLink:   `${FRONTEND_URL}/register?ref=${user.referralCode || ''}`,
       totalReferrals: referrals.totalItems,
+      totalEarned:    referrals.totalItems * 10,
+      history,
     });
   } catch (err) {
     logger.error('referrals stats error:', err);

@@ -8,7 +8,7 @@ import apiServerClient from '@/lib/apiServerClient.js';
 import { useToast } from '@/hooks/use-toast';
 import {
   User, CreditCard, Shield, Camera, Loader2, CheckCircle2, ExternalLink,
-  UploadCloud, X, FileText, Zap, Check, Minus, Gift, Copy, CheckCheck
+  UploadCloud, X, FileText, Zap, Check, Minus, Gift, Copy, CheckCheck, Share2
 } from 'lucide-react';
 import PlanBadge from '@/components/PlanBadge.jsx';
 import { PLANS, PLAN_ORDER, formatLimit, getEffectivePlan, isInTrial } from '@/lib/plans';
@@ -96,38 +96,15 @@ const SettingsPage = () => {
     if (sub === 'success') toast({ title: 'Subscription activated!', description: 'Your plan has been upgraded.' });
     if (sub === 'cancel')  toast({ title: 'Checkout cancelled', description: 'No changes were made.' });
 
-    // Fetch referral stats directly from PocketBase — no Railway API needed
+    // Fetch referral stats + history from the API
     if (currentUser?.id) {
-      const ensureCode = async () => {
-        let code = currentUser.referralCode;
-        if (!code) {
-          code = 'WB' + currentUser.id.slice(0, 6).toUpperCase();
-          await pb.collection('users').update(currentUser.id, { referralCode: code }).catch(() => {});
-        }
-        return code;
-      };
-
-      ensureCode().then(code => {
-        pb.collection('referrals').getList(1, 1, {
-          filter: `referrerId = "${currentUser.id}"`,
-          $autoCancel: false,
+      apiServerClient.fetch('/referrals/stats')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data) setReferralStats(data);
         })
-          .then(result => {
-            setReferralStats({
-              referralCode: code,
-              referralLink: `https://workbee.space/register?ref=${code}`,
-              totalReferrals: result.totalItems,
-            });
-          })
-          .catch(() => {
-            setReferralStats({
-              referralCode: code,
-              referralLink: `https://workbee.space/register?ref=${code}`,
-              totalReferrals: 0,
-            });
-          })
-          .finally(() => setReferralStatsLoading(false));
-      });
+        .catch(() => {})
+        .finally(() => setReferralStatsLoading(false));
     } else {
       setReferralStatsLoading(false);
     }
@@ -1130,9 +1107,28 @@ const SettingsPage = () => {
                             {referralCopied ? <CheckCheck className="h-4 w-4 text-primary" /> : <Copy className="h-4 w-4" />}
                           </Button>
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mb-3">
                           Your code: <span className="font-mono font-bold text-foreground">{referralStats.referralCode}</span>
                         </p>
+                        {/* Share buttons */}
+                        <div className="flex flex-wrap gap-2">
+                          <a
+                            href={`https://wa.me/?text=${encodeURIComponent('Join WorkBee — the marketplace for skilled contractors in Lithuania. Use my link: ' + referralStats.referralLink)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] text-sm font-medium transition-colors border border-[#25D366]/20"
+                          >
+                            <Share2 className="h-3.5 w-3.5" /> WhatsApp
+                          </a>
+                          <a
+                            href={`https://t.me/share/url?url=${encodeURIComponent(referralStats.referralLink)}&text=${encodeURIComponent('Join WorkBee — the marketplace for skilled contractors in Lithuania 🐝')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#2AABEE]/10 hover:bg-[#2AABEE]/20 text-[#2AABEE] text-sm font-medium transition-colors border border-[#2AABEE]/20"
+                          >
+                            <Share2 className="h-3.5 w-3.5" /> Telegram
+                          </a>
+                        </div>
                       </>
                     ) : (
                       <p className="text-sm text-muted-foreground">Could not load referral link. Please refresh the page.</p>
@@ -1140,28 +1136,45 @@ const SettingsPage = () => {
                   </CardContent>
                 </Card>
 
-                {/* Stats */}
+                {/* Stats + History */}
                 <Card className="bg-card border-border rounded-2xl">
                   <CardHeader>
                     <CardTitle>Your Referrals</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-5">
                     {referralStatsLoading ? (
                       <div className="flex items-center gap-2 text-muted-foreground text-sm">
                         <Loader2 className="h-4 w-4 animate-spin" /> Loading stats…
                       </div>
                     ) : referralStats ? (
-                      <div className="flex items-center gap-6">
-                        <div className="text-center">
-                          <p className="text-3xl font-bold text-primary">{referralStats.totalReferrals}</p>
-                          <p className="text-xs text-muted-foreground mt-1">People referred</p>
+                      <>
+                        <div className="flex items-center gap-6">
+                          <div className="text-center">
+                            <p className="text-3xl font-bold text-primary">{referralStats.totalReferrals}</p>
+                            <p className="text-xs text-muted-foreground mt-1">People referred</p>
+                          </div>
+                          <div className="h-12 w-px bg-border" />
+                          <div className="text-center">
+                            <p className="text-3xl font-bold text-foreground">€{referralStats.totalEarned ?? referralStats.totalReferrals * 10}</p>
+                            <p className="text-xs text-muted-foreground mt-1">Credits earned</p>
+                          </div>
                         </div>
-                        <div className="h-12 w-px bg-border" />
-                        <div className="text-center">
-                          <p className="text-3xl font-bold text-foreground">€{referralStats.totalReferrals * 10}</p>
-                          <p className="text-xs text-muted-foreground mt-1">Credits earned</p>
-                        </div>
-                      </div>
+
+                        {referralStats.history?.length > 0 && (
+                          <div className="border border-border rounded-xl overflow-hidden">
+                            <div className="grid grid-cols-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground px-4 py-2 bg-muted/30 border-b border-border">
+                              <span>Name</span><span className="text-center">Date</span><span className="text-right">Earned</span>
+                            </div>
+                            {referralStats.history.map(r => (
+                              <div key={r.id} className="grid grid-cols-3 text-sm px-4 py-2.5 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                                <span className="font-medium text-foreground truncate">{r.name}</span>
+                                <span className="text-center text-muted-foreground">{new Date(r.date).toLocaleDateString()}</span>
+                                <span className="text-right font-semibold text-green-500">+€{r.earned}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <p className="text-sm text-muted-foreground">Could not load stats. Please refresh the page.</p>
                     )}

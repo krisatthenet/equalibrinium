@@ -432,18 +432,22 @@ router.post('/create-subscription-checkout', requirePbAuth, async (req, res) => 
       ? `${FRONTEND_URL}${successPath}`
       : `${FRONTEND_URL}/settings?subscription=success`;
 
+    // Determine trial days: explicit request (7) or earned referral reward (30), take the longer
+    const referralFreeMonths = Number(user.referralFreeMonths) || 0;
+    const trialDays = referralFreeMonths > 0 ? 30 : (trial ? 7 : 0);
+
     const sessionParams = {
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      metadata: { userId, plan, cycle },
+      metadata: { userId, plan, cycle, referralTrialApplied: referralFreeMonths > 0 ? '1' : '0' },
       success_url: successUrl,
       cancel_url:  `${FRONTEND_URL}/settings?subscription=cancel`,
       allow_promotion_codes: true,
     };
 
-    if (trial) {
-      sessionParams.subscription_data = { trial_period_days: 7 };
+    if (trialDays > 0) {
+      sessionParams.subscription_data = { trial_period_days: trialDays };
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);
@@ -796,6 +800,21 @@ router.post('/webhook', async (req, res) => {
           }
         } catch (err) {
           logger.error('Escrow webhook error:', err);
+        }
+      }
+      return res.json({ received: true });
+    }
+
+    // --- Clear referral free month once checkout completes (subscription mode) ---
+    if (session.mode === 'subscription' && session.metadata?.referralTrialApplied === '1') {
+      const { userId } = session.metadata;
+      if (userId) {
+        try {
+          const pb = await adminPb();
+          await pb.collection('users').update(userId, { referralFreeMonths: 0 });
+          logger.info(`referralFreeMonths cleared for user ${userId}`);
+        } catch (err) {
+          logger.error('referralFreeMonths clear error:', err);
         }
       }
       return res.json({ received: true });
