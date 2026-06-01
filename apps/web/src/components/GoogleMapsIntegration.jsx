@@ -75,8 +75,10 @@ const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
         const innerMap = await waitUntil(() => gmpRef.current?.innerMap);
         innerMapRef.current = innerMap;
 
-        // Apply options on innerMap (Google's example pattern)
-        innerMap.setOptions({ mapTypeControl: false });
+        // Apply options on innerMap (Google's example pattern).
+        // gestureHandling 'greedy' + scrollwheel so scroll always zooms the map —
+        // the default 'cooperative' mode requires Ctrl+scroll and feels broken.
+        innerMap.setOptions({ mapTypeControl: false, gestureHandling: 'greedy', scrollwheel: true });
         if (userLocation) innerMap.setCenter(userLocation);
         innerMap.setZoom(userLocation ? 11 : 7);
 
