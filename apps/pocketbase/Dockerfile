@@ -1,16 +1,14 @@
 FROM alpine:3.19
 ARG PB_VERSION=0.36.7
 
-RUN apk add --no-cache unzip ca-certificates curl
+RUN apk add --no-cache unzip ca-certificates
 
-# Fetch the PocketBase binary with curl + retries instead of Docker's `ADD <url>`,
-# which has no retry and fails the whole build on any transient GitHub/CDN blip
-# or rate-limit (the cause of the "Failed to build an image" deploys).
-RUN curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors \
-      -o /tmp/pb.zip \
-      "https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip" \
-    && unzip /tmp/pb.zip -d /pb/ \
-    && rm /tmp/pb.zip
+# Vendored PocketBase binary (linux_amd64), copied from the repo instead of
+# downloaded at build time. Fetching from GitHub releases during the build
+# (ADD/curl) repeatedly failed the Railway image build on network/CDN issues;
+# copying a committed artifact makes the build fully self-contained.
+COPY pocketbase_0.36.7_linux_amd64.zip /tmp/pb.zip
+RUN unzip /tmp/pb.zip -d /pb/ && rm /tmp/pb.zip
 
 ARG CACHEBUST=33
 RUN echo "Cache bust: $CACHEBUST"
