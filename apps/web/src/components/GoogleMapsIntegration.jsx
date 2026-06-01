@@ -52,6 +52,7 @@ const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
     const poll = () => {
       const inner = gmpMapRef.current?.innerMap;
       if (inner) {
+        inner.setOptions({ gestureHandling: 'greedy', scrollwheel: true });
         if (userLocation) inner.setCenter(userLocation);
         inner.setZoom(userLocation ? 11 : 7);
         infoWindowRef.current = new window.google.maps.InfoWindow();
@@ -185,7 +186,7 @@ const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
 
   return (
     <div style={{ isolation: 'isolate', position: 'relative', zIndex: 0 }}>
-      <div className="relative w-full rounded-xl overflow-hidden border border-border shadow-sm">
+      <div className="relative w-full rounded-xl border border-border shadow-sm" style={{ overflow: 'clip' }}>
         <gmp-map
           ref={gmpMapRef}
           center={`${LT_CENTER.lat},${LT_CENTER.lng}`}
