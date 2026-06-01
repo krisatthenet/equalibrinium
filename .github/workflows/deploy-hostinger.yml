@@ -40,11 +40,22 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           # Best-effort host-key prefetch — never abort the step on keyscan
-          # failure/timeout (default 5s) under `bash -e`.
-          ssh-keyscan -p 65002 lt-bnk-web508.main-hosting.eu >> ~/.ssh/known_hosts 2>/dev/null || true
+          # failure/timeout (default 5s) under `bash -e`. Force IPv4 (-4):
+          # the host has an AAAA record but GitHub runners often lack IPv6
+          # egress, so IPv6 attempts fail with "Network is unreachable".
+          ssh-keyscan -4 -p 65002 lt-bnk-web508.main-hosting.eu >> ~/.ssh/known_hosts 2>/dev/null || true
           # accept-new lets rsync trust the host on first connect even if the
           # keyscan above produced nothing, instead of failing host verification.
-          rsync -avz --delete \
-            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=accept-new -p 65002" \
-            dist/apps/web/ \
-            u168231407@lt-bnk-web508.main-hosting.eu:/home/u168231407/domains/workbee.space/public_html/
+          # Retry a few times to ride out transient runner/network blips.
+          ok=0
+          for attempt in 1 2 3; do
+            if rsync -avz --delete \
+              -e "ssh -4 -i ~/.ssh/id_rsa -o StrictHostKeyChecking=accept-new -o ConnectTimeout=20 -p 65002" \
+              dist/apps/web/ \
+              u168231407@lt-bnk-web508.main-hosting.eu:/home/u168231407/domains/workbee.space/public_html/; then
+              ok=1; break
+            fi
+            echo "rsync attempt $attempt failed; retrying in 15s..."
+            sleep 15
+          done
+          [ "$ok" = "1" ] || { echo "All rsync attempts failed"; exit 1; }
