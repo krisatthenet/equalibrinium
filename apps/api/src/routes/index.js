@@ -11,6 +11,7 @@ import reachRouter from './reach.js';
 import chatRouter from './chat.js';
 import ticketsRouter from './tickets.js';
 import reviewsRouter from './reviews.js';
+import twitchRouter from './twitch.js';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ export default () => {
   router.use('/chat', chatRouter);
   router.use('/tickets', ticketsRouter);
   router.use('/reviews', reviewsRouter);
+  router.use('/twitch', twitchRouter);
 
   return router;
 };
