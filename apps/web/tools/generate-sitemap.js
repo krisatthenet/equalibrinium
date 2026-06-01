@@ -7,19 +7,41 @@ const BASE_URL = 'https://workbee.space';
 // Use the server-side PocketBase URL (set on Railway); fall back to Vite's public var
 const POCKETBASE_URL = process.env.POCKETBASE_URL || process.env.VITE_POCKETBASE_URL;
 
+// Must stay in sync with apps/web/src/lib/categoryLanding.js
+const CATEGORY_KEYS = [
+  'plumbers', 'electricians', 'painters', 'carpenters', 'cleaners',
+  'flooring', 'tile-layers', 'furniture-assembly', 'finishing-works',
+  'wallpapering', 'nannies', 'tutors', 'coaches',
+];
+const LOCATION_KEYS = [
+  'vilnius', 'kaunas', 'klaipeda', 'siauliai', 'panevezys', 'alytus', 'marijampole',
+];
+
 const STATIC_ROUTES = [
-  { path: '/', priority: '1.0', changefreq: 'weekly' },
-  { path: '/masters', priority: '0.9', changefreq: 'daily' },
-  { path: '/contractors', priority: '0.9', changefreq: 'daily' },
-  { path: '/locator', priority: '0.8', changefreq: 'weekly' },
-  { path: '/pricing', priority: '0.7', changefreq: 'monthly' },
-  { path: '/register', priority: '0.6', changefreq: 'monthly' },
-  { path: '/login', priority: '0.5', changefreq: 'monthly' },
-  { path: '/contact', priority: '0.6', changefreq: 'monthly' },
+  { path: '/',               priority: '1.0', changefreq: 'weekly' },
+  { path: '/masters',        priority: '0.9', changefreq: 'daily' },
+  { path: '/contractors',    priority: '0.9', changefreq: 'daily' },
+  { path: '/locator',        priority: '0.8', changefreq: 'weekly' },
+  { path: '/pricing',        priority: '0.7', changefreq: 'monthly' },
+  { path: '/register',       priority: '0.6', changefreq: 'monthly' },
+  { path: '/login',          priority: '0.5', changefreq: 'monthly' },
+  { path: '/contact',        priority: '0.6', changefreq: 'monthly' },
   { path: '/privacy-policy', priority: '0.3', changefreq: 'yearly' },
   { path: '/terms-of-service', priority: '0.3', changefreq: 'yearly' },
-  { path: '/cookie-policy', priority: '0.3', changefreq: 'yearly' },
+  { path: '/cookie-policy',  priority: '0.3', changefreq: 'yearly' },
 ];
+
+// Country-wide service pages: /plumbers, /electricians …
+const CATEGORY_ROUTES = CATEGORY_KEYS.map(cat => ({
+  path: `/${cat}`, priority: '0.8', changefreq: 'weekly',
+}));
+
+// City × service pages: /plumbers-vilnius, /electricians-kaunas …
+const LANDING_ROUTES = CATEGORY_KEYS.flatMap(cat =>
+  LOCATION_KEYS.map(loc => ({
+    path: `/${cat}-${loc}`, priority: '0.7', changefreq: 'weekly',
+  })),
+);
 
 async function getAdminToken() {
   if (!POCKETBASE_URL) return null;
@@ -79,8 +101,14 @@ async function main() {
     fetchIds('users', 'userType = "contractor"', token),
   ]);
 
+  const allRoutes = [
+    ...STATIC_ROUTES,
+    ...CATEGORY_ROUTES,
+    ...LANDING_ROUTES,
+  ];
+
   const entries = [
-    ...STATIC_ROUTES.map(r => urlEntry({ loc: `${BASE_URL}${r.path}`, priority: r.priority, changefreq: r.changefreq })),
+    ...allRoutes.map(r => urlEntry({ loc: `${BASE_URL}${r.path}`, priority: r.priority, changefreq: r.changefreq })),
     ...masterIds.map(id => urlEntry({ loc: `${BASE_URL}/master/${id}`, priority: '0.7', changefreq: 'weekly' })),
     ...contractorIds.map(id => urlEntry({ loc: `${BASE_URL}/contractor/${id}`, priority: '0.7', changefreq: 'weekly' })),
   ];
@@ -95,8 +123,9 @@ async function main() {
   const outputPath = path.join(process.cwd(), 'public', 'sitemap.xml');
   fs.writeFileSync(outputPath, xml, 'utf8');
 
-  const total = STATIC_ROUTES.length + masterIds.length + contractorIds.length;
-  console.log(`✅ sitemap.xml generated (${total} URLs: ${masterIds.length} masters, ${contractorIds.length} contractors)`);
+  const landingCount = CATEGORY_ROUTES.length + LANDING_ROUTES.length;
+  const total = allRoutes.length + masterIds.length + contractorIds.length;
+  console.log(`✅ sitemap.xml generated (${total} URLs: ${landingCount} landing pages, ${masterIds.length} masters, ${contractorIds.length} contractors)`);
 }
 
 main();

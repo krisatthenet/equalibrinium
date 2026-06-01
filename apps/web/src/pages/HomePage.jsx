@@ -39,6 +39,7 @@ import FireworksIntro from '@/components/FireworksIntro.jsx';
 import LeadCapturePopup from '@/components/LeadCapturePopup.jsx';
 import PartnersSection from '@/components/PartnersSection.jsx';
 import TwitchSection from '@/components/TwitchSection.jsx';
+import PopularSearches from '@/components/PopularSearches.jsx';
 import ChatWidget from '@/components/ChatWidget.jsx';
 
 const CONFETTI_COLORS = [
@@ -477,6 +478,7 @@ const HomePage = () => {
           </div>
         </section>
 
+        <PopularSearches />
         <Footer />
       </div>
       <ChatWidget />
