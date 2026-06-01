@@ -16,48 +16,33 @@
 		<meta name="twitter:description" content="Connect with qualified specialists for all your home improvement needs." />
 		<meta name="twitter:image" content="https://workbee.space/logo-192.png" />
 		<meta name="theme-color" content="#0a0a0a" />
-	<meta name="color-scheme" content="dark" />
+		<meta name="color-scheme" content="dark" />
 		<link rel="manifest" href="/manifest.json" />
+
+		<!-- Preconnect to critical origins so the browser opens connections early -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link rel="preconnect" href="https://maps.googleapis.com" />
+		<link rel="preconnect" href="https://maps.gstatic.com" crossorigin />
+		<link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+		<link rel="dns-prefetch" href="https://snap.licdn.com" />
+		<link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+		<!-- Preload the LCP element (logo shown in splash screen) -->
+		<link rel="preload" href="/logo.svg" as="image" type="image/svg+xml" />
+
+		<!-- Google Fonts — <link> instead of CSS @import avoids render-blocking -->
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" />
+
 		<title>WorkBee - Susisiekite su kvalifikuotais specialistais visiems jūsų namų tobulinimo poreikiams</title>
+
+		<!-- reCAPTCHA — needed before form submit, load async -->
 		<script src="https://www.google.com/recaptcha/enterprise.js?render=6LdAefcsAAAAAFYK74a9iG6gRxH3YGI6p32DqW12" async defer></script>
-		<!-- LinkedIn Insight Tag -->
-		<script type="text/javascript">
-			_linkedin_partner_id = "10227153";
-			window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
-			window._linkedin_data_partner_ids.push(_linkedin_partner_id);
-		</script>
-		<script type="text/javascript">
-			(function(l) {
-			if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};
-			window.lintrk.q=[]}
-			var s = document.getElementsByTagName("script")[0];
-			var b = document.createElement("script");
-			b.type = "text/javascript";b.async = true;
-			b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
-			s.parentNode.insertBefore(b, s);})(window.lintrk);
-		</script>
-		<noscript>
-			<img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=10227153&fmt=gif" />
-		</noscript>
-		<!-- Google Ads -->
+
+		<!-- Google Ads — async, non-blocking -->
 		<script async src="https://www.googletagmanager.com/gtag/js?id=AW-1020962052"></script>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			function gtag(){dataLayer.push(arguments);}
-			gtag('js', new Date());
-			gtag('config', 'AW-1020962052');
-		</script>
-		<!-- Google Ads: Page view conversion -->
-		<script>
-			gtag('event', 'conversion', {
-				'send_to': 'AW-1020962052/gCWUCMHhm7McEITK6uYD',
-				'value': 1.0,
-				'currency': 'EUR'
-			});
-		</script>
-		<meta name="google-adsense-account" content="ca-pub-7085633494270374">
-		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7085633494270374" crossorigin="anonymous"></script>
-		<script src="https://cdn-reach.hostinger.com/js/embed.js" async defer></script>
+
+		<!-- Splash screen styles — inline so they render before any JS loads -->
 		<style>
 			#splash{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:24px}
 			#splash-logo{width:72px;height:72px;animation:sp-pulse 1.8s ease-in-out infinite}
@@ -82,10 +67,42 @@
 		<div id="root">
 			<div id="splash">
 				<div id="sp-bee">🐝</div>
-				<img id="splash-logo" src="/logo.svg" alt="WorkBee" />
+				<img id="splash-logo" src="/logo.svg" alt="WorkBee" fetchpriority="high" />
 				<div id="splash-bar-wrap"><div id="splash-bar"></div></div>
 			</div>
 		</div>
 		<script type="module" src="/src/main.jsx"></script>
+
+		<!-- Tracking scripts deferred to end of body — don't block splash screen -->
+		<script>
+			window.dataLayer = window.dataLayer || [];
+			function gtag(){dataLayer.push(arguments);}
+			gtag('js', new Date());
+			gtag('config', 'AW-1020962052');
+			gtag('event', 'conversion', {'send_to': 'AW-1020962052/gCWUCMHhm7McEITK6uYD', 'value': 1.0, 'currency': 'EUR'});
+		</script>
+
+		<!-- LinkedIn Insight Tag -->
+		<script>
+			_linkedin_partner_id = "10227153";
+			window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+			window._linkedin_data_partner_ids.push(_linkedin_partner_id);
+			(function(l) {
+				if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]}
+				var s = document.getElementsByTagName("script")[0];
+				var b = document.createElement("script");
+				b.type = "text/javascript"; b.async = true;
+				b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+				s.parentNode.insertBefore(b, s);
+			})(window.lintrk);
+		</script>
+		<noscript><img height="1" width="1" style="display:none;" alt="" src="https://px.ads.linkedin.com/collect/?pid=10227153&fmt=gif" /></noscript>
+
+		<!-- AdSense — deferred so it never blocks initial render -->
+		<meta name="google-adsense-account" content="ca-pub-7085633494270374">
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7085633494270374" crossorigin="anonymous"></script>
+
+		<!-- Hostinger Reach embed -->
+		<script src="https://cdn-reach.hostinger.com/js/embed.js" async defer></script>
 	</body>
 </html>

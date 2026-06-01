@@ -324,13 +324,34 @@ export default defineConfig({
 	},
 	build: {
 		outDir: '../../dist/apps/web',
+		chunkSizeWarningLimit: 600,
 		rollupOptions: {
 			external: [
 				'@babel/parser',
 				'@babel/traverse',
 				'@babel/generator',
 				'@babel/types'
-			]
-		}
+			],
+			output: {
+				manualChunks(id) {
+					if (!id.includes('node_modules')) return;
+					// Heavy vendor libs — split so browser loads them in parallel
+					if (id.includes('framer-motion') || id.includes('framesync') || id.includes('popmotion') || id.includes('style-value-types')) return 'vendor-motion';
+					if (id.includes('@radix-ui')) return 'vendor-radix';
+					if (id.includes('@googlemaps')) return 'vendor-maps';
+					if (id.includes('pocketbase')) return 'vendor-pb';
+					if (id.includes('i18next') || id.includes('react-i18next')) return 'vendor-i18n';
+					if (id.includes('lucide-react')) return 'vendor-icons';
+					if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) return 'vendor-react';
+					if (id.includes('@stripe') || id.includes('stripe')) return 'vendor-stripe';
+					if (id.includes('zod') || id.includes('@hookform') || id.includes('react-hook-form')) return 'vendor-forms';
+					if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) return 'vendor-charts';
+					if (id.includes('embla-carousel') || id.includes('cmdk') || id.includes('vaul') || id.includes('sonner')) return 'vendor-ui-extras';
+					if (id.includes('date-fns') || id.includes('dayjs') || id.includes('luxon')) return 'vendor-dates';
+					if (id.includes('@tanstack')) return 'vendor-tanstack';
+					return 'vendor-misc';
+				},
+			},
+		},
 	}
 });
