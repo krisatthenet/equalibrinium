@@ -186,7 +186,7 @@ const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
 
   return (
     <div style={{ isolation: 'isolate', position: 'relative', zIndex: 0 }}>
-      <div className="relative w-full rounded-xl border border-border shadow-sm" style={{ overflow: 'clip' }}>
+      <div className="relative w-full rounded-xl overflow-hidden border border-border shadow-sm">
         <gmp-map
           ref={gmpMapRef}
           center={`${LT_CENTER.lat},${LT_CENTER.lng}`}
