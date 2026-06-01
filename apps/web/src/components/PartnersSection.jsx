@@ -26,6 +26,18 @@ const partners = [
     cta: 'Find a DM',
     href: 'https://fantastas.lt',
   },
+  {
+    key: 'columbus',
+    accent: 'from-yellow-500 to-amber-600',
+    shadow: 'shadow-amber-500/20',
+    initial: 'C',
+    name: 'Columbus Records',
+    label: 'Official Partner',
+    tagline: 'Creativity, collaboration, passion. 🎵',
+    description: "Lithuanian hip-hop, trap & garage rock label — producing original music and live events with artists across Lithuania.",
+    cta: 'Discover artists',
+    href: 'https://columbus-records.com',
+  },
 ];
 
 const PartnerCard = ({ accent, shadow, initial, name, label, tagline, description, cta, href }) => (
@@ -73,7 +85,7 @@ const PartnersSection = () => (
       <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground text-center mb-6">
         Our Partners
       </p>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {partners.map(p => <PartnerCard key={p.key} {...p} />)}
       </div>
     </div>
