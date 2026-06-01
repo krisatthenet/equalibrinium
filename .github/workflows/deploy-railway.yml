@@ -1,0 +1,54 @@
+name: Deploy Backend to Railway (Production)
+
+# Railway's native GitHub integration was not auto-deploying backend changes,
+# so deploys are driven explicitly here via the Railway CLI. `railway up` runs
+# from the repo root so the uploaded snapshot keeps apps/pocketbase &amp; apps/api
+# at the paths each service's Root Directory expects (running it from inside the
+# subdir produces an "lstat apps: no such file" build failure).
+#
+# Requires a repository secret RAILWAY_TOKEN — a *project*-scoped token for the
+# Workbee.space project / production environment (Railway → project → Settings →
+# Tokens). Per-service deploys are gated on which path actually changed.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'apps/pocketbase/**'
+      - '.github/workflows/deploy-railway.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: railway-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - uses: dorny/paths-filter@v3.0.2
+        id: changes
+        with:
+          filters: |
+            pocketbase:
+              - 'apps/pocketbase/**'
+            api:
+              - 'apps/api/**'
+
+      - name: Install Railway CLI
+        run: npm i -g @railway/cli
+
+      - name: Deploy PocketBase
+        if: steps.changes.outputs.pocketbase == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service workbee-pocketbase-caYJ --ci
+
+      - name: Deploy API
+        if: steps.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service workbee-api--Zfq --ci

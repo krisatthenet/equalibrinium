@@ -1,0 +1,18 @@
+# Root .railwayignore — used when `railway up` runs from the repo root so the
+# snapshot keeps apps/pocketbase at the path the service's Root Directory expects.
+# Exclude heavy/irrelevant trees; the pocketbase build only needs apps/pocketbase.
+.git/
+node_modules/
+node-v26.0.0-win-x64/
+dist/
+# apps/web is deployed to Hostinger, never to Railway — safe to exclude.
+# Keep apps/api and apps/pocketbase: each Railway service picks its own subdir
+# via its Root Directory, so both must stay in the uploaded snapshot.
+apps/web/
+# within apps/pocketbase: keep the linux zip + migrations/hooks, drop the rest
+apps/pocketbase/pb_data/
+apps/pocketbase/pocketbase
+apps/pocketbase/pocketbase.exe
+apps/pocketbase/pocketbase.zip
+apps/pocketbase/pb_migrations_disabled/
+apps/pocketbase/pb_snapshots/
