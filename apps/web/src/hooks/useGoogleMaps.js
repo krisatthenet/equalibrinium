@@ -1,53 +1,37 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
-let mapsPromise = null;
+const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
+  || 'AIzaSyA73M8t4gfdSqBz3-tiHHo2YQdqXxw3B7c';
 
-function loadMaps(apiKey) {
-  if (window.google?.maps?.places) return Promise.resolve();
-  if (mapsPromise) return mapsPromise;
-
-  mapsPromise = new Promise((resolve, reject) => {
-    const callbackName = '__googleMapsLoaded';
-    window[callbackName] = () => {
-      delete window[callbackName];
-      resolve();
-    };
-
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,marker&callback=${callbackName}`;
-    script.async = true;
-    script.defer = true;
-    script.onerror = () => {
-      mapsPromise = null; // allow retry on next mount
-      reject(new Error('Google Maps script failed to load'));
-    };
-    document.head.appendChild(script);
-  });
-
-  return mapsPromise;
+/**
+ * Install Google's official Maps bootstrap loader (runs once globally).
+ * Sets up google.maps.importLibrary() without fetching the full API yet.
+ * The actual Maps JS is only downloaded when importLibrary() is first called.
+ */
+export function installMapsBootstrap() {
+  if (window.google?.maps?.importLibrary) return;
+  /* eslint-disable */
+  (g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})({key: API_KEY, v: "weekly"});
+  /* eslint-enable */
 }
 
+/**
+ * Loads the Maps Places library (needed for autocomplete components).
+ * Returns { isLoaded, loadError }.
+ */
 export const useGoogleMaps = () => {
-  const [isLoaded, setIsLoaded] = useState(!!(window.google?.maps?.places));
+  const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    if (isLoaded) return;
+    if (window.google?.maps?.places) { setIsLoaded(true); return; }
 
-    const envKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-    const apiKey = (!envKey || envKey === 'YOUR_GOOGLE_MAPS_API_KEY')
-      ? 'AIzaSyA73M8t4gfdSqBz3-tiHHo2YQdqXxw3B7c'
-      : envKey;
+    installMapsBootstrap();
 
-    loadMaps(apiKey)
+    window.google.maps.importLibrary('places')
       .then(() => setIsLoaded(true))
-      .catch((e) => setLoadError(e));
-  }, [isLoaded]);
+      .catch(e => setLoadError(e));
+  }, []);
 
-  const initMap = useCallback((mapElement, options) => {
-    if (!isLoaded || !window.google) return null;
-    return new window.google.maps.Map(mapElement, options);
-  }, [isLoaded]);
-
-  return { isLoaded, loadError, initMap };
+  return { isLoaded, loadError };
 };
