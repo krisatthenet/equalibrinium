@@ -18,6 +18,7 @@ import Footer from '@/components/Footer.jsx';
 import ProfessionSelector from '@/components/ProfessionSelector.jsx';
 import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
 import SocialAuthButtons from '@/components/SocialAuthButtons.jsx';
+import { isValidPersonalCode, isValidIBAN, normaliseIBAN } from '@/lib/ltValidation.js';
 
 const RegistrationPage = () => {
   const { t } = useTranslation();
@@ -45,6 +46,9 @@ const RegistrationPage = () => {
     phone: '',
     location: '',
     profession: '',
+    personalCode: '',
+    businessCode: '',
+    iban: '',
     instagramHandle: '',
     instagramFollowers: '',
     youtubeChannel: '',
@@ -66,9 +70,23 @@ const RegistrationPage = () => {
       return;
     }
 
-    if (userType === 'contractor' && !formData.profession) {
-      setError('Please select a profession');
-      return;
+    if (userType === 'contractor') {
+      if (!formData.profession) {
+        setError(t('auth.err_profession'));
+        return;
+      }
+      if (!isValidPersonalCode(formData.personalCode)) {
+        setError(t('auth.err_personal_code'));
+        return;
+      }
+      if (!formData.businessCode.trim()) {
+        setError(t('auth.err_business_code'));
+        return;
+      }
+      if (!isValidIBAN(formData.iban)) {
+        setError(t('auth.err_iban'));
+        return;
+      }
     }
 
     if (formData.password !== formData.passwordConfirm) {
@@ -104,7 +122,24 @@ const RegistrationPage = () => {
         extraData.influencerBio = formData.influencerBio;
       }
 
-      await signup(formData.email, formData.password, userType, extraData);
+      const newUser = await signup(formData.email, formData.password, userType, extraData);
+
+      // Store sensitive compliance data in the owner-scoped contractor_kyc
+      // collection (kept off the publicly-listable users record). signup()
+      // authenticates the new user, so this create passes the owner rule.
+      if (userType === 'contractor') {
+        try {
+          await pb.collection('contractor_kyc').create({
+            userId: newUser.id,
+            personalCode: formData.personalCode.trim(),
+            businessCode: formData.businessCode.trim(),
+            iban: normaliseIBAN(formData.iban),
+          });
+        } catch (kycErr) {
+          console.error('KYC save failed:', kycErr);
+        }
+      }
+
       navigate('/onboarding', { replace: true });
 
     } catch (err) {
@@ -271,12 +306,48 @@ const RegistrationPage = () => {
                     {userType === 'contractor' && (
                       <div className="space-y-2 md:col-span-2">
                         <Label htmlFor="profession">{t('auth.profession')}</Label>
-                        <ProfessionSelector 
-                          value={formData.profession} 
-                          onChange={handleProfessionChange} 
+                        <ProfessionSelector
+                          value={formData.profession}
+                          onChange={handleProfessionChange}
                           required={true}
                         />
                       </div>
+                    )}
+
+                    {userType === 'contractor' && (
+                      <>
+                        <div className="space-y-2 md:col-span-2 pt-2">
+                          <p className="text-sm font-medium text-foreground">{t('auth.compliance_heading')}</p>
+                          <p className="text-xs text-muted-foreground">{t('auth.compliance_note')}</p>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="personalCode">{t('auth.personal_code')}</Label>
+                          <Input
+                            id="personalCode" name="personalCode" type="text" inputMode="numeric"
+                            required maxLength={11} placeholder="49001011234"
+                            value={formData.personalCode} onChange={handleChange}
+                            className="bg-input border-border text-foreground rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="businessCode">{t('auth.business_code')}</Label>
+                          <Input
+                            id="businessCode" name="businessCode" type="text"
+                            required placeholder={t('auth.business_code_ph')}
+                            value={formData.businessCode} onChange={handleChange}
+                            className="bg-input border-border text-foreground rounded-lg"
+                          />
+                        </div>
+                        <div className="space-y-2 md:col-span-2">
+                          <Label htmlFor="iban">{t('auth.iban')}</Label>
+                          <Input
+                            id="iban" name="iban" type="text"
+                            required placeholder="LT12 1000 0111 0100 1000"
+                            value={formData.iban} onChange={handleChange}
+                            className="bg-input border-border text-foreground rounded-lg"
+                          />
+                        </div>
+                      </>
                     )}
 
                     {userType !== 'influencer' && (
