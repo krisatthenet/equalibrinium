@@ -218,7 +218,10 @@ if (window.navigation && window.self !== window.top) {
 const addTransformIndexHtml = {
 	name: 'add-transform-index-html',
 	transformIndexHtml(html) {
-		const tags = [
+		// Horizons IDE monitoring scripts are only injected in dev mode.
+		// In production they patch window.fetch and console.error globally,
+		// causing spurious errors and interfering with third-party scripts.
+		const tags = isDev ? [
 			{
 				tag: 'script',
 				attrs: { type: 'module' },
@@ -249,7 +252,7 @@ const addTransformIndexHtml = {
 				children: configNavigationHandler,
 				injectTo: 'head',
 			},
-		];
+		] : [];
 
 		if (!isDev && process.env.TEMPLATE_BANNER_SCRIPT_URL && process.env.TEMPLATE_REDIRECT_URL) {
 			tags.push(
@@ -335,14 +338,18 @@ export default defineConfig({
 			output: {
 				manualChunks(id) {
 					if (!id.includes('node_modules')) return;
-					// Heavy vendor libs — split so browser loads them in parallel
+					// Heavy independent libs — safe to split because they don't share
+					// module-level React state with the main app bundle.
+					// react / react-dom / react-router are intentionally NOT split —
+					// a separate vendor-react chunk caused "Cannot set properties of
+					// undefined (setting 'Children')" because vendor-misc packages
+					// that depend on React tried to run before vendor-react initialised.
 					if (id.includes('framer-motion') || id.includes('framesync') || id.includes('popmotion') || id.includes('style-value-types')) return 'vendor-motion';
 					if (id.includes('@radix-ui')) return 'vendor-radix';
 					if (id.includes('@googlemaps')) return 'vendor-maps';
 					if (id.includes('pocketbase')) return 'vendor-pb';
 					if (id.includes('i18next') || id.includes('react-i18next')) return 'vendor-i18n';
 					if (id.includes('lucide-react')) return 'vendor-icons';
-					if (id.includes('react-dom') || id.includes('react-router') || id.includes('/react/')) return 'vendor-react';
 					if (id.includes('@stripe') || id.includes('stripe')) return 'vendor-stripe';
 					if (id.includes('zod') || id.includes('@hookform') || id.includes('react-hook-form')) return 'vendor-forms';
 					if (id.includes('recharts') || id.includes('d3-') || id.includes('victory')) return 'vendor-charts';
