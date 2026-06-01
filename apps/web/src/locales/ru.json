@@ -291,7 +291,8 @@
       "rate_agreed": "€{{rate}} согласовано",
       "client_contact": "Контакт клиента",
       "bid_accepted_reach_out": "Ваше предложение принято! Свяжитесь с клиентом:",
-      "mark_completed": "Отметить как выполненное"
+      "mark_completed": "Отметить как выполненное",
+      "bid_expired": "Предложение истекло"
     },
     "upload": {
       "uploadImagesOrPdf": "Загрузить изображения или PDF",

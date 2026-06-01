@@ -675,7 +675,7 @@ router.post('/release-escrow', requirePbAuth, async (req, res) => {
           type: 'recurring_job',
           title: 'Recurring job re-posted',
           body: `Your ${ticket.recurringFrequency} job has been automatically posted. Review or cancel it anytime.`,
-          link: `/tickets/${nextTicket.id}`,
+          link: `/auction-ticket/${nextTicket.id}`,
           read: false,
         }).catch(() => {});
 

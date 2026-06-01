@@ -12,7 +12,7 @@ migrate((app) => {
     ],
     listRule:   '@request.auth.id != ""',
     viewRule:   '@request.auth.id != ""',
-    createRule: '@request.auth.id != ""',
+    createRule: 'contractorId = @request.auth.id',
     updateRule: 'contractorId = @request.auth.id',
     deleteRule: 'contractorId = @request.auth.id',
   });

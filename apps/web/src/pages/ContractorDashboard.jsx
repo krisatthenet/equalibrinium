@@ -152,7 +152,7 @@ const ContractorDashboard = () => {
   const getBidTimeRemaining = (bid) => {
     if (!bid.expiresAt) return null;
     const ms = new Date(bid.expiresAt) - now;
-    if (ms <= 0) return 'Pasiūlymas baigėsi';
+    if (ms <= 0) return t('auction.bid_expired');
     const h = Math.floor(ms / 3600000);
     const m = Math.floor((ms % 3600000) / 60000);
     if (h >= 24) return `${Math.floor(h / 24)}d ${h % 24}h`;
@@ -269,7 +269,7 @@ const ContractorDashboard = () => {
     },
     {
       key: 'pending',
-      label: 'Mano pasiūlymai',
+      label: t('auction.my_bids'),
       value: pendingBids.length,
       icon: <Clock className="h-6 w-6 text-orange-500" />,
       bg: 'bg-orange-500/10',
@@ -457,7 +457,7 @@ const ContractorDashboard = () => {
       ),
     },
     pending: {
-      title: 'Mano pasiūlymai',
+      title: t('auction.my_bids'),
       icon: <Clock className="h-5 w-5 text-orange-500" />,
       content: loading ? (
         <div className="space-y-4">{[...Array(3)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}</div>

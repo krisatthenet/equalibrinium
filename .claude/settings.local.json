@@ -27,7 +27,25 @@
       "Bash(cp /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations_disabled/1773525764_002_seed_categories_6_records.js /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations/)",
       "Bash(cp /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations_disabled/1773550991_002_seed_categories_3_records.js /Users/kristupas.gelzinis/Documents/GitHub/equalibrinium/apps/pocketbase/pb_migrations/)",
       "Bash(python3 -m json.tool)",
-      "WebFetch(domain:storage.googleapis.com)"
+      "WebFetch(domain:storage.googleapis.com)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(railway status *)",
+      "Bash(cat .env)",
+      "Bash(cat .env.local)",
+      "Bash(cat .env.example)",
+      "Bash(npx playwright *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('token ok' if 'token' in d else d.get\\('message','no message'\\)\\)\")",
+      "Bash(node *)",
+      "Bash(npm list *)",
+      "Bash(npm install *)",
+      "Bash(Write-Output *)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(grep -o '\"message\":\"[^\"]*\"\\\\|\"token\":\".\\\\{0,30\\\\}')",
+      "Bash(git -C \"C:/Users/elekt/Documents/GitHub/equalibrinium\" add apps/pocketbase/pb_migrations/1784600000_create_portfolio_items_v3.js apps/pocketbase/Dockerfile apps/web/src/components/BetaBadge.jsx apps/web/package.json)",
+      "Bash(git -C \"C:/Users/elekt/Documents/GitHub/equalibrinium\" status)",
+      "Bash(git *)"
     ]
   }
 }

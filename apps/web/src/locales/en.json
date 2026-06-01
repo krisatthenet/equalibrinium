@@ -291,7 +291,8 @@
       "rate_agreed": "€{{rate}} agreed",
       "client_contact": "Client Contact",
       "bid_accepted_reach_out": "Your bid was accepted! Reach out to the client:",
-      "mark_completed": "Mark as Finished"
+      "mark_completed": "Mark as Finished",
+      "bid_expired": "Bid expired"
     },
     "upload": {
       "uploadImagesOrPdf": "Upload images or PDF",

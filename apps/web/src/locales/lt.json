@@ -291,7 +291,8 @@
       "rate_agreed": "€{{rate}} sutarta",
       "client_contact": "Kliento kontaktai",
       "bid_accepted_reach_out": "Jūsų pasiūlymas priimtas! Susisiekite su klientu:",
-      "mark_completed": "Pažymėti kaip atliktą"
+      "mark_completed": "Pažymėti kaip atliktą",
+      "bid_expired": "Pasiūlymas baigėsi"
     },
     "upload": {
       "uploadImagesOrPdf": "Įkelti nuotraukas arba PDF",

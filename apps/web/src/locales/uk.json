@@ -291,7 +291,8 @@
       "rate_agreed": "€{{rate}} погоджено",
       "client_contact": "Контакт клієнта",
       "bid_accepted_reach_out": "Вашу ставку прийнято! Зв'яжіться з клієнтом:",
-      "mark_completed": "Позначити як завершено"
+      "mark_completed": "Позначити як завершено",
+      "bid_expired": "Пропозиція прострочена"
     },
     "upload": {
       "uploadImagesOrPdf": "Завантажте зображення або PDF",

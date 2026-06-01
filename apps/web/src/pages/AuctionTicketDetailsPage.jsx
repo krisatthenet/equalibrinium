@@ -290,7 +290,7 @@ const AuctionTicketDetailsPage = () => {
   if (!ticket) return null;
 
   const isClient = currentUser?.id === ticket.clientId;
-  const isContractor = currentUser?.userType === 'contractor';
+  const isContractor = currentUser?.userType === 'contractor' || currentUser?.userType === 'master';
   const myBid = isContractor ? bids.find(b => b.masterId === currentUser.id) : null;
   const acceptedBid = bids.find(b => b.status === 'accepted');
 

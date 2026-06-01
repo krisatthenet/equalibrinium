@@ -291,7 +291,8 @@
       "rate_agreed": "€{{rate}} uzgodniono",
       "client_contact": "Kontakt do klienta",
       "bid_accepted_reach_out": "Twoja oferta została zaakceptowana! Skontaktuj się z klientem:",
-      "mark_completed": "Oznacz jako ukończone"
+      "mark_completed": "Oznacz jako ukończone",
+      "bid_expired": "Oferta wygasła"
     },
     "upload": {
       "uploadImagesOrPdf": "Prześlij obrazy lub PDF",

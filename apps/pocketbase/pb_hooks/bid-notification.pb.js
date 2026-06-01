@@ -1,10 +1,6 @@
 /// <reference path="../pb_data/types.d.ts" />
 
-onRecordAfterUpdateSuccess((e) => {
-    const bid = e.record;
-
-    if (bid.get('status') !== 'accepted') return;
-
+function sendBidAcceptedEmails(bid) {
     try {
         const contractor = $app.findRecordById('users', bid.get('masterId'));
         const ticket     = $app.findRecordById('auction_tickets', bid.get('ticketId'));
@@ -47,7 +43,7 @@ onRecordAfterUpdateSuccess((e) => {
   </table>
 
   <p style="color:#374151;margin-top:24px;">Please contact the contractor to discuss the job details and agree on a start date.</p>
-  <p style="color:#6b7280;font-size:13px;margin-top:32px;">— Equalibrinium Team</p>
+  <p style="color:#6b7280;font-size:13px;margin-top:32px;">— WorkBee Team</p>
 </div>`
         });
 
@@ -71,7 +67,7 @@ onRecordAfterUpdateSuccess((e) => {
   </table>
 
   <p style="color:#374151;margin-top:24px;">Please reach out to the client to coordinate the work schedule and location.</p>
-  <p style="color:#6b7280;font-size:13px;margin-top:32px;">— Equalibrinium Team</p>
+  <p style="color:#6b7280;font-size:13px;margin-top:32px;">— WorkBee Team</p>
 </div>`
         });
 
@@ -82,5 +78,19 @@ onRecordAfterUpdateSuccess((e) => {
 
     } catch (err) {
         $app.logger().error('bid notification failed', 'error', err.message, 'bidId', bid.id);
+    }
+}
+
+// Normal bid flow: bid updated to "accepted" by the bid-acceptance hook
+onRecordAfterUpdateSuccess((e) => {
+    if (e.record.get('status') === 'accepted') {
+        sendBidAcceptedEmails(e.record);
+    }
+}, 'bids');
+
+// Direct request flow: bid created already-accepted (handleAcceptDirect in ContractorDashboard)
+onRecordAfterCreateSuccess((e) => {
+    if (e.record.get('status') === 'accepted') {
+        sendBidAcceptedEmails(e.record);
     }
 }, 'bids');
