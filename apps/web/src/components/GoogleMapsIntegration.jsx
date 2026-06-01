@@ -12,24 +12,10 @@ const MAP_ID   = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'e7c94480b5619333d26
 const LT_CENTER = { lat: 55.1694, lng: 23.8813 };
 const LT_BOUNDS = { north: 56.45, south: 53.89, east: 26.85, west: 20.95 };
 
-/** Poll for a truthy value with a timeout */
-function waitUntil(getValue, intervalMs = 50, timeoutMs = 15000) {
-  return new Promise((resolve, reject) => {
-    const v = getValue();
-    if (v) return resolve(v);
-    const start = Date.now();
-    const id = setInterval(() => {
-      const val = getValue();
-      if (val) { clearInterval(id); resolve(val); }
-      else if (Date.now() - start > timeoutMs) { clearInterval(id); reject(new Error('waitUntil timeout')); }
-    }, intervalMs);
-  });
-}
-
 const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
   const { t }    = useTranslation();
   const navigate = useNavigate();
-  const gmpRef   = useRef(null);
+  const mapDivRef = useRef(null);
 
   // Stable refs for map state — avoids re-running effects on every render
   const innerMapRef  = useRef(null);
@@ -62,25 +48,34 @@ const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
 
     async function init() {
       try {
-        // Load marker + maps libraries in parallel (Google's recommended approach)
-        const [{ AdvancedMarkerElement }, { InfoWindow }] = await Promise.all([
-          window.google.maps.importLibrary('marker'),
+        // Load maps + marker + core libraries in parallel (Google's recommended approach)
+        const [maps, marker, core] = await Promise.all([
           window.google.maps.importLibrary('maps'),
+          window.google.maps.importLibrary('marker'),
+          window.google.maps.importLibrary('core'),
         ]);
+        const { Map, InfoWindow }       = maps;
+        const { AdvancedMarkerElement } = marker;
+        const { ColorScheme }           = core;
 
-        AMERef.current    = AdvancedMarkerElement;
+        AMERef.current     = AdvancedMarkerElement;
         infoWinRef.current = new InfoWindow();
 
-        // gmp-map exposes innerMap asynchronously after it upgrades
-        const innerMap = await waitUntil(() => gmpRef.current?.innerMap);
+        // Construct the map directly (instead of the <gmp-map> web component) so we
+        // can set init-only options it can't expose:
+        //   • colorScheme DARK  — dark map to match the app theme
+        //   • gestureHandling 'greedy' + scrollwheel — scroll always zooms; the
+        //     default 'cooperative' mode requires Ctrl+scroll and feels broken.
+        const innerMap = new Map(mapDivRef.current, {
+          mapId: MAP_ID,
+          center: userLocation || LT_CENTER,
+          zoom: userLocation ? 11 : 7,
+          colorScheme: ColorScheme.DARK,
+          mapTypeControl: false,
+          gestureHandling: 'greedy',
+          scrollwheel: true,
+        });
         innerMapRef.current = innerMap;
-
-        // Apply options on innerMap (Google's example pattern).
-        // gestureHandling 'greedy' + scrollwheel so scroll always zooms the map —
-        // the default 'cooperative' mode requires Ctrl+scroll and feels broken.
-        innerMap.setOptions({ mapTypeControl: false, gestureHandling: 'greedy', scrollwheel: true });
-        if (userLocation) innerMap.setCenter(userLocation);
-        innerMap.setZoom(userLocation ? 11 : 7);
 
         setMapReady(true);
       } catch (err) {
@@ -201,11 +196,9 @@ const GoogleMapsIntegration = ({ tickets = [], radius, onLocationChange }) => {
   return (
     <div style={{ isolation: 'isolate', position: 'relative', zIndex: 0 }}>
       <div className="relative w-full rounded-xl overflow-hidden border border-border shadow-sm">
-        <gmp-map
-          ref={gmpRef}
-          center={`${LT_CENTER.lat},${LT_CENTER.lng}`}
-          zoom="7"
-          map-id={MAP_ID}
+        <div
+          ref={mapDivRef}
+          className="w-full"
           style={{ height: '600px', display: 'block' }}
         />
 
