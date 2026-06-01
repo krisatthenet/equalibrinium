@@ -1,0 +1,8 @@
+pb_data/
+pocketbase
+pocketbase.exe
+*.zip
+.env
+.env.*
+pb_migrations_disabled/
+pb_snapshots/
