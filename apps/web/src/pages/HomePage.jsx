@@ -37,7 +37,7 @@ import Footer from '@/components/Footer.jsx';
 import ReviewsCarousel from '@/components/ReviewsCarousel.jsx';
 import FireworksIntro from '@/components/FireworksIntro.jsx';
 import LeadCapturePopup from '@/components/LeadCapturePopup.jsx';
-import BoilioBanner from '@/components/BoilioBanner.jsx';
+import PartnersSection from '@/components/PartnersSection.jsx';
 import ChatWidget from '@/components/ChatWidget.jsx';
 
 const CONFETTI_COLORS = [
@@ -296,7 +296,6 @@ const HomePage = () => {
 
         {/* Launch Party Section */}
         <LaunchPartyHero />
-        <BoilioBanner />
 
         <section className="py-12 md:py-24 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -455,6 +454,8 @@ const HomePage = () => {
             )}
           </div>
         </section>
+
+        <PartnersSection />
 
         <section className="py-12 md:py-16 bg-muted/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
