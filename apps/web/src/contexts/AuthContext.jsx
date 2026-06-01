@@ -30,8 +30,20 @@ export const AuthProvider = ({ children }) => {
           return;
         }
         try {
-          const fresh = await pb.collection('users').getOne(model.id, { $autoCancel: false });
-          setCurrentUser(fresh);
+          // Race the refresh against an 8-second timeout so a slow/hung
+          // network connection (e.g. VPN) never leaves the app on the loader.
+          // On timeout, fall back to the cached session model rather than
+          // logging the user out.
+          const fresh = await Promise.race([
+            pb.collection('users').getOne(model.id, { $autoCancel: false }),
+            new Promise((resolve) => setTimeout(() => resolve(null), 8000)),
+          ]);
+          if (fresh) {
+            setCurrentUser(fresh);
+          } else {
+            // Timed out — use cached model so the user stays logged in
+            setCurrentUser(model);
+          }
         } catch {
           // Record no longer exists — clear stale session
           pb.authStore.clear();
