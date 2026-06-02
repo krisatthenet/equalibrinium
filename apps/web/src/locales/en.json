@@ -33,6 +33,21 @@
       "err_institution": "Please select your institution.",
       "err_document": "Please upload your student ID to verify your status."
     },
+    "lead_popup": {
+      "title": "Stay in the loop",
+      "subtitle": "Early access updates & specialist tips for Lithuania.",
+      "name_placeholder": "Your name",
+      "email_placeholder": "you@email.com",
+      "submit": "Keep me posted 🐝",
+      "dismiss": "No thanks, I'll just browse",
+      "role_title": "How would you like to join?",
+      "role_subtitle": "We'll take you straight to your registration.",
+      "maybe_later": "Maybe later",
+      "role_client": "I need a specialist",
+      "role_contractor": "I offer services",
+      "role_influencer": "I'm an influencer",
+      "close": "Close"
+    },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
       "full_release": "Full release: End of Q2",
