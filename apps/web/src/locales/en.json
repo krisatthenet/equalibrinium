@@ -322,8 +322,10 @@
       "follow_us": "Follow Us",
       "terms": "Terms of Service",
       "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy",
+      "gdpr": "GDPR Policy",
       "contact": "Contact Us",
-      "rights": "© 2026 Bee Marketplace. All rights reserved."
+      "rights": "© 2026 WorkBee. All rights reserved."
     },
     "contact": {
       "title": "Contact Us",
