@@ -33,6 +33,21 @@
       "err_institution": "Wybierz swoją uczelnię.",
       "err_document": "Prześlij legitymację studencką, aby potwierdzić swój status."
     },
+    "lead_popup": {
+      "title": "Bądź na bieżąco",
+      "subtitle": "Nowości o wczesnym dostępie i porady specjalistów dla Litwy.",
+      "name_placeholder": "Twoje imię",
+      "email_placeholder": "twoj@email.com",
+      "submit": "Informujcie mnie 🐝",
+      "dismiss": "Nie, dziękuję, tylko przeglądam",
+      "role_title": "Jak chcesz dołączyć?",
+      "role_subtitle": "Przeniesiemy Cię prosto do rejestracji.",
+      "maybe_later": "Może później",
+      "role_client": "Szukam specjalisty",
+      "role_contractor": "Oferuję usługi",
+      "role_influencer": "Jestem influencerem",
+      "close": "Zamknij"
+    },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
       "full_release": "Pełne wydanie: Koniec Q2",

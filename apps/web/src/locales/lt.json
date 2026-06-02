@@ -33,6 +33,21 @@
       "err_institution": "Pasirink savo įstaigą.",
       "err_document": "Įkelk studento pažymėjimą, kad patvirtintume tavo statusą."
     },
+    "lead_popup": {
+      "title": "Likite informuoti",
+      "subtitle": "Ankstyvosios prieigos naujienos ir specialistų patarimai Lietuvai.",
+      "name_placeholder": "Tavo vardas",
+      "email_placeholder": "tavo@pastas.lt",
+      "submit": "Informuokite mane 🐝",
+      "dismiss": "Ne, ačiū, tik naršau",
+      "role_title": "Kaip norėtumėte prisijungti?",
+      "role_subtitle": "Nukreipsime tiesiai į registraciją.",
+      "maybe_later": "Galbūt vėliau",
+      "role_client": "Ieškau specialisto",
+      "role_contractor": "Teikiu paslaugas",
+      "role_influencer": "Esu influenceris",
+      "close": "Uždaryti"
+    },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
       "full_release": "Pilnas startas: Q2 pabaiga",

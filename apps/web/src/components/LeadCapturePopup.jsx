@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { X, Loader2, User, Briefcase, Megaphone } from 'lucide-react';
 import pb from '@/lib/pocketbaseClient.js';
@@ -8,13 +9,14 @@ const SESSION_KEY = 'wb_lead_popup_shown';
 const API_URL = import.meta.env.VITE_API_URL || 'https://workbee-api-zfq-production.up.railway.app';
 
 const ROLES = [
-  { key: 'client',      label: 'I need a specialist', icon: User },
-  { key: 'contractor',  label: 'I offer services',    icon: Briefcase },
-  { key: 'influencer',  label: 'I\'m an influencer',  icon: Megaphone },
+  { key: 'client',      tKey: 'lead_popup.role_client',     icon: User },
+  { key: 'contractor',  tKey: 'lead_popup.role_contractor', icon: Briefcase },
+  { key: 'influencer',  tKey: 'lead_popup.role_influencer', icon: Megaphone },
 ];
 
 const LeadCapturePopup = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
   const [step, setStep] = useState('form'); // 'form' | 'role'
   const [name, setName] = useState('');
@@ -70,7 +72,7 @@ const LeadCapturePopup = () => {
           <button
             onClick={dismiss}
             className="absolute top-5 right-5 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Close"
+            aria-label={t('lead_popup.close')}
           >
             <X className="w-4 h-4" />
           </button>
@@ -81,17 +83,17 @@ const LeadCapturePopup = () => {
                 <img src="/logo.svg" alt="WorkBee" className="h-10 w-10 shrink-0" />
                 <div>
                   <h3 className="font-black text-xl leading-tight text-foreground" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                    Stay in the loop
+                    {t('lead_popup.title')}
                   </h3>
                   <p className="text-muted-foreground text-xs mt-0.5">
-                    Early access updates &amp; specialist tips for Lithuania.
+                    {t('lead_popup.subtitle')}
                   </p>
                 </div>
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-3">
                 <Input
-                  placeholder="Your name"
+                  placeholder={t('lead_popup.name_placeholder')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -100,7 +102,7 @@ const LeadCapturePopup = () => {
                 />
                 <Input
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder={t('lead_popup.email_placeholder')}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -111,14 +113,14 @@ const LeadCapturePopup = () => {
                   disabled={submitting}
                   className="mt-1 w-full inline-flex items-center justify-center gap-2 bg-amber-400 hover:bg-amber-300 disabled:opacity-60 text-black font-black text-sm px-6 py-3 rounded-full transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-amber-400/20"
                 >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Keep me posted 🐝'}
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t('lead_popup.submit')}
                 </button>
                 <button
                   type="button"
                   onClick={dismiss}
                   className="text-xs text-muted-foreground hover:text-foreground text-center transition-colors pt-1"
                 >
-                  No thanks, I'll just browse
+                  {t('lead_popup.dismiss')}
                 </button>
               </form>
             </>
@@ -128,16 +130,16 @@ const LeadCapturePopup = () => {
                 <img src="/logo.svg" alt="WorkBee" className="h-10 w-10 shrink-0" />
                 <div>
                   <h3 className="font-black text-xl leading-tight text-foreground" style={{ fontFamily: 'Outfit, sans-serif' }}>
-                    How would you like to join?
+                    {t('lead_popup.role_title')}
                   </h3>
                   <p className="text-muted-foreground text-xs mt-0.5">
-                    We'll take you straight to your registration.
+                    {t('lead_popup.role_subtitle')}
                   </p>
                 </div>
               </div>
 
               <div className="flex flex-col gap-3">
-                {ROLES.map(({ key, label, icon: Icon }) => (
+                {ROLES.map(({ key, tKey, icon: Icon }) => (
                   <button
                     key={key}
                     onClick={() => handleRole(key)}
@@ -146,7 +148,7 @@ const LeadCapturePopup = () => {
                     <div className="p-2 rounded-lg bg-amber-400/10 group-hover:bg-amber-400/20 transition-colors">
                       <Icon className="w-5 h-5 text-amber-400" />
                     </div>
-                    <span className="font-semibold text-sm text-foreground">{label}</span>
+                    <span className="font-semibold text-sm text-foreground">{t(tKey)}</span>
                   </button>
                 ))}
                 <button
@@ -154,7 +156,7 @@ const LeadCapturePopup = () => {
                   onClick={dismiss}
                   className="text-xs text-muted-foreground hover:text-foreground text-center transition-colors pt-1"
                 >
-                  Maybe later
+                  {t('lead_popup.maybe_later')}
                 </button>
               </div>
             </>
