@@ -44,11 +44,27 @@ export const formatLimit = (n) => (n === Infinity ? 'Unlimited' : n);
 
 export const TRIAL_PLAN = 'premium';
 
+// Plan granted free to verified students (the "students go free" promo). Kept
+// at Premium so it never downgrades a student who paid for an even higher tier.
+export const STUDENT_PLAN = 'premium';
+
 export const isInTrial = (user) =>
   !!(user?.trialEndsAt && new Date(user.trialEndsAt) > new Date());
 
+// A student only gets the free perk once an admin has approved their uploaded
+// proof of study — see student_verifications + the student-verification hook
+// that mirrors the outcome onto users.studentStatus.
+export const isVerifiedStudent = (user) =>
+  !!(user?.isStudent && user?.studentStatus === 'approved');
+
 export const getEffectivePlan = (user) => {
   if (!user) return 'standard';
-  if (isInTrial(user)) return TRIAL_PLAN;
-  return user.plan || 'standard';
+  const base = isInTrial(user) ? TRIAL_PLAN : (user.plan || 'standard');
+  // Grant at least the student plan to verified students, never downgrading
+  // a higher tier they may already hold.
+  if (isVerifiedStudent(user) &&
+      PLAN_ORDER.indexOf(STUDENT_PLAN) > PLAN_ORDER.indexOf(base)) {
+    return STUDENT_PLAN;
+  }
+  return base;
 };

@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import LanguageSelector from './LanguageSelector.jsx';
-import LaunchPartyBanner from './LaunchPartyBanner.jsx';
+import StudentPromoBanner from './StudentPromoBanner.jsx';
 import BetaBadge from './BetaBadge.jsx';
 import D20Icon from './D20Icon.jsx';
 
@@ -68,7 +68,7 @@ const Header = () => {
 
   return (
     <>
-      <LaunchPartyBanner />
+      <StudentPromoBanner />
       <header className="sticky top-0 z-40 bg-background/95 supports-[backdrop-filter]:bg-background/80 supports-[backdrop-filter]:backdrop-blur-md border-b border-border shadow-sm">
         <div className="w-full px-6 sm:px-8 lg:px-12">
           <div className="flex items-center justify-between h-20 md:h-24">
