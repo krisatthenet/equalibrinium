@@ -8,10 +8,11 @@ import apiServerClient from '@/lib/apiServerClient.js';
 import { useToast } from '@/hooks/use-toast';
 import {
   User, CreditCard, Shield, Camera, Loader2, CheckCircle2, ExternalLink,
-  UploadCloud, X, FileText, Zap, Check, Minus, Gift, Copy, CheckCheck, Share2
+  UploadCloud, X, FileText, Zap, Check, Minus, Gift, Copy, CheckCheck, Share2,
+  GraduationCap, Clock
 } from 'lucide-react';
 import PlanBadge from '@/components/PlanBadge.jsx';
-import { PLANS, PLAN_ORDER, formatLimit, getEffectivePlan, isInTrial } from '@/lib/plans';
+import { PLANS, PLAN_ORDER, formatLimit, getEffectivePlan, isInTrial, isVerifiedStudent } from '@/lib/plans';
 import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -882,11 +883,35 @@ const SettingsPage = () => {
                 {(() => {
                   const currentPlan = getEffectivePlan(currentUser);
                   const inTrial = isInTrial(currentUser);
+                  const studentVerified = isVerifiedStudent(currentUser);
+                  const studentPending = currentUser?.isStudent && currentUser?.studentStatus === 'pending';
                   const uType = currentUser?.userType === 'client' ? 'client' : 'contractor';
                   const limits = PLANS[currentPlan]?.[uType] ?? PLANS.standard[uType];
                   return (
                     <>
-                      {inTrial && (
+                      {studentVerified && (
+                        <Card className="bg-violet-500/5 border-violet-500/30 rounded-2xl">
+                          <CardContent className="py-4 flex items-center gap-3">
+                            <GraduationCap className="w-5 h-5 text-violet-500 shrink-0" />
+                            <p className="text-sm text-foreground">
+                              <span className="font-semibold">{t('settings.student_plan_active')}</span>{' '}
+                              {t('settings.student_plan_desc')}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                      {studentPending && (
+                        <Card className="bg-muted/40 border-border rounded-2xl">
+                          <CardContent className="py-4 flex items-center gap-3">
+                            <Clock className="w-5 h-5 text-muted-foreground shrink-0" />
+                            <p className="text-sm text-foreground">
+                              <span className="font-semibold">{t('settings.student_pending')}</span>{' '}
+                              {t('settings.student_pending_desc')}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      )}
+                      {inTrial && !studentVerified && (
                         <Card className="bg-primary/5 border-primary/30 rounded-2xl">
                           <CardContent className="py-4 flex items-center gap-3">
                             <Gift className="w-5 h-5 text-primary shrink-0" />

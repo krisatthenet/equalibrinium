@@ -20,6 +20,19 @@
       "launch_desc": "Świętujemy uruchomienie beta — dołącz do zabawy!",
       "launch_cta": "Dostań zaproszenie"
     },
+    "student": {
+      "banner_title": "Dla studentów za darmo",
+      "banner_desc": "WorkBee jest darmowe dla studentów wszystkich litewskich uczelni, kolegiów i szkół zawodowych.",
+      "banner_cta": "Uzyskaj darmowy dostęp",
+      "form_notice": "Korzyść dla studenta: WorkBee jest dla Ciebie w 100% darmowe — bez opłat i prowizji.",
+      "institution_label": "Twoja uczelnia",
+      "institution_placeholder": "Wybierz szkołę lub uczelnię",
+      "institution_other": "Inna",
+      "document_label": "Legitymacja studencka / dowód nauki",
+      "document_hint": "Prześlij zdjęcie legitymacji studenckiej lub zaświadczenia o nauce (obraz lub PDF). Sprawdzimy je, aby potwierdzić darmowy dostęp dla studentów.",
+      "err_institution": "Wybierz swoją uczelnię.",
+      "err_document": "Prześlij legitymację studencką, aby potwierdzić swój status."
+    },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
       "full_release": "Pełne wydanie: Koniec Q2",
@@ -333,6 +346,10 @@
       "connect_with_stripe": "Połącz ze Stripe",
       "launch_bonus_active": "Bonus startowy aktywny!",
       "launch_bonus_until": "Masz pełny dostęp Premium za darmo do {{date}}.",
+      "student_plan_active": "Darmowy plan studencki aktywny",
+      "student_plan_desc": "Jako zweryfikowany student masz pełny dostęp Premium za darmo — bez opłat i prowizji.",
+      "student_pending": "Weryfikacja studenta w toku",
+      "student_pending_desc": "Sprawdzamy Twoją legitymację studencką. Darmowy dostęp Premium włączy się po zatwierdzeniu.",
       "current_plan": "Bieżący plan",
       "trial_ends": "Okres próbny kończy się {{date}}",
       "renews": "Odnawia się {{date}}",

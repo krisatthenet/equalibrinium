@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Briefcase, Loader2, Megaphone, MailCheck, Gift } from 'lucide-react';
+import { User, Briefcase, Loader2, Megaphone, MailCheck, Gift, GraduationCap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header.jsx';
 import Footer from '@/components/Footer.jsx';
@@ -19,6 +19,7 @@ import ProfessionSelector from '@/components/ProfessionSelector.jsx';
 import PlacesAutocompleteInput from '@/components/PlacesAutocompleteInput.jsx';
 import SocialAuthButtons from '@/components/SocialAuthButtons.jsx';
 import { isValidPersonalCode, isValidIBAN, normaliseIBAN } from '@/lib/ltValidation.js';
+import { LT_INSTITUTION_GROUPS } from '@/lib/ltInstitutions.js';
 
 const RegistrationPage = () => {
   const { t } = useTranslation();
@@ -38,6 +39,7 @@ const RegistrationPage = () => {
 
   const [userType, setUserType] = useState(searchParams.get('type') || '');
   const refCode = searchParams.get('ref') || '';
+  const isStudent = searchParams.get('promo') === 'student';
   const [formData, setFormData] = useState({
     email: searchParams.get('email') || '',
     password: '',
@@ -45,6 +47,7 @@ const RegistrationPage = () => {
     name: searchParams.get('name') || '',
     phone: '',
     location: '',
+    institution: '',
     profession: '',
     personalCode: '',
     businessCode: '',
@@ -60,6 +63,7 @@ const RegistrationPage = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [studentDoc, setStudentDoc] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -68,6 +72,17 @@ const RegistrationPage = () => {
     if (!userType) {
       setError('Please select a user type');
       return;
+    }
+
+    if (isStudent) {
+      if (!formData.institution) {
+        setError(t('student.err_institution'));
+        return;
+      }
+      if (!studentDoc) {
+        setError(t('student.err_document'));
+        return;
+      }
     }
 
     if (userType === 'contractor') {
@@ -107,6 +122,7 @@ const RegistrationPage = () => {
         phone: formData.phone,
         location: formData.location,
         ...(refCode ? { referredByCode: refCode } : {}),
+        ...(isStudent ? { isStudent: true, institution: formData.institution } : {}),
       };
       
       if (userType === 'contractor') {
@@ -137,6 +153,23 @@ const RegistrationPage = () => {
           });
         } catch (kycErr) {
           console.error('KYC save failed:', kycErr);
+        }
+      }
+
+      // Student promo: store proof of study in the owner-scoped
+      // student_verifications collection (kept off the publicly-listable users
+      // record). A 'pending' record triggers the student-verification hook,
+      // which mirrors the status onto users for admin review.
+      if (isStudent) {
+        try {
+          const verification = new FormData();
+          verification.append('userId', newUser.id);
+          verification.append('institution', formData.institution);
+          verification.append('status', 'pending');
+          if (studentDoc) verification.append('idDocument', studentDoc);
+          await pb.collection('student_verifications').create(verification);
+        } catch (svErr) {
+          console.error('Student verification save failed:', svErr);
         }
       }
 
@@ -260,6 +293,12 @@ const RegistrationPage = () => {
                       <span className="text-foreground">You were referred by a friend — you'll get <strong>1 free month</strong> on your first plan upgrade.</span>
                     </div>
                   )}
+                  {isStudent && (
+                    <div className="flex items-center gap-2 px-4 py-3 bg-violet-500/10 border border-violet-500/20 rounded-xl text-sm">
+                      <GraduationCap className="h-4 w-4 text-violet-500 shrink-0" />
+                      <span className="text-foreground">{t('student.form_notice')}</span>
+                    </div>
+                  )}
                   {error && (
                     <Alert variant="destructive" className="rounded-xl">
                       <AlertDescription>{error}</AlertDescription>
@@ -302,6 +341,40 @@ const RegistrationPage = () => {
                         className="bg-input border-border text-foreground rounded-lg"
                       />
                     </div>
+
+                    {isStudent && (
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="institution">{t('student.institution_label')}</Label>
+                        <select
+                          id="institution" name="institution" required
+                          value={formData.institution} onChange={handleChange}
+                          className="flex h-10 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          <option value="" disabled>{t('student.institution_placeholder')}</option>
+                          {LT_INSTITUTION_GROUPS.map((group) => (
+                            <optgroup key={group.label} label={group.label}>
+                              {group.options.map((name) => (
+                                <option key={name} value={name}>{name}</option>
+                              ))}
+                            </optgroup>
+                          ))}
+                          <option value="other">{t('student.institution_other')}</option>
+                        </select>
+                      </div>
+                    )}
+
+                    {isStudent && (
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="studentDoc">{t('student.document_label')}</Label>
+                        <Input
+                          id="studentDoc" name="studentDoc" type="file" required
+                          accept="image/jpeg,image/png,image/webp,application/pdf"
+                          onChange={(e) => setStudentDoc(e.target.files?.[0] || null)}
+                          className="bg-input border-border text-foreground rounded-lg file:text-foreground file:bg-transparent file:border-0 cursor-pointer"
+                        />
+                        <p className="text-xs text-muted-foreground">{t('student.document_hint')}</p>
+                      </div>
+                    )}
 
                     {userType === 'contractor' && (
                       <div className="space-y-2 md:col-span-2">
