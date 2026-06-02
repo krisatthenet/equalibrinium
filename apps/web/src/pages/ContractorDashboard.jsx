@@ -380,7 +380,7 @@ const ContractorDashboard = () => {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-foreground">{ticket.expand?.categoryId?.name || t('auction.service_request')}</h3>
-                    <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-xs">Direct</Badge>
+                    <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-xs">{t('dashboard.direct_badge')}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{ticket.description}</p>
                   <div className="flex flex-wrap gap-3 text-sm">
@@ -401,7 +401,7 @@ const ContractorDashboard = () => {
                     disabled={acceptingId === ticket.id}
                   >
                     {acceptingId === ticket.id && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
-                    Accept
+                    {t('dashboard.accept')}
                   </Button>
                   <Button
                     size="sm"
@@ -409,7 +409,7 @@ const ContractorDashboard = () => {
                     className="rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     onClick={() => handleDeclineDirect(ticket)}
                   >
-                    Decline
+                    {t('dashboard.decline')}
                   </Button>
                 </div>
               </div>
@@ -419,7 +419,7 @@ const ContractorDashboard = () => {
       ) : (
         <div className="text-center py-12">
           <Send className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">No direct requests yet.</p>
+          <p className="text-muted-foreground">{t('dashboard.no_direct_requests')}</p>
         </div>
       ),
     },
@@ -485,7 +485,7 @@ const ContractorDashboard = () => {
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-2">
                     <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Laukiama</Badge>
+                      <Badge variant="outline" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">{t('dashboard.bid_pending')}</Badge>
                       {timeLeft && (
                         <span className={`text-xs flex items-center gap-1 ${isExpiringSoon ? 'text-destructive font-semibold' : 'text-muted-foreground'}`}>
                           <Clock className="h-3 w-3" />{timeLeft}
@@ -501,7 +501,7 @@ const ContractorDashboard = () => {
       ) : (
         <div className="text-center py-12">
           <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">Nėra aktyvių pasiūlymų.</p>
+          <p className="text-muted-foreground">{t('dashboard.no_active_bids')}</p>
         </div>
       ),
     },
@@ -541,7 +541,7 @@ const ContractorDashboard = () => {
   return (
     <>
       <Helmet>
-        <title>{t('dashboard.contractor_title')} - Bee Marketplace</title>
+        <title>{t('dashboard.contractor_title')} - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -551,8 +551,8 @@ const ContractorDashboard = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {permission === 'default' && (
               <div className="mb-6 flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/50 px-4 py-3">
-                <p className="text-sm text-muted-foreground">Įjunk pranešimus — gauk žinutę kai atsiranda naujas darbas.</p>
-                <Button size="sm" onClick={requestPermission}>Įjungti</Button>
+                <p className="text-sm text-muted-foreground">{t('dashboard.enable_notif_prompt')}</p>
+                <Button size="sm" onClick={requestPermission}>{t('dashboard.enable_notif_btn')}</Button>
               </div>
             )}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
@@ -607,15 +607,15 @@ const ContractorDashboard = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-semibold text-foreground">Pro features active</p>
+                          <p className="font-semibold text-foreground">{t('dashboard.pro_features_active')}</p>
                           <PlanBadge plan={plan} />
                         </div>
                         <p className="text-sm text-muted-foreground">
-                          Priority listing · Verified Pro badge · {formatLimit(limits.bidsPerMonth)} bids/month
+                          {t('dashboard.pro_features_summary', { bids: formatLimit(limits.bidsPerMonth) })}
                         </p>
                       </div>
                       <Button variant="outline" size="sm" className="shrink-0 rounded-xl" asChild>
-                        <Link to="/settings?tab=plan">Manage plan</Link>
+                        <Link to="/settings?tab=plan">{t('dashboard.manage_plan')}</Link>
                       </Button>
                     </CardContent>
                   </Card>
@@ -624,9 +624,9 @@ const ContractorDashboard = () => {
 
               // Free tier — show 3-column Pro pitch
               const proFeatures = [
-                { icon: <Eye className="h-4 w-4 text-primary" />, label: 'More bids', desc: `Up to 15/month vs 5 free` },
-                { icon: <TrendingUp className="h-4 w-4 text-primary" />, label: 'Priority listing', desc: 'Appear above free contractors' },
-                { icon: <ShieldCheck className="h-4 w-4 text-primary" />, label: 'Pro badge', desc: 'Stand out to clients' },
+                { icon: <Eye className="h-4 w-4 text-primary" />, label: t('dashboard.pro_more_bids'), desc: t('dashboard.pro_more_bids_desc') },
+                { icon: <TrendingUp className="h-4 w-4 text-primary" />, label: t('dashboard.pro_priority'), desc: t('dashboard.pro_priority_desc') },
+                { icon: <ShieldCheck className="h-4 w-4 text-primary" />, label: t('dashboard.pro_badge'), desc: t('dashboard.pro_badge_desc') },
               ];
               return (
                 <Card className="rounded-2xl mb-6 border-primary/20 bg-gradient-to-br from-primary/5 to-background">
@@ -634,7 +634,7 @@ const ContractorDashboard = () => {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <Zap className="h-5 w-5 text-primary" />
-                        <p className="font-semibold text-foreground">Go Pro — from €9/month</p>
+                        <p className="font-semibold text-foreground">{t('dashboard.go_pro')}</p>
                       </div>
                       <Button
                         size="sm"
@@ -643,7 +643,7 @@ const ContractorDashboard = () => {
                         className="shrink-0 rounded-xl"
                       >
                         {subLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <ArrowUpRight className="h-3.5 w-3.5 mr-1.5" />}
-                        Upgrade
+                        {t('dashboard.upgrade_btn')}
                       </Button>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
@@ -656,7 +656,7 @@ const ContractorDashboard = () => {
                       ))}
                     </div>
                     <p className="text-[11px] text-muted-foreground text-center mt-3">
-                      Cancel anytime · <Link to="/settings?tab=plan" className="underline underline-offset-2">See all plans</Link>
+                      {t('dashboard.cancel_anytime')} <Link to="/settings?tab=plan" className="underline underline-offset-2">{t('dashboard.see_all_plans')}</Link>
                     </p>
                   </CardContent>
                 </Card>
@@ -668,10 +668,10 @@ const ContractorDashboard = () => {
               <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4">
                 <CardTitle className="flex items-center gap-2">
                   <Images className="h-5 w-5 text-primary" />
-                  Portfolio
+                  {t('portfolio_gallery.title')}
                 </CardTitle>
                 <Button size="sm" variant="outline" className="rounded-xl shrink-0" onClick={() => setPortfolioOpen(true)}>
-                  <Plus className="h-4 w-4 mr-1.5" /> Add project
+                  <Plus className="h-4 w-4 mr-1.5" /> {t('dashboard.add_project')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -687,17 +687,17 @@ const ContractorDashboard = () => {
             {(() => {
               const code = contractorProfile?.referralCode || ('WB' + (currentUser?.id || '').slice(0, 6).toUpperCase());
               const link = `https://workbee.space/register?ref=${code}`;
-              const waLink = `https://wa.me/?text=${encodeURIComponent('Join WorkBee — Lithuania\'s contractor marketplace. Use my link: ' + link)}`;
-              const tgLink = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Join WorkBee 🐝')}`;
+              const waLink = `https://wa.me/?text=${encodeURIComponent(t('dashboard.referral_share_message', { link }))}`;
+              const tgLink = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(t('dashboard.referral_share_short'))}`;
               return (
                 <Card className="bg-card border-primary/20 rounded-2xl mb-6">
                   <CardContent className="p-5">
                     <div className="flex items-center gap-2 mb-3">
                       <Gift className="h-4 w-4 text-primary" />
-                      <p className="font-semibold text-foreground text-sm">Earn €10 per referral</p>
+                      <p className="font-semibold text-foreground text-sm">{t('dashboard.earn_per_referral')}</p>
                     </div>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Share your link — you get €10 credit and 30 extra days on your plan for every person who joins.
+                      {t('dashboard.referral_share_desc')}
                     </p>
                     <div className="flex gap-2 mb-3">
                       <input
@@ -747,7 +747,7 @@ const ContractorDashboard = () => {
               <CardHeader className="flex flex-row items-center justify-between gap-4 pb-4">
                 <CardTitle className="flex items-center gap-2">
                   <CalendarDays className="h-5 w-5 text-primary" />
-                  Availability Calendar
+                  {t('dashboard.availability_calendar')}
                 </CardTitle>
                 <Button
                   variant="outline"
@@ -755,7 +755,7 @@ const ContractorDashboard = () => {
                   className="rounded-xl shrink-0"
                   onClick={() => setShowAvailability(v => !v)}
                 >
-                  {showAvailability ? 'Collapse' : 'Manage'}
+                  {showAvailability ? t('dashboard.collapse') : t('dashboard.manage')}
                 </Button>
               </CardHeader>
               {showAvailability && (
@@ -766,7 +766,7 @@ const ContractorDashboard = () => {
               {!showAvailability && (
                 <CardContent className="pt-0">
                   <p className="text-sm text-muted-foreground">
-                    Mark the days you're available so clients can request a specific slot — no more "when are you free?" messages.
+                    {t('dashboard.availability_hint')}
                   </p>
                 </CardContent>
               )}
@@ -777,7 +777,7 @@ const ContractorDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5 text-primary" />
-                  Profile Insights
+                  {t('dashboard.profile_insights')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -791,7 +791,7 @@ const ContractorDashboard = () => {
                       <p className="text-2xl font-bold text-foreground">
                         {loading ? '—' : (contractorProfile?.profileViews || 0)}
                       </p>
-                      <p className="text-sm text-muted-foreground">Profile Views</p>
+                      <p className="text-sm text-muted-foreground">{t('dashboard.profile_views')}</p>
                     </div>
                   </div>
 
@@ -804,7 +804,7 @@ const ContractorDashboard = () => {
                       <p className="text-2xl font-bold text-foreground">
                         {loading ? '—' : myBids.length === 0 ? '0%' : `${Math.round((myBids.filter(b => b.status === 'accepted').length / myBids.length) * 100)}%`}
                       </p>
-                      <p className="text-sm text-muted-foreground">Bid Win Rate</p>
+                      <p className="text-sm text-muted-foreground">{t('dashboard.bid_win_rate')}</p>
                     </div>
                   </div>
 
@@ -818,7 +818,7 @@ const ContractorDashboard = () => {
                         {loading || searchRank === null ? '—' : `#${searchRank}`}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {totalContractors ? `Search Rank of ${totalContractors}` : 'Search Rank'}
+                        {totalContractors ? t('dashboard.search_rank_of', { total: totalContractors }) : t('dashboard.search_rank')}
                       </p>
                     </div>
                   </div>
@@ -828,10 +828,10 @@ const ContractorDashboard = () => {
                 {searchRank && totalContractors && searchRank > Math.ceil(totalContractors * 0.3) && (
                   <div className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
                     <p className="text-sm text-muted-foreground">
-                      Upgrade to a paid plan to boost your ranking and appear higher in search results.
+                      {t('dashboard.rank_upgrade_nudge')}
                     </p>
                     <Button size="sm" asChild className="shrink-0">
-                      <a href="/settings?tab=payment">Upgrade</a>
+                      <a href="/settings?tab=payment">{t('dashboard.upgrade_btn')}</a>
                     </Button>
                   </div>
                 )}
@@ -843,7 +843,7 @@ const ContractorDashboard = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Navigation className="h-5 w-5 text-primary" />
-                  Nearby Jobs
+                  {t('dashboard.nearby_jobs')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -852,15 +852,15 @@ const ContractorDashboard = () => {
                 ) : !contractorProfile?.latitude ? (
                   <div className="text-center py-8">
                     <Navigation className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground mb-3">Add your location in Settings to see jobs near you.</p>
+                    <p className="text-muted-foreground mb-3">{t('dashboard.add_location_prompt')}</p>
                     <Button variant="outline" asChild className="rounded-xl">
-                      <Link to="/settings">Update Location</Link>
+                      <Link to="/settings">{t('dashboard.update_location')}</Link>
                     </Button>
                   </div>
                 ) : nearbyTickets.length === 0 ? (
                   <div className="text-center py-8">
                     <Navigation className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground">No open jobs nearby with coordinates yet.</p>
+                    <p className="text-muted-foreground">{t('dashboard.no_nearby_jobs')}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
