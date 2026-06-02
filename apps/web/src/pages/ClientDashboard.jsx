@@ -283,23 +283,23 @@ const ClientDashboard = () => {
               <span className="text-muted-foreground"> · {contractor.name}</span>
             )}
           </div>
-          <span className="text-green-600 font-semibold shrink-0">€{Number(payment.amount).toFixed(2)} paid</span>
+          <span className="text-green-600 font-semibold shrink-0">{t('dashboard.paid_amount', { amount: Number(payment.amount).toFixed(2) })}</span>
           <span className="text-muted-foreground shrink-0">{new Date(ticket.created).toLocaleDateString()}</span>
           {alreadyReviewed && (
             <div className="flex items-center gap-1 text-muted-foreground shrink-0">
-              <Star className="h-3 w-3 text-primary fill-primary" /> Reviewed
+              <Star className="h-3 w-3 text-primary fill-primary" /> {t('dashboard.reviewed')}
             </div>
           )}
           {ticket.disputedAt ? (
             <span className="text-xs text-orange-400 flex items-center gap-1 shrink-0">
-              <AlertTriangle className="h-3 w-3" /> Dispute raised
+              <AlertTriangle className="h-3 w-3" /> {t('dashboard.dispute_raised')}
             </span>
           ) : (
             <button
               className="text-xs text-muted-foreground hover:text-orange-400 underline underline-offset-2 transition-colors shrink-0"
               onClick={() => { setDisputingTicket(ticket); setDisputeReason(''); }}
             >
-              Raise dispute
+              {t('dashboard.raise_dispute_short')}
             </button>
           )}
         </div>
@@ -320,7 +320,7 @@ const ClientDashboard = () => {
               {pendingBids > 0 && (
                 <span className="flex items-center gap-1.5 bg-primary/10 border border-primary/30 text-primary text-xs font-semibold px-2.5 py-0.5 rounded-full">
                   <span className="flex items-center justify-center bg-primary text-black font-bold text-xs rounded-full w-4 h-4 leading-none">{pendingBids}</span>
-                  new bid{pendingBids !== 1 ? 's' : ''}
+                  {t('dashboard.new_bids')}
                 </span>
               )}
             </div>
@@ -346,11 +346,11 @@ const ClientDashboard = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="font-medium text-sm text-foreground">{contractor.name || 'Contractor'}</p>
+                    <p className="font-medium text-sm text-foreground">{contractor.name || t('dashboard.contractor_default')}</p>
                     {contractor.title && <Badge variant="secondary" className="text-xs">{contractor.title}</Badge>}
                     <PlanBadge plan={contractor.plan} />
                   </div>
-                  <p className="text-xs text-primary font-semibold">€{bid.proposedRate} agreed</p>
+                  <p className="text-xs text-primary font-semibold">{t('auction.rate_agreed', { rate: bid.proposedRate })}</p>
                 </div>
               </div>
             )}
@@ -366,7 +366,7 @@ const ClientDashboard = () => {
                 className="rounded-xl border-border"
                 onClick={() => setEditingTicket(ticket)}
               >
-                <Pencil className="h-4 w-4 mr-2" /> Edit
+                <Pencil className="h-4 w-4 mr-2" /> {t('auction.edit')}
               </Button>
             )}
             {ticket.status === 'In Progress' && bid && (
@@ -378,13 +378,13 @@ const ClientDashboard = () => {
                 {markingDoneId === ticket.id
                   ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
                   : <CheckCircle className="h-4 w-4 mr-2" />}
-                Mark as Done
+                {t('dashboard.mark_as_done')}
               </Button>
             )}
             {isCompleted && bid?.proposedRate && (
               <Button asChild className="bg-green-600 hover:bg-green-700 text-white rounded-xl">
                 <Link to={`/auction-ticket/${ticket.id}/payment`}>
-                  <CreditCard className="h-4 w-4 mr-2" /> Pay Now
+                  <CreditCard className="h-4 w-4 mr-2" /> {t('dashboard.pay_now')}
                 </Link>
               </Button>
             )}
@@ -394,13 +394,13 @@ const ClientDashboard = () => {
                 className="border-primary text-primary hover:bg-primary/10 rounded-xl"
                 onClick={() => setReviewTarget({ contractorId: contractor.id, contractorName: contractor.name, ticketId: ticket.id })}
               >
-                <Star className="h-4 w-4 mr-2" /> Leave a Review
+                <Star className="h-4 w-4 mr-2" /> {t('dashboard.leave_review')}
               </Button>
             )}
             {isCompleted && (
               ticket.disputedAt ? (
                 <div className="flex items-center gap-1.5 text-xs text-orange-400 px-1">
-                  <AlertTriangle className="h-3.5 w-3.5" /> Dispute raised
+                  <AlertTriangle className="h-3.5 w-3.5" /> {t('dashboard.dispute_raised')}
                 </div>
               ) : (
                 <Button
@@ -408,7 +408,7 @@ const ClientDashboard = () => {
                   className="text-muted-foreground hover:text-orange-400 hover:bg-orange-400/10 rounded-xl text-sm"
                   onClick={() => { setDisputingTicket(ticket); setDisputeReason(''); }}
                 >
-                  <AlertTriangle className="h-4 w-4 mr-2" /> Raise a Dispute
+                  <AlertTriangle className="h-4 w-4 mr-2" /> {t('dashboard.raise_dispute')}
                 </Button>
               )
             )}
@@ -450,12 +450,12 @@ const ClientDashboard = () => {
         ),
     },
     messages: {
-      title: 'Messages',
+      title: t('header.messages'),
       icon: <MessageCircle className="h-5 w-5 text-primary" />,
       content: <ConversationsInbox />,
     },
     searches: {
-      title: 'Saved Searches',
+      title: t('dashboard.saved_searches'),
       icon: <Bookmark className="h-5 w-5 text-purple-500" />,
       content: savedSearches.length > 0 ? (
         <div className="space-y-3">
@@ -468,8 +468,8 @@ const ClientDashboard = () => {
                 <div className="min-w-0">
                   <p className="font-medium text-sm text-foreground truncate">{s.label}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {[s.keyword, s.location].filter(Boolean).join(' · ') || 'Any contractor'}
-                    {' · '}Alerts on
+                    {[s.keyword, s.location].filter(Boolean).join(' · ') || t('dashboard.any_contractor')}
+                    {' · '}{t('dashboard.alerts_on')}
                   </p>
                 </div>
               </div>
@@ -477,7 +477,7 @@ const ClientDashboard = () => {
                 onClick={() => handleDeleteSavedSearch(s.id)}
                 disabled={deletingSearchId === s.id}
                 className="shrink-0 p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                aria-label="Delete saved search"
+                aria-label={t('dashboard.delete_saved_search')}
               >
                 {deletingSearchId === s.id
                   ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -487,14 +487,14 @@ const ClientDashboard = () => {
             </div>
           ))}
           <p className="text-xs text-muted-foreground pt-2 px-1">
-            You'll get an SMS and in-app alert when a new contractor matching any of these searches joins WorkBee.
+            {t('dashboard.saved_search_alert_note')}
           </p>
         </div>
       ) : (
         <div className="text-center py-10">
           <Bookmark className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground mb-3">No saved searches yet.</p>
-          <Link to="/explore" className="text-sm text-primary hover:underline">Go to search →</Link>
+          <p className="text-sm text-muted-foreground mb-3">{t('dashboard.no_saved_searches')}</p>
+          <Link to="/explore" className="text-sm text-primary hover:underline">{t('dashboard.go_to_search')}</Link>
         </div>
       ),
     },
@@ -503,7 +503,7 @@ const ClientDashboard = () => {
   return (
     <>
       <Helmet>
-        <title>{t('dashboard.client_title')} - Bee Marketplace</title>
+        <title>{t('dashboard.client_title')} - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -615,7 +615,7 @@ const ClientDashboard = () => {
       <Dialog open={!!editingTicket} onOpenChange={(open) => { if (!open) setEditingTicket(null); }}>
         <DialogContent className="bg-card border-border max-w-2xl flex flex-col max-h-[90vh] rounded-2xl">
           <DialogHeader>
-            <DialogTitle>Edit Request</DialogTitle>
+            <DialogTitle>{t('auction.edit_request')}</DialogTitle>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 pr-1">
             {editingTicket && (
@@ -646,19 +646,19 @@ const ClientDashboard = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-400" />
-              Raise a Dispute
+              {t('dashboard.raise_dispute')}
             </DialogTitle>
             <DialogDescription>
-              Describe the issue. Our team will review it and reach out within 24 hours.
+              {t('dashboard.dispute_desc')}
             </DialogDescription>
           </DialogHeader>
           {disputingTicket && (
             <div className="space-y-4 pt-1">
               <div className="text-sm text-muted-foreground bg-muted/40 rounded-xl px-4 py-3">
-                Job: <span className="font-medium text-foreground">{getCategoryName(disputingTicket)}</span>
+                {t('dashboard.dispute_job_label')} <span className="font-medium text-foreground">{getCategoryName(disputingTicket)}</span>
               </div>
               <Textarea
-                placeholder="What went wrong? Be as specific as possible…"
+                placeholder={t('dashboard.dispute_placeholder')}
                 value={disputeReason}
                 onChange={e => setDisputeReason(e.target.value)}
                 className="bg-input border-border text-foreground min-h-[120px] rounded-xl"
@@ -667,7 +667,7 @@ const ClientDashboard = () => {
           )}
           <DialogFooter className="gap-2">
             <Button variant="ghost" onClick={() => { setDisputingTicket(null); setDisputeReason(''); }} disabled={disputeLoading}>
-              Cancel
+              {t('auction.cancel')}
             </Button>
             <Button
               onClick={handleRaiseDispute}
@@ -675,7 +675,7 @@ const ClientDashboard = () => {
               className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl"
             >
               {disputeLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <AlertTriangle className="h-4 w-4 mr-2" />}
-              Submit Dispute
+              {t('dashboard.submit_dispute')}
             </Button>
           </DialogFooter>
         </DialogContent>
