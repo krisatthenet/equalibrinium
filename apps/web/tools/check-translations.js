@@ -40,6 +40,8 @@ const ALLOW_IDENTICAL = new Set([
   'pl:translation.professions.Mentor', // loanword, identical in Polish
   'pl:translation.auction.status', // loanword, identical in Polish
   'pl:translation.portfolio_gallery.title', // "Portfolio" — identical in Polish
+  'pl:translation.settings.tab_plan', // "Plan" — identical in Polish
+  'pl:translation.settings.account_type_influencer', // "Influencer" — identical in Polish
 ]);
 const isAllowedIdentical = (lang, key) =>
   ALLOW_IDENTICAL.has(key) || ALLOW_IDENTICAL.has(`${lang}:${key}`);

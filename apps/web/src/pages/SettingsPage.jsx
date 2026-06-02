@@ -449,7 +449,7 @@ const SettingsPage = () => {
   return (
     <>
       <Helmet>
-        <title>{t('settings.title')} - Bee Marketplace</title>
+        <title>{t('settings.title')} - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -485,13 +485,13 @@ const SettingsPage = () => {
                   </TabsTrigger>
                 )}
                 <TabsTrigger value="plan" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
-                  <Zap className="w-4 h-4 mr-2" /> Plan
+                  <Zap className="w-4 h-4 mr-2" /> {t('settings.tab_plan')}
                 </TabsTrigger>
                 <TabsTrigger value="account" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
                   <Shield className="w-4 h-4 mr-2" /> {t('settings.tab_account')}
                 </TabsTrigger>
                 <TabsTrigger value="referrals" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-lg">
-                  <Gift className="w-4 h-4 mr-2" /> Referrals
+                  <Gift className="w-4 h-4 mr-2" /> {t('settings.tab_referrals')}
                 </TabsTrigger>
               </TabsList>
               </div>
@@ -511,7 +511,7 @@ const SettingsPage = () => {
                           onClick={handleAvatarClick}
                         >
                           {avatarPreview ? (
-                            <img src={avatarPreview} alt="Avatar preview" className="w-full h-full object-cover" />
+                            <img src={avatarPreview} alt={t('settings.avatar_preview_alt')} className="w-full h-full object-cover" />
                           ) : (
                             <User className="w-10 h-10 text-muted-foreground" />
                           )}
@@ -521,11 +521,11 @@ const SettingsPage = () => {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-medium text-foreground">{t('settings.profile_pic')}</h3>
-                          <p className="text-sm text-muted-foreground mb-3">Upload a custom image or generate a unique AI avatar.</p>
+                          <p className="text-sm text-muted-foreground mb-3">{t('settings.avatar_desc')}</p>
                           <div className="flex flex-wrap gap-2">
                             <Button type="button" variant="outline" size="sm" onClick={handleAvatarClick} className="rounded-lg">
                               <Camera className="w-4 h-4 mr-2" />
-                              Upload Custom
+                              {t('settings.upload_custom')}
                             </Button>
                           </div>
                           <input 
@@ -560,7 +560,7 @@ const SettingsPage = () => {
                             value={profileData.location}
                             onChange={(val) => setProfileData({ ...profileData, location: val })}
                             onSelectPlace={handleLocationSelect}
-                            placeholder="Search for your city or address..."
+                            placeholder={t('settings.location_search_placeholder')}
                             className="bg-input border-border text-foreground rounded-lg"
                           />
                         </div>
@@ -595,12 +595,12 @@ const SettingsPage = () => {
                                   <SelectValue placeholder={t('settings_page.service_area_placeholder')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="5">Within 5 km</SelectItem>
-                                  <SelectItem value="10">Within 10 km</SelectItem>
-                                  <SelectItem value="25">Within 25 km</SelectItem>
-                                  <SelectItem value="50">Within 50 km</SelectItem>
-                                  <SelectItem value="100">Within 100 km</SelectItem>
-                                  <SelectItem value="lithuania">🇱🇹 All Lithuania</SelectItem>
+                                  <SelectItem value="5">{t('settings.radius_within', { km: 5 })}</SelectItem>
+                                  <SelectItem value="10">{t('settings.radius_within', { km: 10 })}</SelectItem>
+                                  <SelectItem value="25">{t('settings.radius_within', { km: 25 })}</SelectItem>
+                                  <SelectItem value="50">{t('settings.radius_within', { km: 50 })}</SelectItem>
+                                  <SelectItem value="100">{t('settings.radius_within', { km: 100 })}</SelectItem>
+                                  <SelectItem value="lithuania">{t('settings.radius_all_lithuania')}</SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
@@ -669,8 +669,8 @@ const SettingsPage = () => {
                                 onClick={() => workExamplesInputRef.current?.click()}
                               >
                                 <UploadCloud className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                                <p className="text-sm font-medium text-foreground">Drop files or click to upload</p>
-                                <p className="text-xs text-muted-foreground mt-1">JPG, PNG, WEBP, PDF — max 5MB each</p>
+                                <p className="text-sm font-medium text-foreground">{t('settings.drop_files')}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{t('settings.file_types_note')}</p>
                                 <input
                                   type="file"
                                   ref={workExamplesInputRef}
@@ -690,7 +690,7 @@ const SettingsPage = () => {
                               <Label htmlFor="instagramHandle">{t('auth.instagram')}</Label>
                               <Input
                                 id="instagramHandle" name="instagramHandle" value={profileData.instagramHandle} onChange={handleProfileChange}
-                                className="bg-input border-border text-foreground rounded-lg" placeholder="@username"
+                                className="bg-input border-border text-foreground rounded-lg" placeholder={t('settings.ph_username')}
                               />
                             </div>
                             <div className="space-y-2">
@@ -705,7 +705,7 @@ const SettingsPage = () => {
                               <Label htmlFor="youtubeChannel">{t('auth.youtube')}</Label>
                               <Input
                                 id="youtubeChannel" name="youtubeChannel" value={profileData.youtubeChannel} onChange={handleProfileChange}
-                                className="bg-input border-border text-foreground rounded-lg" placeholder="Channel URL"
+                                className="bg-input border-border text-foreground rounded-lg" placeholder={t('settings.ph_channel_url')}
                               />
                             </div>
                             <div className="space-y-2">
@@ -720,7 +720,7 @@ const SettingsPage = () => {
                               <Label htmlFor="tiktokHandle">{t('auth.tiktok')}</Label>
                               <Input
                                 id="tiktokHandle" name="tiktokHandle" value={profileData.tiktokHandle} onChange={handleProfileChange}
-                                className="bg-input border-border text-foreground rounded-lg" placeholder="@username"
+                                className="bg-input border-border text-foreground rounded-lg" placeholder={t('settings.ph_username')}
                               />
                             </div>
                             <div className="space-y-2">
@@ -735,7 +735,7 @@ const SettingsPage = () => {
                               <Label htmlFor="contentNiche">{t('auth.niche')}</Label>
                               <Input
                                 id="contentNiche" name="contentNiche" value={profileData.contentNiche} onChange={handleProfileChange}
-                                className="bg-input border-border text-foreground rounded-lg" placeholder="e.g. Tech, Beauty"
+                                className="bg-input border-border text-foreground rounded-lg" placeholder={t('settings.ph_niche')}
                               />
                             </div>
                             <div className="space-y-2 md:col-span-2">
@@ -743,7 +743,7 @@ const SettingsPage = () => {
                               <Textarea
                                 id="influencerBio" name="influencerBio" value={profileData.influencerBio} onChange={handleProfileChange}
                                 className="bg-input border-border text-foreground min-h-[120px] rounded-lg"
-                                placeholder="Tell brands about your audience..."
+                                placeholder={t('settings.ph_audience')}
                               />
                             </div>
                           </>
@@ -752,7 +752,7 @@ const SettingsPage = () => {
                         {currentUser?.userType === 'client' && (
                           <div className="space-y-2 md:col-span-2 pt-4 border-t border-border">
                             <Label className="text-lg font-semibold">{t('auction.default_location')}</Label>
-                            <p className="text-sm text-muted-foreground mb-4">Set your default location for faster request creation.</p>
+                            <p className="text-sm text-muted-foreground mb-4">{t('settings.client_location_desc')}</p>
                             <LocationPicker 
                               initialLocation={clientLocation}
                               onSave={handleSaveClientLocation}
@@ -777,16 +777,16 @@ const SettingsPage = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CreditCard className="w-5 h-5 text-primary" />
-                        Payment Methods
+                        {t('settings.tab_payment')}
                       </CardTitle>
                       <CardDescription>
-                        Manage your saved cards, view payment history, and download invoices via Stripe.
+                        {t('settings.pay_methods_desc')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="rounded-xl border border-border p-4 space-y-4">
                         <p className="text-sm text-muted-foreground">
-                          All payments are processed securely by Stripe. You can manage your saved payment methods and view receipts for past jobs directly in the Stripe portal.
+                          {t('settings.pay_secure_note')}
                         </p>
                         <Button
                           className="bg-[#635BFF] hover:bg-[#5750e8] text-white rounded-lg w-full"
@@ -794,10 +794,10 @@ const SettingsPage = () => {
                           disabled={clientPortalLoading}
                         >
                           {clientPortalLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ExternalLink className="h-4 w-4 mr-2" />}
-                          Open Payment Portal
+                          {t('settings.open_payment_portal')}
                         </Button>
                         <p className="text-xs text-muted-foreground text-center">
-                          You'll be redirected to Stripe to manage your payment details.
+                          {t('settings.payment_portal_redirect')}
                         </p>
                       </div>
                     </CardContent>
@@ -808,17 +808,17 @@ const SettingsPage = () => {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <CreditCard className="w-5 h-5 text-primary" />
-                        Payout Details
+                        {t('settings.payout_title')}
                       </CardTitle>
                       <CardDescription>
-                        Connect your Stripe account to receive earnings from completed jobs.
+                        {t('settings.payout_desc')}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="flex items-start gap-3 p-4 mb-6 bg-primary/5 border border-primary/20 rounded-xl">
                         <span className="text-primary text-lg font-bold shrink-0">5%</span>
                         <p className="text-sm text-muted-foreground">
-                          A <span className="font-semibold text-foreground">5% service fee</span> is deducted from each payout to cover platform operations and payment processing.
+                          {t('settings.payout_fee_note')}
                         </p>
                       </div>
                       <div className="rounded-xl border border-border p-4 space-y-4">
@@ -826,14 +826,14 @@ const SettingsPage = () => {
                           <>
                             <div className="flex items-center gap-2 text-green-500 font-medium">
                               <CheckCircle2 className="h-5 w-5" />
-                              Stripe account connected
+                              {t('settings.stripe_connected')}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                              Payments will be transferred directly to your Stripe account (minus 5% platform fee).
+                              {t('settings.stripe_connected_note')}
                             </p>
                             <div className="flex items-center justify-between p-3 bg-muted/40 rounded-lg">
                               <div>
-                                <p className="text-xs text-muted-foreground">Available balance</p>
+                                <p className="text-xs text-muted-foreground">{t('settings.available_balance')}</p>
                                 <p className="text-2xl font-bold text-primary">€{contractorBalance.toFixed(2)}</p>
                               </div>
                               <Button
@@ -842,7 +842,7 @@ const SettingsPage = () => {
                                 disabled={payoutLoading || contractorBalance <= 0}
                               >
                                 {payoutLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                                Withdraw to Stripe
+                                {t('settings.withdraw_to_stripe')}
                               </Button>
                             </div>
                             <Button
@@ -853,13 +853,13 @@ const SettingsPage = () => {
                               disabled={stripeConnectLoading}
                             >
                               {stripeConnectLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <ExternalLink className="h-4 w-4 mr-2" />}
-                              Open Stripe Dashboard
+                              {t('settings.open_stripe_dashboard')}
                             </Button>
                           </>
                         ) : (
                           <>
                             <p className="text-sm text-muted-foreground">
-                              Connect your Stripe account to receive payments directly after each completed job. Takes ~5 minutes.
+                              {t('settings.stripe_connect_note')}
                             </p>
                             <Button
                               className="bg-[#635BFF] hover:bg-[#5750e8] text-white rounded-lg w-full"
@@ -867,7 +867,7 @@ const SettingsPage = () => {
                               disabled={stripeConnectLoading}
                             >
                               {stripeConnectLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                              Connect with Stripe
+                              {t('settings.connect_with_stripe')}
                             </Button>
                           </>
                         )}
@@ -891,8 +891,8 @@ const SettingsPage = () => {
                           <CardContent className="py-4 flex items-center gap-3">
                             <Gift className="w-5 h-5 text-primary shrink-0" />
                             <p className="text-sm text-foreground">
-                              <span className="font-semibold">Launch bonus active!</span> You have full Premium access free until{' '}
-                              {new Date(currentUser.trialEndsAt).toLocaleDateString()}.
+                              <span className="font-semibold">{t('settings.launch_bonus_active')}</span>{' '}
+                              {t('settings.launch_bonus_until', { date: new Date(currentUser.trialEndsAt).toLocaleDateString() })}
                             </p>
                           </CardContent>
                         </Card>
@@ -901,15 +901,15 @@ const SettingsPage = () => {
                         <CardHeader>
                           <CardTitle className="flex items-center gap-3">
                             <Zap className="w-5 h-5 text-primary" />
-                            Current plan
+                            {t('settings.current_plan')}
                             <PlanBadge plan={currentPlan} isTrial={inTrial} />
                           </CardTitle>
                           <CardDescription>
                             {inTrial
-                              ? `Trial ends ${new Date(currentUser.trialEndsAt).toLocaleDateString()}`
+                              ? t('settings.trial_ends', { date: new Date(currentUser.trialEndsAt).toLocaleDateString() })
                               : currentUser?.planExpiresAt
-                              ? `Renews ${new Date(currentUser.planExpiresAt).toLocaleDateString()}`
-                              : currentPlan === 'standard' ? 'Free forever' : 'No active subscription'}
+                              ? t('settings.renews', { date: new Date(currentUser.planExpiresAt).toLocaleDateString() })
+                              : currentPlan === 'standard' ? t('settings.free_forever') : t('settings.no_subscription')}
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -918,32 +918,32 @@ const SettingsPage = () => {
                               <>
                                 <div className="rounded-xl bg-muted/40 border border-border p-4">
                                   <p className="text-2xl font-bold text-foreground">{formatLimit(limits.bidsPerMonth)}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">Bids / month</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{t('settings.bids_per_month')}</p>
                                 </div>
                                 <div className="rounded-xl bg-muted/40 border border-border p-4">
                                   <p className="text-2xl font-bold text-foreground">{formatLimit(limits.activeBids)}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">Active bids</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{t('settings.active_bids')}</p>
                                 </div>
                                 <div className="rounded-xl bg-muted/40 border border-border p-4">
                                   <p className="text-2xl font-bold text-foreground">{formatLimit(limits.featuredSlots)}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">Featured slots</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{t('settings.featured_slots')}</p>
                                 </div>
                               </>
                             ) : (
                               <>
                                 <div className="rounded-xl bg-muted/40 border border-border p-4">
                                   <p className="text-2xl font-bold text-foreground">{formatLimit(limits.ticketsPerMonth)}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">Tickets / month</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{t('settings.tickets_per_month')}</p>
                                 </div>
                                 <div className="rounded-xl bg-muted/40 border border-border p-4">
                                   <p className="text-2xl font-bold text-foreground">{formatLimit(limits.activeTickets)}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">Active tickets</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{t('settings.active_tickets')}</p>
                                 </div>
                                 <div className="rounded-xl bg-muted/40 border border-border p-4">
                                   {limits.priorityMatching
                                     ? <Check className="w-6 h-6 text-primary" />
                                     : <Minus className="w-6 h-6 text-muted-foreground" />}
-                                  <p className="text-xs text-muted-foreground mt-1">Priority matching</p>
+                                  <p className="text-xs text-muted-foreground mt-1">{t('settings.priority_matching')}</p>
                                 </div>
                               </>
                             )}
@@ -953,8 +953,8 @@ const SettingsPage = () => {
 
                       <Card className="bg-card border-border rounded-2xl">
                         <CardHeader>
-                          <CardTitle>Upgrade your plan</CardTitle>
-                          <CardDescription>Unlock more capacity as your business grows.</CardDescription>
+                          <CardTitle>{t('settings.upgrade_plan_title')}</CardTitle>
+                          <CardDescription>{t('settings.upgrade_plan_desc')}</CardDescription>
                         </CardHeader>
                         <CardContent>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -966,9 +966,9 @@ const SettingsPage = () => {
                                 <div key={key} className={`rounded-xl border p-4 flex flex-col gap-3 ${isCurrent ? 'border-primary bg-primary/5' : 'border-border'}`}>
                                   <div className="flex items-center justify-between">
                                     <span className={`inline-flex rounded-md border px-2 py-0.5 text-xs font-semibold ${plan.color}`}>{plan.label}</span>
-                                    {isCurrent && <span className="text-xs text-primary font-medium">Current</span>}
+                                    {isCurrent && <span className="text-xs text-primary font-medium">{t('settings.current_label')}</span>}
                                   </div>
-                                  <p className="text-xl font-bold text-foreground">€{price}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                                  <p className="text-xl font-bold text-foreground">€{price}<span className="text-sm font-normal text-muted-foreground">{t('settings.per_month_short')}</span></p>
                                   <Button
                                     size="sm"
                                     variant={isCurrent ? 'outline' : 'default'}
@@ -976,7 +976,7 @@ const SettingsPage = () => {
                                     className="w-full"
                                     onClick={() => !isCurrent && handleUpgrade(key)}
                                   >
-                                    {subLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : isCurrent ? 'Current plan' : 'Upgrade'}
+                                    {subLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : isCurrent ? t('settings.current_plan_btn') : t('settings.upgrade_btn')}
                                   </Button>
                                 </div>
                               );
@@ -984,7 +984,7 @@ const SettingsPage = () => {
                           </div>
                           <div className="flex items-center justify-between mt-4">
                             <p className="text-xs text-muted-foreground">
-                              Billed via Stripe · Cancel anytime · <Link to="/pricing" className="underline underline-offset-2">See full comparison</Link>
+                              {t('settings.billing_note')} <Link to="/pricing" className="underline underline-offset-2">{t('settings.see_full_comparison')}</Link>
                             </p>
                             {currentPlan !== 'standard' && (
                               <Button
@@ -994,7 +994,7 @@ const SettingsPage = () => {
                                 disabled={cancelLoading}
                                 onClick={handleCancelSubscription}
                               >
-                                {cancelLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Cancel subscription'}
+                                {cancelLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : t('settings.cancel_subscription')}
                               </Button>
                             )}
                           </div>
@@ -1021,7 +1021,7 @@ const SettingsPage = () => {
                       </div>
                       <div className="space-y-2">
                         <Label>{t('settings.account_type')}</Label>
-                        <Input value={currentUser?.userType === 'contractor' ? 'Contractor / Professional' : currentUser?.userType === 'influencer' ? 'Influencer' : 'Client'} disabled className="bg-muted text-muted-foreground border-border capitalize rounded-lg" />
+                        <Input value={currentUser?.userType === 'contractor' ? t('settings.account_type_contractor') : currentUser?.userType === 'influencer' ? t('settings.account_type_influencer') : t('settings.account_type_client')} disabled className="bg-muted text-muted-foreground border-border capitalize rounded-lg" />
                       </div>
                     </div>
 
@@ -1057,21 +1057,21 @@ const SettingsPage = () => {
                 <Card className="bg-card border-border rounded-2xl">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Gift className="h-5 w-5 text-primary" /> Referral Program
+                      <Gift className="h-5 w-5 text-primary" /> {t('settings.referral_program')}
                     </CardTitle>
-                    <CardDescription>Share your link and earn rewards when friends join WorkBee</CardDescription>
+                    <CardDescription>{t('settings.referral_program_desc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
-                        <p className="text-xs text-muted-foreground mb-1">You earn (per signup)</p>
-                        <p className="text-xl font-bold text-primary">€10 credit</p>
-                        <p className="text-xs text-muted-foreground mt-1">+ 1 free month on your plan</p>
+                        <p className="text-xs text-muted-foreground mb-1">{t('settings.you_earn_per_signup')}</p>
+                        <p className="text-xl font-bold text-primary">{t('settings.you_earn_value')}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('settings.you_earn_note')}</p>
                       </div>
                       <div className="p-4 bg-muted/40 border border-border rounded-xl">
-                        <p className="text-xs text-muted-foreground mb-1">Your friend gets</p>
-                        <p className="text-xl font-bold text-foreground">1 free month</p>
-                        <p className="text-xs text-muted-foreground mt-1">on their first paid plan</p>
+                        <p className="text-xs text-muted-foreground mb-1">{t('settings.friend_gets')}</p>
+                        <p className="text-xl font-bold text-foreground">{t('settings.friend_gets_value')}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{t('settings.friend_gets_note')}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1080,12 +1080,12 @@ const SettingsPage = () => {
                 {/* Referral link */}
                 <Card className="bg-card border-border rounded-2xl">
                   <CardHeader>
-                    <CardTitle>Your Referral Link</CardTitle>
+                    <CardTitle>{t('settings.your_referral_link')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {referralStatsLoading ? (
                       <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Loading your referral link…
+                        <Loader2 className="h-4 w-4 animate-spin" /> {t('settings.loading_referral_link')}
                       </div>
                     ) : referralStats ? (
                       <>
@@ -1108,7 +1108,7 @@ const SettingsPage = () => {
                           </Button>
                         </div>
                         <p className="text-xs text-muted-foreground mb-3">
-                          Your code: <span className="font-mono font-bold text-foreground">{referralStats.referralCode}</span>
+                          {t('settings.your_code')} <span className="font-mono font-bold text-foreground">{referralStats.referralCode}</span>
                         </p>
                         {/* Share buttons */}
                         <div className="flex flex-wrap gap-2">
@@ -1131,7 +1131,7 @@ const SettingsPage = () => {
                         </div>
                       </>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Could not load referral link. Please refresh the page.</p>
+                      <p className="text-sm text-muted-foreground">{t('settings.could_not_load_link')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -1139,31 +1139,31 @@ const SettingsPage = () => {
                 {/* Stats + History */}
                 <Card className="bg-card border-border rounded-2xl">
                   <CardHeader>
-                    <CardTitle>Your Referrals</CardTitle>
+                    <CardTitle>{t('settings.your_referrals')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-5">
                     {referralStatsLoading ? (
                       <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <Loader2 className="h-4 w-4 animate-spin" /> Loading stats…
+                        <Loader2 className="h-4 w-4 animate-spin" /> {t('settings.loading_stats')}
                       </div>
                     ) : referralStats ? (
                       <>
                         <div className="flex items-center gap-6">
                           <div className="text-center">
                             <p className="text-3xl font-bold text-primary">{referralStats.totalReferrals}</p>
-                            <p className="text-xs text-muted-foreground mt-1">People referred</p>
+                            <p className="text-xs text-muted-foreground mt-1">{t('settings.people_referred')}</p>
                           </div>
                           <div className="h-12 w-px bg-border" />
                           <div className="text-center">
                             <p className="text-3xl font-bold text-foreground">€{referralStats.totalEarned ?? referralStats.totalReferrals * 10}</p>
-                            <p className="text-xs text-muted-foreground mt-1">Credits earned</p>
+                            <p className="text-xs text-muted-foreground mt-1">{t('settings.credits_earned')}</p>
                           </div>
                         </div>
 
                         {referralStats.history?.length > 0 && (
                           <div className="border border-border rounded-xl overflow-hidden">
                             <div className="grid grid-cols-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground px-4 py-2 bg-muted/30 border-b border-border">
-                              <span>Name</span><span className="text-center">Date</span><span className="text-right">Earned</span>
+                              <span>{t('settings.col_name')}</span><span className="text-center">{t('settings.col_date')}</span><span className="text-right">{t('settings.col_earned')}</span>
                             </div>
                             {referralStats.history.map(r => (
                               <div key={r.id} className="grid grid-cols-3 text-sm px-4 py-2.5 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
@@ -1176,7 +1176,7 @@ const SettingsPage = () => {
                         )}
                       </>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Could not load stats. Please refresh the page.</p>
+                      <p className="text-sm text-muted-foreground">{t('settings.could_not_load_stats')}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -1193,18 +1193,18 @@ const SettingsPage = () => {
       <Dialog open={isDeleteModalOpen} onOpenChange={setIsDeleteModalOpen}>
         <DialogContent className="bg-card border-border rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="text-destructive">Delete Account</DialogTitle>
+            <DialogTitle className="text-destructive">{t('settings.delete_btn')}</DialogTitle>
             <DialogDescription>
-              Are you absolutely sure? This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+              {t('settings.delete_confirm_desc')}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setIsDeleteModalOpen(false)} disabled={deleteLoading} className="rounded-xl">
-              Cancel
+              {t('settings.cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleteLoading} className="rounded-xl">
               {deleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Yes, delete my account
+              {t('settings.delete_confirm_btn')}
             </Button>
           </DialogFooter>
         </DialogContent>

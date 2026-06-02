@@ -11,7 +11,7 @@ import globals from 'globals';
 const NON_TEXT_JSX_ATTRS = [
 	'className', 'class', 'styleName', 'style', 'key', 'id', 'htmlFor', 'for',
 	'type', 'name', 'href', 'src', 'srcSet', 'rel', 'target', 'to', 'role',
-	'value', 'autoComplete', 'inputMode', 'pattern', 'accept', 'method', 'encType',
+	'value', 'defaultValue', 'autoComplete', 'inputMode', 'pattern', 'accept', 'method', 'encType',
 	'variant', 'size', 'color', 'fill', 'stroke', 'viewBox', 'd', 'path', 'xmlns',
 	'width', 'height', 'data-testid', 'aria-hidden', 'aria-controls',
 	'aria-describedby', 'aria-labelledby', 'placeholderText', 'icon', 'as',
@@ -77,7 +77,7 @@ export default [
 				words: {
 					exclude: [
 						'^[^a-zA-Z]+$',
-						'^(WorkBee|Boilio|Stripe|PayPal|IBAN|CVV|Instagram|Facebook|LinkedIn|Google|Apple|VISA|Mastercard|€|EUR|·|—|–|•|/|×)$',
+						'^(WorkBee|Boilio|Stripe|PayPal|IBAN|CVV|Instagram|Facebook|LinkedIn|Google|Apple|VISA|Mastercard|WhatsApp|Telegram|YouTube|TikTok|€|EUR|·|—|–|•|/|×)$',
 					],
 				},
 			}],
