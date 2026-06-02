@@ -300,7 +300,7 @@ const AuctionTicketDetailsPage = () => {
   return (
     <>
       <Helmet>
-        <title>{ticket.expand?.categoryId?.name || 'Ticket'} - Bee Marketplace</title>
+        <title>{ticket.expand?.categoryId?.name || t('auction.ticket')} - WorkBee</title>
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -325,7 +325,7 @@ const AuctionTicketDetailsPage = () => {
                   {ticket.recurring && (
                     <Badge className="bg-primary/10 text-primary border-none flex items-center gap-1">
                       <RefreshCw className="h-3 w-3" />
-                      {ticket.recurringFrequency === 'weekly' ? 'Weekly' : 'Monthly'}
+                      {ticket.recurringFrequency === 'weekly' ? t('auction.recurring_weekly') : t('auction.recurring_monthly')}
                     </Badge>
                   )}
                 </div>
@@ -338,12 +338,12 @@ const AuctionTicketDetailsPage = () => {
                 <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
                   <DialogTrigger asChild>
                     <Button variant="outline" className="rounded-xl border-border">
-                      <Pencil className="h-4 w-4 mr-2" /> Edit
+                      <Pencil className="h-4 w-4 mr-2" /> {t('auction.edit')}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="bg-card border-border max-w-2xl flex flex-col max-h-[90vh] rounded-2xl">
                     <DialogHeader>
-                      <DialogTitle>Edit Request</DialogTitle>
+                      <DialogTitle>{t('auction.edit_request')}</DialogTitle>
                     </DialogHeader>
                     <div className="overflow-y-auto flex-1 pr-1">
                       <AuctionTicketForm
@@ -386,7 +386,7 @@ const AuctionTicketDetailsPage = () => {
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                      {ticket.description || 'No description provided.'}
+                      {ticket.description || t('auction.no_description')}
                     </p>
                   </CardContent>
                 </Card>
@@ -554,13 +554,13 @@ const AuctionTicketDetailsPage = () => {
                         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl mt-2"
                       >
                         <Lock className="h-4 w-4 mr-2" />
-                        {escrowLoading ? 'Redirecting…' : `Pay €${acceptedBid?.proposedRate || ''} into Escrow`}
+                        {escrowLoading ? t('auction.redirecting') : t('auction.pay_into_escrow', { amount: acceptedBid?.proposedRate || '' })}
                       </Button>
                     )}
                     {isClient && ticket.contractorMarkedDone && (
                       <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 mt-2">
                         <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                        The contractor has marked this job complete — review their photos below, then release payment.
+                        {t('auction.contractor_marked_done_note')}
                       </div>
                     )}
 
@@ -568,7 +568,7 @@ const AuctionTicketDetailsPage = () => {
                       <div className="space-y-2 mt-2">
                         <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
                           <Lock className="h-3.5 w-3.5 shrink-0" />
-                          €{escrow.amount} held in escrow — release when job is done
+                          {t('auction.escrow_held_note', { amount: escrow.amount })}
                         </div>
                         <Button
                           onClick={handleReleaseEscrow}
@@ -576,7 +576,7 @@ const AuctionTicketDetailsPage = () => {
                           className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl"
                         >
                           <Unlock className="h-4 w-4 mr-2" />
-                          {escrowLoading ? 'Processing…' : 'Release Payment to Contractor'}
+                          {escrowLoading ? t('auction.processing') : t('auction.release_payment')}
                         </Button>
                         <Button
                           onClick={handleRefundEscrow}
@@ -585,14 +585,14 @@ const AuctionTicketDetailsPage = () => {
                           className="w-full rounded-xl border-destructive text-destructive hover:bg-destructive/10"
                         >
                           <XCircle className="h-4 w-4 mr-2" />
-                          {escrowLoading ? 'Processing…' : 'Cancel & Refund Escrow'}
+                          {escrowLoading ? t('auction.processing') : t('auction.cancel_refund_escrow')}
                         </Button>
                       </div>
                     )}
                     {escrow?.status === 'released' && (
                       <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2 mt-2">
                         <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                        Payment of €{escrow.amount} released to contractor
+                        {t('auction.payment_released_note', { amount: escrow.amount })}
                       </div>
                     )}
                   </CardContent>
@@ -608,7 +608,7 @@ const AuctionTicketDetailsPage = () => {
                     >
                       <img
                         src={`https://maps.googleapis.com/maps/api/staticmap?center=${ticket.latitude},${ticket.longitude}&zoom=14&size=400x200&markers=color:red%7C${ticket.latitude},${ticket.longitude}&key=${import.meta.env.VITE_GOOGLE_MAPS_API_KEY || 'AIzaSyA73M8t4gfdSqBz3-tiHHo2YQdqXxw3B7c'}`}
-                        alt="Location map"
+                        alt={t('auction.location_map_alt')}
                         className="w-full object-cover"
                         onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextSibling.style.display = 'flex'; }}
                       />
@@ -627,10 +627,10 @@ const AuctionTicketDetailsPage = () => {
                       <CardTitle className="text-base flex items-center gap-2">
                         <MessageCircle className="h-5 w-5 text-primary" />
                         {isClient && acceptedBid && bidders[acceptedBid.masterId]
-                          ? `Chat with ${bidders[acceptedBid.masterId].name}`
+                          ? t('auction.chat_with', { name: bidders[acceptedBid.masterId].name })
                           : isClient
-                            ? 'Job Chat'
-                            : `Chat with ${ticket.expand?.clientId?.name || 'Client'}`}
+                            ? t('auction.job_chat')
+                            : t('auction.chat_with', { name: ticket.expand?.clientId?.name || t('auction.client_default') })}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -655,7 +655,7 @@ const AuctionTicketDetailsPage = () => {
                         <div className="flex items-center gap-3">
                           <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
                             {getUserImageUrl(contractor) ? (
-                              <img src={getUserImageUrl(contractor, { thumb: '100x100' })} alt="Avatar" className="w-full h-full object-cover" />
+                              <img src={getUserImageUrl(contractor, { thumb: '100x100' })} alt={t('auction.avatar_alt')} className="w-full h-full object-cover" />
                             ) : (
                               <User className="h-4 w-4 text-muted-foreground" />
                             )}
@@ -687,7 +687,7 @@ const AuctionTicketDetailsPage = () => {
                 {!isClient && ticket.status === 'In Progress' && myBid?.status === 'accepted' && escrow?.status === 'held' && (
                   <div className="flex items-center gap-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
                     <Lock className="h-3.5 w-3.5 shrink-0" />
-                    €{escrow.amount} is held in escrow — you'll be paid once the client releases it
+                    {t('auction.escrow_held_contractor_note', { amount: escrow.amount })}
                   </div>
                 )}
 
@@ -695,20 +695,20 @@ const AuctionTicketDetailsPage = () => {
                 {!isClient && ticket.status === 'In Progress' && myBid?.status === 'accepted' && !ticket.contractorMarkedDone && (
                   <Button
                     onClick={() => {
-                      setPortfolioTitle(categoryName || 'Completed Job');
+                      setPortfolioTitle(categoryName || t('auction.completed_job_default'));
                       setCompletionDialog(true);
                     }}
                     className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl"
                   >
                     <Camera className="h-4 w-4 mr-2" />
-                    Mark Job as Complete
+                    {t('auction.mark_job_complete')}
                   </Button>
                 )}
 
                 {!isClient && ticket.contractorMarkedDone && (
                   <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-3 py-2">
                     <CheckCircle className="h-3.5 w-3.5 shrink-0" />
-                    You've marked this job complete — waiting for client to release payment
+                    {t('auction.marked_done_waiting')}
                   </div>
                 )}
 
@@ -752,38 +752,38 @@ const AuctionTicketDetailsPage = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Camera className="h-5 w-5 text-green-500" />
-              Mark Job as Complete
+              {t('auction.mark_job_complete')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <p className="text-sm text-muted-foreground">
-              Upload completion photos — they'll be shown to the client as proof of work and added to your portfolio automatically.
+              {t('auction.completion_intro')}
             </p>
 
             <div>
-              <label className="text-sm font-medium text-foreground">Project title *</label>
+              <label className="text-sm font-medium text-foreground">{t('auction.project_title_label')}</label>
               <input
                 type="text"
                 value={portfolioTitle}
                 onChange={e => setPortfolioTitle(e.target.value)}
-                placeholder="e.g. Kitchen Renovation"
+                placeholder={t('auction.project_title_ph')}
                 className="mt-1.5 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-foreground">Notes (optional)</label>
+              <label className="text-sm font-medium text-foreground">{t('auction.notes_label')}</label>
               <textarea
                 value={portfolioDesc}
                 onChange={e => setPortfolioDesc(e.target.value)}
-                placeholder="Materials used, work done, anything the client should know..."
+                placeholder={t('auction.notes_ph')}
                 rows={3}
                 className="mt-1.5 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-foreground mb-1.5 block">Completion photos *</label>
+              <label className="text-sm font-medium text-foreground mb-1.5 block">{t('auction.completion_photos_label')}</label>
               <input
                 ref={completionInputRef}
                 type="file"
@@ -834,7 +834,7 @@ const AuctionTicketDetailsPage = () => {
                   onClick={() => completionInputRef.current?.click()}
                 >
                   <Camera className="h-7 w-7" />
-                  <span>Upload completion photos (up to 10)</span>
+                  <span>{t('auction.upload_completion_photos')}</span>
                 </button>
               )}
             </div>
@@ -846,7 +846,7 @@ const AuctionTicketDetailsPage = () => {
                 disabled={completionLoading}
                 className="px-4 py-2 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-50"
               >
-                Cancel
+                {t('auction.cancel')}
               </button>
               <button
                 type="button"
@@ -855,8 +855,8 @@ const AuctionTicketDetailsPage = () => {
                 className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-700 text-white text-sm font-semibold transition-colors disabled:opacity-60 flex items-center gap-2"
               >
                 {completionLoading
-                  ? <><Loader2 className="h-4 w-4 animate-spin" /> Submitting…</>
-                  : <><CheckCircle className="h-4 w-4" /> Submit & Mark Done</>
+                  ? <><Loader2 className="h-4 w-4 animate-spin" /> {t('auction.submitting')}</>
+                  : <><CheckCircle className="h-4 w-4" /> {t('auction.submit_mark_done')}</>
                 }
               </button>
             </div>
