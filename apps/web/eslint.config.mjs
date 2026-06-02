@@ -1,13 +1,27 @@
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
 import importPlugin from 'eslint-plugin-import';
+import i18next from 'eslint-plugin-i18next';
 import globals from 'globals';
+
+// Structural/technical JSX attributes that must NEVER be flagged as
+// untranslated copy (URLs, ids, css, enum-like props, svg geometry, …).
+// Anything NOT in this list — placeholder, title, alt, aria-label, label —
+// IS checked, because those render to the user and must go through t().
+const NON_TEXT_JSX_ATTRS = [
+	'className', 'class', 'styleName', 'style', 'key', 'id', 'htmlFor', 'for',
+	'type', 'name', 'href', 'src', 'srcSet', 'rel', 'target', 'to', 'role',
+	'value', 'defaultValue', 'autoComplete', 'inputMode', 'pattern', 'accept', 'method', 'encType',
+	'variant', 'size', 'color', 'fill', 'stroke', 'viewBox', 'd', 'path', 'xmlns',
+	'width', 'height', 'data-testid', 'aria-hidden', 'aria-controls',
+	'aria-describedby', 'aria-labelledby', 'placeholderText', 'icon', 'as',
+];
 
 export default [
 	{ ignores: ['node_modules/**', 'dist/**', 'build/**', 'vite.config.js', 'vitest.config.js', 'public/sw.js'] },
 	{
 		files: ['**/*.js', '**/*.jsx'],
-		plugins: { react, 'react-hooks': reactHooks, import: importPlugin },
+		plugins: { react, 'react-hooks': reactHooks, import: importPlugin, i18next },
 		languageOptions: {
 			ecmaVersion: 'latest',
 			sourceType: 'module',
@@ -47,7 +61,44 @@ export default [
 
 			// Disable expensive rules for performance
 			'import/no-cycle': 'off', // AI rarely makes this error, and the rule is very slow to run
+
+			// i18n leak guard: any user-facing string literal in JSX (text or
+			// rendered attribute) that is NOT wrapped in t() is flagged. This is
+			// what catches "random English" the parity gate can't see, because
+			// those strings never make it into the locale files at all.
+			// Starts as 'warn' (ratchet): build stays green while we burn down
+			// existing hits, then we flip to 'error' to lock it in.
+			'i18next/no-literal-string': ['warn', {
+				mode: 'jsx-only',
+				'jsx-attributes': { exclude: NON_TEXT_JSX_ATTRS },
+				// Ignore strings with no letters (numbers, symbols, separators)
+				// and pure brand/identifier tokens that are identical in every
+				// language and so never need translating.
+				words: {
+					exclude: [
+						'^[^a-zA-Z]+$',
+						'^(WorkBee|Boilio|Stripe|PayPal|IBAN|CVV|Instagram|Facebook|LinkedIn|Google|Apple|VISA|Mastercard|WhatsApp|Telegram|YouTube|TikTok|€|EUR|·|—|–|•|/|×)$',
+					],
+				},
+			}],
 		},
 	},
-	{ files: ['tools/**/*.js', 'tailwind.config.js'], languageOptions: { globals: globals.node } },
+	// Locale-agnostic / non-UI files don't render copy — don't lint them for strings.
+	{
+		files: ['tools/**/*.js', 'tailwind.config.js'],
+		languageOptions: { globals: globals.node },
+		rules: { 'i18next/no-literal-string': 'off' },
+	},
+	{
+		files: ['**/*.test.{js,jsx}', '**/*.spec.{js,jsx}', 'src/i18n.js', 'src/locales/**'],
+		rules: { 'i18next/no-literal-string': 'off' },
+	},
+	// Internal-only / vendored surfaces that are not customer copy:
+	//  - admin/* + AdminLayout: staff back-office, conventionally single-language.
+	//  - components/ui/*: vendored shadcn primitives (mostly technical strings).
+	// Re-include any of these later if we decide to translate them.
+	{
+		files: ['src/pages/admin/**', 'src/components/AdminLayout.jsx', 'src/components/ui/**'],
+		rules: { 'i18next/no-literal-string': 'off' },
+	},
 ];
