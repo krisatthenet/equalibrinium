@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { X, PartyPopper, Sparkles } from 'lucide-react';
+import { X, GraduationCap, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-const LaunchPartyBanner = () => {
+const StudentPromoBanner = () => {
   const [dismissed, setDismissed] = useState(() => {
-    try { return localStorage.getItem('launchPartyBannerDismissed') === 'true'; } catch { return false; }
+    try { return localStorage.getItem('studentPromoBannerDismissed') === 'true'; } catch { return false; }
   });
 
   const { t } = useTranslation();
@@ -13,31 +13,31 @@ const LaunchPartyBanner = () => {
   if (dismissed) return null;
 
   const dismiss = () => {
-    try { localStorage.setItem('launchPartyBannerDismissed', 'true'); } catch {}
+    try { localStorage.setItem('studentPromoBannerDismissed', 'true'); } catch {}
     setDismissed(true);
   };
 
   return (
     <div className="relative z-[60] overflow-hidden">
-      <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-pink-500 text-white px-4 py-3 flex items-center justify-between gap-3">
+      <div className="bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-600 text-white px-4 py-3 flex items-center justify-between gap-3">
         {/* animated shimmer */}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:200%_100%] animate-[banner-shimmer_2.5s_linear_infinite]" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(110deg,transparent_25%,rgba(255,255,255,0.15)_50%,transparent_75%)] bg-[length:200%_100%] animate-[student-banner-shimmer_2.5s_linear_infinite]" />
 
         <div className="flex-1 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-center">
           <div className="flex items-center gap-2 font-black text-lg sm:text-xl tracking-tight">
-            <PartyPopper className="h-5 w-5 shrink-0" />
-            <span>{t('banner.launch_title')}</span>
+            <GraduationCap className="h-5 w-5 shrink-0" />
+            <span>{t('student.banner_title')}</span>
             <Sparkles className="h-4 w-4 shrink-0" />
           </div>
           <span className="hidden sm:block text-white/70">·</span>
           <p className="text-sm sm:text-base font-medium text-white/90">
-            {t('banner.launch_desc')}
+            {t('student.banner_desc')}
           </p>
           <Link
-            to="/register"
-            className="shrink-0 bg-white text-orange-600 font-bold text-sm px-4 py-1.5 rounded-full hover:bg-orange-50 transition-colors duration-200 whitespace-nowrap"
+            to="/register?promo=student"
+            className="shrink-0 bg-white text-violet-700 font-bold text-sm px-4 py-1.5 rounded-full hover:bg-violet-50 transition-colors duration-200 whitespace-nowrap"
           >
-            {t('banner.launch_cta')} →
+            {t('student.banner_cta')} →
           </Link>
         </div>
 
@@ -51,7 +51,7 @@ const LaunchPartyBanner = () => {
       </div>
 
       <style>{`
-        @keyframes banner-shimmer {
+        @keyframes student-banner-shimmer {
           0%   { background-position: 200% 0; }
           100% { background-position: -200% 0; }
         }
@@ -60,4 +60,4 @@ const LaunchPartyBanner = () => {
   );
 };
 
-export default LaunchPartyBanner;
+export default StudentPromoBanner;

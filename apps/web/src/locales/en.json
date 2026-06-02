@@ -20,6 +20,19 @@
       "launch_desc": "We're celebrating our 1st birthday. Come join the fun!",
       "launch_cta": "Get invited"
     },
+    "student": {
+      "banner_title": "Students go free",
+      "banner_desc": "WorkBee is free for students at every Lithuanian university, college and vocational school.",
+      "banner_cta": "Get free access",
+      "form_notice": "Student perk: WorkBee is 100% free for you — no fees, no commission.",
+      "institution_label": "Your institution",
+      "institution_placeholder": "Select your school or university",
+      "institution_other": "Other",
+      "document_label": "Student ID / proof of study",
+      "document_hint": "Upload a photo of your student ID or enrolment certificate (image or PDF). We'll review it to confirm your free student access.",
+      "err_institution": "Please select your institution.",
+      "err_document": "Please upload your student ID to verify your status."
+    },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
       "full_release": "Full release: End of Q2",
@@ -333,6 +346,10 @@
       "connect_with_stripe": "Connect with Stripe",
       "launch_bonus_active": "Launch bonus active!",
       "launch_bonus_until": "You have full Premium access free until {{date}}.",
+      "student_plan_active": "Free student plan active",
+      "student_plan_desc": "As a verified student you have full Premium access free — no fees, no commission.",
+      "student_pending": "Student verification pending",
+      "student_pending_desc": "We're reviewing your student ID. Your free Premium access activates once it's approved.",
       "current_plan": "Current plan",
       "trial_ends": "Trial ends {{date}}",
       "renews": "Renews {{date}}",

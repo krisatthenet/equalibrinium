@@ -20,6 +20,19 @@
       "launch_desc": "Švenčiame pilnos versijos paleidimą — prisijunkite prie vakarėlio!",
       "launch_cta": "Gauti pakvietimą"
     },
+    "student": {
+      "banner_title": "Studentams – nemokamai",
+      "banner_desc": "WorkBee nemokama visų Lietuvos universitetų, kolegijų ir profesinių mokyklų studentams.",
+      "banner_cta": "Gauti nemokamai",
+      "form_notice": "Studento privalumas: WorkBee tau 100 % nemokama – jokių mokesčių ir komisinių.",
+      "institution_label": "Tavo įstaiga",
+      "institution_placeholder": "Pasirink mokyklą ar universitetą",
+      "institution_other": "Kita",
+      "document_label": "Studento pažymėjimas / mokymosi įrodymas",
+      "document_hint": "Įkelk studento pažymėjimo ar mokymosi pažymos nuotrauką (paveikslėlį arba PDF). Ją peržiūrėsime ir patvirtinsime nemokamą prieigą studentams.",
+      "err_institution": "Pasirink savo įstaigą.",
+      "err_document": "Įkelk studento pažymėjimą, kad patvirtintume tavo statusą."
+    },
     "beta": {
       "soft_launch": "Beta v. 0.2.0",
       "full_release": "Pilnas startas: Q2 pabaiga",
@@ -333,6 +346,10 @@
       "connect_with_stripe": "Prijungti Stripe",
       "launch_bonus_active": "Aktyvus pristatymo bonusas!",
       "launch_bonus_until": "Turite pilną Premium prieigą nemokamai iki {{date}}.",
+      "student_plan_active": "Nemokamas studento planas aktyvus",
+      "student_plan_desc": "Kaip patvirtintas studentas turi pilną Premium prieigą nemokamai – jokių mokesčių ir komisinių.",
+      "student_pending": "Studento patvirtinimas laukia",
+      "student_pending_desc": "Peržiūrime tavo studento pažymėjimą. Nemokama Premium prieiga įsijungs po patvirtinimo.",
       "current_plan": "Dabartinis planas",
       "trial_ends": "Bandomasis laikotarpis baigiasi {{date}}",
       "renews": "Atsinaujina {{date}}",
