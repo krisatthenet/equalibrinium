@@ -35,6 +35,7 @@ const AuctionTicketDetailsPage = () => {
   const [bidders, setBidders] = useState({}); // masterId -> user
   const [loading, setLoading] = useState(true);
   const [contractorContact, setContractorContact] = useState(null);
+  const [clientContact, setClientContact] = useState(null);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [escrow, setEscrow] = useState(null);
@@ -80,16 +81,27 @@ const AuctionTicketDetailsPage = () => {
         users.forEach(u => { map[u.id] = u; });
         setBidders(map);
 
-        // Fetch contractor email via admin API (emailVisibility hides it for regular users)
+        // Once a job is In Progress, matched parties may see each other's contact
+        // details. email is hidden by emailVisibility and phone/location are hidden
+        // on the users collection, so they're served by the authenticated,
+        // match-gated /contacts/users/:id route (returns 403 to non-matched users).
         const accepted = bidsData.find(b => b.status === 'accepted');
-        if (accepted?.masterId) {
-          try {
-            const resp = await apiServerClient.fetch(`/stripe/user-email?userId=${accepted.masterId}`);
-            if (resp.ok) {
-              const data = await resp.json();
-              setContractorContact(data);
-            }
-          } catch (_) {}
+        if (accepted?.masterId && ticketData.status === 'In Progress') {
+          const amClient = currentUser?.id === ticketData.clientId;
+          const amAcceptedContractor = currentUser?.id === accepted.masterId;
+          const otherPartyId = amClient
+            ? accepted.masterId
+            : (amAcceptedContractor ? ticketData.clientId : null);
+          if (otherPartyId) {
+            try {
+              const resp = await apiServerClient.fetch(`/contacts/users/${otherPartyId}`);
+              if (resp.ok) {
+                const data = await resp.json();
+                if (amClient) setContractorContact(data);
+                else setClientContact(data);
+              }
+            } catch (_) {}
+          }
         }
       }
     } catch (error) {
@@ -717,14 +729,16 @@ const AuctionTicketDetailsPage = () => {
                     <CardContent className="pt-4 space-y-2">
                       <p className="text-xs text-muted-foreground">{t('auction.bid_accepted_reach_out')}</p>
                       <div className="flex gap-2 flex-wrap">
-                        <a href={`mailto:${ticket.expand.clientId.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
-                          <Mail className="h-3.5 w-3.5 text-green-500" />
-                          {ticket.expand.clientId.email}
-                        </a>
-                        {ticket.expand.clientId.phone && (
-                          <a href={`tel:${ticket.expand.clientId.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
+                        {(clientContact?.email || ticket.expand.clientId.email) && (
+                          <a href={`mailto:${clientContact?.email || ticket.expand.clientId.email}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
+                            <Mail className="h-3.5 w-3.5 text-green-500" />
+                            {clientContact?.email || ticket.expand.clientId.email}
+                          </a>
+                        )}
+                        {(clientContact?.phone || ticket.expand.clientId.phone) && (
+                          <a href={`tel:${clientContact?.phone || ticket.expand.clientId.phone}`} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted hover:bg-muted/70 transition-colors text-xs">
                             <Phone className="h-3.5 w-3.5 text-green-500" />
-                            {ticket.expand.clientId.phone}
+                            {clientContact?.phone || ticket.expand.clientId.phone}
                           </a>
                         )}
                       </div>
