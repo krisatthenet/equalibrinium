@@ -32,8 +32,15 @@ migrate((app) => {
     if (existing.length > 0) return existing[0].id;
     const r = new Record(users);
     r.set("email", email);
-    r.set("password", "Test1234!");
-    r.set("passwordConfirm", "Test1234!");
+    // Demo accounts: use PB_SEED_USER_PASSWORD if provided, otherwise a random
+    // per-user password so no credential is ever committed to the repo.
+    const seedPw = $os.getenv("PB_SEED_USER_PASSWORD");
+    if (seedPw) {
+      r.set("password", seedPw);
+      r.set("passwordConfirm", seedPw);
+    } else {
+      r.setRandomPassword();
+    }
     r.set("name", name);
     r.set("userType", type);
     r.set("phone", phone);

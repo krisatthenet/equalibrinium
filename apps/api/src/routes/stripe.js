@@ -293,20 +293,9 @@ router.get('/client-portal', requirePbAuth, async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// GET /stripe/user-email?userId=...  — return email using admin credentials
-// ---------------------------------------------------------------------------
-router.get('/user-email', async (req, res) => {
-  try {
-    const { userId } = req.query;
-    if (!userId) return res.status(400).json({ error: 'userId is required' });
-    const pb = await adminPb();
-    const user = await pb.collection('users').getOne(userId);
-    res.json({ email: user.email, phone: user.phone || null });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Removed: GET /stripe/user-email — it returned any user's email + phone by id
+// with no auth and no relationship check (IDOR). Replaced by the authenticated,
+// match-gated GET /contacts/users/:id route (apps/api/src/routes/contacts.js).
 
 // ---------------------------------------------------------------------------
 // POST /stripe/request-payout
