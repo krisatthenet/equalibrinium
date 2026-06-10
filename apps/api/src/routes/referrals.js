@@ -36,7 +36,9 @@ router.get('/stats', requirePbAuth, async (req, res) => {
         try {
           const referred = await pb.collection('users').getOne(r.referredId, { fields: 'id,name' });
           name = referred.name || 'Unknown';
-        } catch (_) {}
+        } catch (_) {
+          // referred user may have been deleted — leave name as 'Unknown'
+        }
         return { id: r.id, date: r.rewardedAt, name, earned: 10 };
       })
     );
