@@ -173,7 +173,7 @@ const AdminDevPage = () => {
             {[
               { label: 'PocketBase Admin UI', url: 'https://pocketbase.workbee.space/_/' },
               { label: 'Railway Dashboard', url: 'https://railway.app/dashboard' },
-              { label: 'GitHub Repo', url: 'https://github.com/krisatthenet/equalibrinium' },
+              { label: 'GitHub Repo', url: 'https://github.com/krisatthenet/workbee' },
               { label: 'Stripe Dashboard', url: 'https://dashboard.stripe.com' },
               { label: 'Google reCAPTCHA Console', url: 'https://console.cloud.google.com/security/recaptcha' },
               { label: 'Mixpanel', url: 'https://mixpanel.com' },
