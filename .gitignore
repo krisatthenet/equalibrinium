@@ -23,3 +23,6 @@ node-v26.0.0-win-x64/
 node.zip
 nvm-setup.exe
 .mcp.json
+
+# Claude Code runtime state
+.claude/scheduled_tasks.lock
