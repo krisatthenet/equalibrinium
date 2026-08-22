@@ -12,6 +12,7 @@ import chatRouter from './chat.js';
 import ticketsRouter from './tickets.js';
 import reviewsRouter from './reviews.js';
 import twitchRouter from './twitch.js';
+import complianceRouter from './compliance.js';
 
 const router = Router();
 
@@ -30,6 +31,7 @@ export default () => {
   router.use('/tickets', ticketsRouter);
   router.use('/reviews', reviewsRouter);
   router.use('/twitch', twitchRouter);
+  router.use('/compliance', complianceRouter);
 
   return router;
 };
