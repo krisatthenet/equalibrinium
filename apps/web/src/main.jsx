@@ -1,8 +1,11 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { initSentry } from '@/lib/sentry.js';
 import '@/i18n.js'; // Initialize i18n before rendering App
 import App from '@/App.jsx';
 import '@/index.css';
+
+initSentry();
 
 // After a new deployment, cached HTML may reference old chunk hashes that no
 // longer exist on the server. Reload once to get fresh HTML + new chunk URLs.

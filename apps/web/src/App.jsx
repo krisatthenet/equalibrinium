@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useState, useTransition, Component } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 
+import { sentryCaptureBoundaryError } from '@/lib/sentry.js';
 import { AuthProvider } from '@/contexts/AuthContext.jsx';
 import { AdminAuthProvider } from '@/contexts/AdminAuthContext.jsx';
 import { Toaster } from '@/components/ui/toaster';
@@ -61,6 +62,9 @@ const AdminBoardPage = React.lazy(() => import('@/pages/admin/AdminBoardPage.jsx
 class ErrorBoundary extends Component {
   state = { hasError: false };
   static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error, errorInfo) {
+    sentryCaptureBoundaryError(error, { componentStack: errorInfo?.componentStack });
+  }
   render() {
     if (this.state.hasError) {
       return (

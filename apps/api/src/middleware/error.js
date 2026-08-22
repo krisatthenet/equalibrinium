@@ -2,7 +2,7 @@ import logger from '../utils/logger.js';
 import { NodeEnv } from '../constants/common.js';
 
 export default (err, req, res, next) => {
-	logger.error(err.message, err.stack);
+	logger.error(err);
 
 	if (res.headersSent) {
 		return next(err);
