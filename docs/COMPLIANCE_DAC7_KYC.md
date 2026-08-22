@@ -30,19 +30,38 @@ Validators live in `apps/web/src/lib/ltValidation.js`. IBAN is normalised
 the contractor can read their own `contractor_kyc` record (owner rule), but a
 settings UI for it is not yet built.
 
+## Implemented (v1.10x) — qualifying-threshold report
+
+`GET /compliance/dac7-report?year=YYYY&format=json|csv` (`apps/api/src/routes/compliance.js`)
+identifies which contractors crossed the DAC7 threshold (>=30 transactions OR
+>=€2,000) for a given calendar year, from completed `payments` records. Since
+`payments.userId` is the payer (client), not the contractor, the contractor is
+resolved per payment via `ticket.acceptedBidId -> bid.masterId` (the same
+fallback the Stripe webhook uses when session metadata is missing).
+
+Gated by a shared secret (`x-internal-secret` header vs. `DAC7_REPORT_SECRET`
+env var), fails closed if the env var is unset — there is no admin user role
+in this app to check against otherwise. Response includes `qualifying`
+(contractorId, name, transactionCount, totalAmountEUR, personalCode,
+businessCode, iban, missingKyc flag), `belowThresholdCount`, and
+`unresolvedCount` (payments whose contractor couldn't be resolved — a data-
+quality signal, not expected to be non-zero in normal operation).
+
+**This is a working export for internal/legal review — NOT a verified VMI
+submission format.** See item 3 below.
+
 ## Deferred — DAC7 reporting
 
 **Goal:** annually report qualifying contractors to VMI per the DAC7 directive
 (EU platform-operator reporting).
 
-Open items before building:
+Open items before submitting anything to VMI:
+
 1. **TIN** — for Lithuanian individuals the TIN is generally the asmens kodas,
    so `personalCode` likely doubles as the TIN; **confirm** whether a separate
    `tin` field + country is needed for foreign contractors. Add a `tin` /
    `tinCountry` field at that point.
-2. **Qualifying threshold** — DAC7 exempts sellers below 30 transactions AND
-   €2,000 per year. Need a query over completed jobs/payouts per contractor per
-   calendar year to determine who qualifies.
+2. ~~**Qualifying threshold**~~ — done, see above.
 3. **Report format & submission** — VMI's exact schema (XML/JSON) and
    submission channel (portal upload vs API) must be verified against the
    official VMI/DAC7 spec. **Do not hard-code a format without verification —
