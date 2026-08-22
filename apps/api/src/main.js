@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 dotenv.config();
+import Sentry from './instrument.js';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -26,6 +27,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 process.on('SIGINT', async () => {
 	logger.info('Interrupted');
+	await Sentry.close(2000);
 	process.exit(0);
 });
 
@@ -35,6 +37,7 @@ process.on('SIGTERM', async () => {
 	await new Promise(resolve => setTimeout(resolve, 3000));
 
 	logger.info('Exiting');
+	await Sentry.close(2000);
 	process.exit();
 });
 
@@ -114,6 +117,8 @@ if (isProduction) {
 		// dist not present — API-only mode, SPA served separately
 	}
 }
+
+Sentry.setupExpressErrorHandler(app);
 
 app.use(errorMiddleware);
 

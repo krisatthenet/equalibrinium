@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import logger from '../utils/logger.js';
 
 const router = Router();
 
@@ -29,7 +30,7 @@ router.post('/verify', async (req, res) => {
 
     // Google returns an error object when the API key is invalid/unauthorized
     if (data?.error) {
-      console.error('reCAPTCHA Enterprise API error:', JSON.stringify(data.error));
+      logger.error('reCAPTCHA Enterprise API error:', JSON.stringify(data.error));
       // Fail open — misconfigured API key should not block users
       return res.json({ success: true, score: null });
     }
@@ -41,17 +42,17 @@ router.post('/verify', async (req, res) => {
     // Log suspicious signals for monitoring but never block — reCAPTCHA is a soft
     // signal and invalid tokens (expired, action mismatch) are common for real users.
     if (!valid) {
-      console.warn(`reCAPTCHA token invalid (fail open): reason=${invalidReason}, action=${action}`);
+      logger.warn(`reCAPTCHA token invalid (fail open): reason=${invalidReason}, action=${action}`);
       return res.json({ success: true, score: null });
     }
 
     if (score < 0.5) {
-      console.warn(`reCAPTCHA low score (fail open): score=${score}, action=${action}`);
+      logger.warn(`reCAPTCHA low score (fail open): score=${score}, action=${action}`);
     }
 
     res.json({ success: true, score });
   } catch (err) {
-    console.error('reCAPTCHA verify error:', err.message);
+    logger.error('reCAPTCHA verify error:', err);
     res.json({ success: true, score: null });
   }
 });

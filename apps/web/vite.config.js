@@ -328,6 +328,10 @@ export default defineConfig({
 	build: {
 		outDir: '../../dist/apps/web',
 		chunkSizeWarningLimit: 600,
+			// Emit .map files without a public sourceMappingURL comment — readable
+			// stack traces in Sentry require also uploading these via @sentry/vite-plugin,
+			// deferred as a fast-follow; for now this just avoids shipping maps unused.
+			sourcemap: 'hidden',
 		rollupOptions: {
 			external: [
 				'@babel/parser',
@@ -348,6 +352,7 @@ export default defineConfig({
 					if (id.includes('@radix-ui')) return 'vendor-radix';
 					if (id.includes('@googlemaps')) return 'vendor-maps';
 					if (id.includes('pocketbase')) return 'vendor-pb';
+						if (id.includes('@sentry')) return 'vendor-sentry';
 					if (id.includes('i18next') || id.includes('react-i18next')) return 'vendor-i18n';
 					if (id.includes('lucide-react')) return 'vendor-icons';
 					if (id.includes('@stripe') || id.includes('stripe')) return 'vendor-stripe';
