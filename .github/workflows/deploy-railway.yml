@@ -32,6 +32,13 @@ jobs:
       - uses: dorny/paths-filter@v3.0.2
         id: changes
         with:
+          # Without an explicit base, paths-filter diffs against the repo's default
+          # branch (dev), not the previous commit on main — right after a dev->main
+          # merge those are identical, so it silently reports 0 changed files and
+          # skips both deploy steps below. Diff against the previous main commit
+          # instead; fall back to the default branch for workflow_dispatch (which
+          # has no `before` SHA — harmless since those runs force-deploy anyway).
+          base: ${{ github.event.before || github.event.repository.default_branch }}
           filters: |
             pocketbase:
               - 'apps/pocketbase/**'
