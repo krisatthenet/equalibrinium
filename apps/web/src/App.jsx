@@ -9,6 +9,7 @@ import ProtectedRoute from '@/components/ProtectedRoute.jsx';
 import AdminRoute from '@/components/AdminRoute.jsx';
 import ScrollToTop from '@/components/ScrollToTop.jsx';
 import CookieConsent from '@/components/CookieConsent.jsx';
+import BugReportWidget from '@/components/BugReportWidget.jsx';
 import SparklesIntro from '@/components/SparklesIntro.jsx';
 // Critical entry pages — eager so /home /login /register show instantly
 import LoginPage from '@/pages/LoginPage.jsx';
@@ -246,6 +247,7 @@ const App = () => {
         <AdminAuthProvider>
           <AppRoutes />
         </AdminAuthProvider>
+        <BugReportWidget />
       </AuthProvider>
       <Toaster />
       <CookieConsent />
