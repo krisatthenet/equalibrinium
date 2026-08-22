@@ -55,6 +55,16 @@ submission format.** See item 3 below.
 **Goal:** annually report qualifying contractors to VMI per the DAC7 directive
 (EU platform-operator reporting).
 
+**Operating model (per owner, 2026-08-22, not yet legally verified):** WorkBee
+(the platform operator) submits the report to VMI — contractors do not file
+anything for this themselves. VMI's own pre-filled-declaration system then
+uses that submitted data to auto-populate each contractor's personal annual
+tax declaration; each contractor reviews and files their own declaration from
+there. The owner's own self-employment ("individuali veikla") tax filing is
+separate and unrelated to this reporting obligation, and the owner is not a
+VAT payer. This clarifies _who_ files what, but does **not** resolve items 1
+and 3 below — the actual VMI submission schema/channel is still unverified.
+
 Open items before submitting anything to VMI:
 
 1. **TIN** — for Lithuanian individuals the TIN is generally the asmens kodas,
